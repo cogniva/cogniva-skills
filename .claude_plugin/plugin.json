@@ -1,0 +1,15 @@
+{
+  "name": "cogniva-skills",
+  "version": "0.1.0",
+  "description": "A standardised skill repository for Cogniva's use.",
+  "author": {
+    "name": "Christine Salter",
+    "email": "c.salter@cogniva.ca"
+  },
+  "homepage": "https://github.com/cogniva/cogniva-skills",
+  "repository": "https://github.com/cogniva/cogniva-skills",
+  "license": "MIT",
+  "keywords": [
+    "skills"
+  ]
+}
