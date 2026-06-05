@@ -10,6 +10,11 @@ description: You MUST use this any time architectural decisions have been made. 
 
 This skill is a "background observer". It does not require manual invocation during every turn but should be active whenever you are engaged in tasks like `brainstorming`, `writing-plans`, or any design/planning phase.
 
+## <HARD-GATE>
+**Do NOT proceed to implementation, write any code, or modify project files unless an architectural decision has been documented or the transition from brainstorming/design is explicitly approved.** 
+This applies to EVERY project regardless of perceived simplicity.
+</HARD-GATE>
+
 ## Workflows
 
 ### 1. Continuous Monitoring
