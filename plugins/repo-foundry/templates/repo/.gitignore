@@ -1,0 +1,18 @@
+# .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+artifacts/
+TestResults/
+*.binlog
+
+# Node (Blazor tooling)
+node_modules/
+
+# OS
+Thumbs.db
+.DS_Store
