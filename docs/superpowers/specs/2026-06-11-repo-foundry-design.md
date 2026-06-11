@@ -10,11 +10,12 @@ A self-contained toolkit repo that packages everything needed to initialize and 
 
 ## Repo layout
 
-This repo is a **local Claude Code plugin marketplace** holding one plugin (`repo-foundry`) plus its own docs.
+This repo is a **Claude Code plugin marketplace** (`cogniva`, hosted at github.com/cogniva/cogniva-skills) holding the `repo-foundry` plugin plus its own docs. The pre-existing `cogniva-skills` plugin (skills: glossary, auto-doc) was merged in on 2026-06-11 and lives alongside it.
 
 ```
 NewRepo/
   .claude-plugin/marketplace.json
+  plugins/cogniva-skills/         # pre-existing shared skills (glossary, auto-doc)
   plugins/repo-foundry/
     .claude-plugin/plugin.json
     skills/

@@ -51,7 +51,7 @@ The architectural style of dividing a system by business capability rather than 
 
 ## Cogniva
 
-The brand name for this team's shared development tooling. The local Claude Code plugin marketplace in this repo is named `cogniva`; tools ship as plugins under it (currently `repo-foundry`). Tools are never named after individual team members.
+The brand name for this team's shared development tooling. The Claude Code plugin marketplace in this repo is named `cogniva` (hosted at github.com/cogniva/cogniva-skills); tools ship as plugins under it: `cogniva-skills` (shared skills: glossary, auto-doc) and `repo-foundry` (repo scaffolding toolkit). Tools are never named after individual team members.
 
 ## Plan
 

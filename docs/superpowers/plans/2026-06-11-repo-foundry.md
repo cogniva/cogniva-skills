@@ -21,7 +21,7 @@
 ### Task 1: Repo skeleton, marketplace + plugin manifests
 
 **Files:**
-- Create: `.claude-plugin/marketplace.json`
+- Modify: `.claude-plugin/marketplace.json` (exists — holds the `cogniva-skills` entry)
 - Create: `plugins/repo-foundry/.claude-plugin/plugin.json`
 - Create: `.gitattributes`
 - Create: `README.md`
@@ -34,15 +34,25 @@
 *.ps1 text eol=crlf
 ```
 
-- [ ] **Step 2: Create `.claude-plugin/marketplace.json`**
+- [ ] **Step 2: Add the repo-foundry entry to `.claude-plugin/marketplace.json`** — append to the existing `plugins` array, keeping the `cogniva-skills` entry untouched. Target state:
 
 ```json
 {
   "name": "cogniva",
   "owner": {
-    "name": "Cogniva"
+    "name": "Cogniva",
+    "email": "tools@cogniva.ca"
   },
   "plugins": [
+    {
+      "name": "cogniva-skills",
+      "source": "./plugins/cogniva-skills",
+      "description": "Skills used internally at Cogniva",
+      "version": "0.1.1",
+      "author": {
+        "name": "Cogniva"
+      }
+    },
     {
       "name": "repo-foundry",
       "source": "./plugins/repo-foundry",
@@ -68,12 +78,15 @@
 - [ ] **Step 4: Create `README.md`**
 
 ```markdown
-# Cogniva — repo setup toolkit
+# Cogniva — shared tooling marketplace
 
-Local Claude Code plugin marketplace. One plugin: **repo-foundry**.
+Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins: **cogniva-skills** and **repo-foundry**.
 
 | Piece | Purpose |
 |---|---|
+| `plugins/cogniva-skills/skills/glossary` | Terminology lookup via CONTEXT.md before codebase search |
+| `plugins/cogniva-skills/skills/auto-doc` | Auto-document architectural decisions as ADRs |
+| `plugins/cogniva-skills/plugin-template` | Starter template for new skills |
 | `plugins/repo-foundry/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
 | `plugins/repo-foundry/skills/add-module` | Add a Module (vertical slice) to an existing repo |
 | `plugins/repo-foundry/skills/plan-to-html` | Convert a markdown plan/spec to self-contained HTML |
@@ -83,11 +96,12 @@ Local Claude Code plugin marketplace. One plugin: **repo-foundry**.
 
 ## Install into any repo
 
-In Claude Code, from the consuming repo:
+In Claude Code, from the consuming repo (local path or `cogniva/cogniva-skills` from GitHub):
 
 ```
 /plugin marketplace add c:\WorkingGit\NewRepo
 /plugin install repo-foundry@cogniva
+/plugin install cogniva-skills@cogniva
 ```
 
 Then run the `repo-init` skill in an empty repo, or `add-module` in an existing one.
@@ -1014,10 +1028,12 @@ What this repo is, the conventions it encodes, and how to consume it.
 
 ## Purpose
 
-`cogniva` is a local Claude Code plugin marketplace. Its `repo-foundry` plugin
-packages our repo-initialization conventions so every new repo starts identical
-and improvements propagate (consuming repos reinstall/update the plugin instead
-of copying files).
+`cogniva` is Cogniva's Claude Code plugin marketplace (repo:
+github.com/cogniva/cogniva-skills). The `cogniva-skills` plugin carries shared
+skills (glossary, auto-doc); the `repo-foundry` plugin packages our
+repo-initialization conventions so every new repo starts identical and
+improvements propagate (consuming repos reinstall/update plugins instead of
+copying files).
 
 ## Conventions (canonical definitions: docs/glossary/README.md)
 
@@ -1034,12 +1050,14 @@ of copying files).
 
 ## Tooling inventory
 
-| Tool | Type | Trigger |
-|---|---|---|
-| repo-init | skill | user starts a new repo |
-| add-module | skill | user adds a vertical slice |
-| plan-to-html | skill | manual conversion / hook troubleshooting |
-| plan-to-html hook | PostToolUse hook | any Write/Edit of watched plan/spec markdown |
+| Tool | Plugin | Type | Trigger |
+|---|---|---|---|
+| repo-init | repo-foundry | skill | user starts a new repo |
+| add-module | repo-foundry | skill | user adds a vertical slice |
+| plan-to-html | repo-foundry | skill | manual conversion / hook troubleshooting |
+| plan-to-html hook | repo-foundry | PostToolUse hook | any Write/Edit of watched plan/spec markdown |
+| glossary | cogniva-skills | skill | unrecognized terminology (CONTEXT.md lookup) |
+| auto-doc | cogniva-skills | skill | architectural decisions during design/planning |
 
 ## Consuming in a new repo
 
@@ -1058,7 +1076,9 @@ of copying files).
 ## Roadmap (deliberately not yet)
 
 - Enforce dependency rules with Roslyn analyzers or ArchUnitNET tests.
-- Remote marketplace (move off local path) once a remote git host exists.
+- Unify the two glossary conventions: the cogniva-skills `glossary` skill reads
+  `CONTEXT.md`, while repo-foundry seeds `docs/glossary/README.md` — pick one
+  location (or teach the skill both) as a team decision.
 - NuGet packaging of module templates.
 - pwsh (PowerShell 7) support in hook command for non-Windows teammates.
 ```
@@ -1099,7 +1119,8 @@ git add -A && git commit -m "docs: strategy doc; sync spec with watched paths an
     }
   },
   "enabledPlugins": {
-    "repo-foundry@cogniva": true
+    "repo-foundry@cogniva": true,
+    "cogniva-skills@cogniva": true
   }
 }
 ```
