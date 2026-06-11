@@ -21,7 +21,7 @@ Scaffold a new Module-architecture .NET repo. Templates live at
 3. Copy from the plugin `templates/repo/` into the repo root:
    `CLAUDE.md`, `.gitignore`, `.editorconfig`, `.gitattributes`.
 4. Copy `templates/glossary/README.md` to `docs/glossary/README.md`.
-5. Create empty dirs: `docs/plans/`, `docs/superpowers/specs/`, `docs/superpowers/plans/`.
+5. Create empty dirs: `docs/plans/`, `docs/superpowers/specs/`, `docs/superpowers/plans/`. Drop a `.gitkeep` file in each so git tracks them.
 6. Create the solution and shared build props:
 
    dotnet new sln -n <RepoName>
@@ -43,10 +43,10 @@ Scaffold a new Module-architecture .NET repo. Templates live at
    - Web: `dotnet new web -n <RepoName>.Host.Web -o src/Hosts/Web` then `dotnet sln add src/Hosts/Web`
    - WPF: `dotnet new wpf -n <RepoName>.Host.Wpf -o src/Hosts/Wpf` then `dotnet sln add src/Hosts/Wpf`
      and `dotnet add src/Hosts/Wpf package Microsoft.AspNetCore.Components.WebView.Wpf`
-8. First Module: invoke the `add-module` skill with the chosen Module name.
+8. First Module: invoke the `add-module` skill with the chosen Module name. Skip add-module's build and commit steps — repo-init runs its own build (step 9) and commit (step 11).
 9. `dotnet build` - must succeed.
 10. Recommend the user install this plugin in the new repo:
-    `/plugin marketplace add c:\WorkingGit\NewRepo` then `/plugin install repo-foundry@cogniva`
+    `/plugin marketplace add cogniva/cogniva-skills` (or the path of your local clone) then `/plugin install repo-foundry@cogniva`
     (enables the plan-to-html hook there).
 11. Commit everything: `git add -A && git commit -m "chore: scaffold <RepoName> via repo-foundry"`.
 

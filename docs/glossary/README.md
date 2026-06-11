@@ -61,8 +61,8 @@ The brand name for this team's shared development tooling. The Claude Code plugi
 
 ## Plan
 
-An implementation plan document in `docs/plans/`, produced by the writing-plans workflow. Automatically gets an HTML twin via the plan-to-html hook.
+An implementation plan document in `docs/plans/` or `docs/superpowers/plans/`, produced by the writing-plans workflow. Automatically gets an HTML twin via the plan-to-html hook.
 
 ## Spec
 
-A validated design document in `docs/superpowers/specs/`, produced by the brainstorming workflow. Also gets an HTML twin automatically.
+A validated design document in `docs/superpowers/specs/` or `docs/specs/`, produced by the brainstorming workflow. Also gets an HTML twin automatically.

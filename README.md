@@ -16,10 +16,10 @@ Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins: **cogniva-ski
 
 ## Install into any repo
 
-In Claude Code, from the consuming repo (local path or `cogniva/cogniva-skills` from GitHub):
+In Claude Code, from the consuming repo (GitHub, or substitute the path of a local clone):
 
 ```
-/plugin marketplace add c:\WorkingGit\NewRepo
+/plugin marketplace add cogniva/cogniva-skills
 /plugin install repo-foundry@cogniva
 /plugin install cogniva-skills@cogniva
 ```

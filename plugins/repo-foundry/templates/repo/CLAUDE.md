@@ -28,6 +28,6 @@ This repo uses Module (vertical slice) architecture. Definitions: docs/glossary/
 
 ## Plans and specs
 
-- Specs: `docs/superpowers/specs/` - Plans: `docs/superpowers/plans/` or `docs/plans/`.
+- Specs: `docs/superpowers/specs/` or `docs/specs/` - Plans: `docs/superpowers/plans/` or `docs/plans/`.
 - Writing a plan/spec markdown auto-generates an HTML twin (plan-to-html hook).
   When reporting an HTML artifact, END the message with its raw `file:///` URL.

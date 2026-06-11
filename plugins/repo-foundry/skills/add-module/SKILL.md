@@ -34,8 +34,7 @@ Add one Module named `<M>` (PascalCase, e.g. `Orders`) to an existing repo.
    dotnet add src/Modules/<M>/<M>.UI reference src/Modules/<M>/<M>.Contracts
    If Client: dotnet add src/Modules/<M>/<M>.Client reference src/Modules/<M>/<M>.Contracts
 
-4. Add all new projects to the solution: dotnet sln add src/Modules/<M>/**.csproj
-   (or list each project path explicitly if globbing fails).
+4. Add each new project to the solution explicitly (globbing like `**.csproj` is not expanded by Windows shells or `dotnet sln`): `dotnet sln add src/Modules/<M>/<M>.Contracts src/Modules/<M>/<M>.Domain src/Modules/<M>/<M>.Application src/Modules/<M>/<M>.Infrastructure src/Modules/<M>/<M>.UI` (plus `<M>.Client` if created).
 5. Test project:
 
    dotnet new xunit -n <M>.Application.Tests -o tests/Modules/<M>/<M>.Application.Tests

@@ -37,7 +37,7 @@ copying files).
 
 ## Consuming in a new repo
 
-1. `/plugin marketplace add c:\WorkingGit\NewRepo`
+1. `/plugin marketplace add cogniva/cogniva-skills` (or the path of your local clone)
 2. `/plugin install repo-foundry@cogniva`
 3. Run the repo-init skill.
 

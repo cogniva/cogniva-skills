@@ -10,7 +10,7 @@ Convert a markdown plan/spec into one self-contained HTML file (no network neede
 ## Steps
 
 1. Identify the markdown file. If the user didn't name one, use the most recently
-   modified file under `docs/plans/`, `docs/superpowers/plans/`, or `docs/superpowers/specs/`.
+   modified file under `docs/plans/`, `docs/superpowers/plans/`, `docs/superpowers/specs/`, or `docs/specs/`.
 2. Locate the converter relative to this skill's base directory:
    `<skill-base-dir>/../../scripts/convert-plan.ps1`.
 3. Run (Windows):
