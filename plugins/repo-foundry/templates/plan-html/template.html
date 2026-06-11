@@ -35,6 +35,8 @@
   table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
   th, td { border: 1px solid var(--border); padding: .45rem .7rem; text-align: left; vertical-align: top; }
   th { background: var(--code-bg); }
+  table { display: block; overflow-x: auto; }
+  img { max-width: 100%; }
   pre.mermaid { background: transparent; border: none; text-align: center; }
   details { border: 1px solid var(--border); border-radius: 8px; padding: 0 1rem; margin: 1rem 0; }
   details[open] { padding-bottom: .5rem; }
@@ -127,14 +129,14 @@ if (typeof mermaid !== 'undefined' && document.querySelector('pre.mermaid')) {
     startOnLoad: false,
     theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
   });
-  mermaid.run({ querySelector: 'pre.mermaid' });
+  mermaid.run({ querySelector: 'pre.mermaid' }).catch(function () {});
 }
 
 // Glossary auto-linking: first whole-word occurrence per section, case-insensitive
 var usedTerms = new Set();
 function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function linkTermsIn(scope) {
-  GLOSSARY_TERMS.forEach(function (t) {
+  GLOSSARY_TERMS.slice().sort(function (a, b) { return b.term.length - a.term.length; }).forEach(function (t) {
     var re = new RegExp('\\b(' + escapeRegex(t.term) + ')\\b', 'i');
     var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
       acceptNode: function (n) {
@@ -149,7 +151,7 @@ function linkTermsIn(scope) {
         var a = document.createElement('a');
         a.href = '#glossary-' + t.anchor;
         a.className = 'glossary-link';
-        a.title = t.definition.replace(/\s+/g, ' ').slice(0, 240);
+        a.title = t.definition.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`]/g, '').replace(/\s+/g, ' ').slice(0, 240);
         a.textContent = m[1];
         var after = node.splitText(m.index);
         after.nodeValue = after.nodeValue.slice(m[1].length);
