@@ -70,14 +70,14 @@ graph TD
 
 ## Plan-to-HTML automation
 
-- `PostToolUse` hook on Write/Edit; script checks the path against `docs/plans/**/*.md` and `docs/superpowers/specs/**/*.md`
+- `PostToolUse` hook on Write/Edit; script checks the path against `docs/plans/`, `docs/specs/`, `docs/superpowers/plans/`, and `docs/superpowers/specs/` (`*.md`)
 - On match: `convert-plan.ps1` regenerates the sibling `.html` (idempotent, overwrites)
 - Hook feeds context back so Claude reports "HTML ready" and offers to open it — always ending the message with the raw `file:///` URL
 - Conversion failure never blocks the write — it warns and moves on
 
 ## Testing & verification
 
-- **Converter:** sample plan fixture (headings, tables, Mermaid, code blocks, glossary terms) + Pester test asserting valid self-contained output
+- **Converter:** sample plan fixture (headings, tables, Mermaid, code blocks, glossary terms) + plain-PowerShell assertion script (`tests/run-tests.ps1`; Pester dropped: PS 5.1 ships incompatible Pester 3.4)
 - **Skills:** verified per the writing-skills checklist; hook tested by writing a dummy plan and confirming HTML appears
 - **repo-init / add-module:** dry-run against a temp directory before first real use
 
