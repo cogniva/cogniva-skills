@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary Conventions — Comparison &amp; Merge Options</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --accent: #0969da; --code-bg: #f6f8fa;
+    --rec-bg: #dafbe1; --rec-fg: #116329;
+    --warn-bg: #fff8c5; --warn-border: #d4a72c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --accent: #4493f8; --code-bg: #161b22;
+      --rec-bg: #0f2f1a; --rec-fg: #3fb950;
+      --warn-bg: #3a3000; --warn-border: #d4a72c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px; line-height: 1.6; }
+  main { max-width: 56rem; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+  header.doc { border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; }
+  h1 { font-size: 1.8rem; line-height: 1.25; margin: 0 0 .5rem; }
+  h2 { font-size: 1.35rem; margin-top: 2.5rem; padding-bottom: .3rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.05rem; margin-top: 1.5rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .badges { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .badge { display: inline-block; font-size: .75rem; font-weight: 600;
+    padding: .15rem .6rem; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+  .badge.decision { background: var(--warn-bg); border-color: var(--warn-border); color: var(--fg); }
+  .badge.rec { background: var(--rec-bg); color: var(--rec-fg); border-color: transparent; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.5; }
+  code { font-family: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace; }
+  p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: .1em .35em; font-size: .85em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .9rem; }
+  th, td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); }
+  td.same { color: var(--rec-fg); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  .option { border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+  .option.recommended { border-color: var(--rec-fg); border-width: 2px; }
+  .option h3 { margin-top: 0; }
+  .callout { border-left: 4px solid var(--accent); background: var(--code-bg);
+    padding: .75rem 1rem; border-radius: 0 8px 8px 0; margin: 1.25rem 0; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--border);
+    font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<header class="doc">
+  <h1>Glossary Conventions — Comparison &amp; Merge Options</h1>
+  <div class="badges">
+    <span class="badge decision">TEAM DECISION NEEDED</span>
+    <span class="badge">2026-06-11</span>
+    <span class="badge">cogniva marketplace</span>
+  </div>
+</header>
+
+<p><strong>TL;DR:</strong> The two conventions disagree on <em>where the glossary lives</em> and <em>what an entry looks like</em>, but their behaviors are complementary: the <code>cogniva-skills</code> glossary skill governs <em>lookup discipline</em> (check the glossary before searching the codebase), while the repo-foundry convention governs <em>communication</em> (use and link glossary terms in every discussion, render them in plan HTML). Recommendation: <strong>Option A — one merged convention</strong> keeping <code>docs/glossary/README.md</code> as the location, adopting the CONTEXT.md content rules, and updating the skill's paths.</p>
+
+<h2 id="side-by-side">1. Side-by-side differences</h2>
+
+<table>
+  <thead><tr><th></th><th>cogniva-skills <code>glossary</code> skill (Christine)</th><th>repo-foundry convention (this repo's docs)</th></tr></thead>
+  <tbody>
+    <tr>
+      <th>File location</th>
+      <td><code>CONTEXT.md</code> at repo root; multi-context repos add a root <code>CONTEXT-MAP.md</code> pointing to per-context files (e.g. <code>src/ordering/CONTEXT.md</code>)</td>
+      <td><code>docs/glossary/README.md</code> as the stable index; splits into <code>docs/glossary/&lt;topic&gt;.md</code> as it grows</td>
+    </tr>
+    <tr>
+      <th>Entry format</th>
+      <td><strong>Bold term</strong> + 1–2 sentence definition + <code>_Avoid_:</code> alias list, under a <code>## Language</code> section; optional example dialogue</td>
+      <td><code>## Term</code> heading + 1–2 sentence definition + Mermaid diagram where a flow/relationship is clearer shown + cross-links between entries</td>
+    </tr>
+    <tr>
+      <th>Linkability</th>
+      <td>Bold terms have <strong>no anchors</strong> — you can link the file, not the term</td>
+      <td>H2 headings give every term an anchor — clickable links per term, and the planned plan-to-html auto-linking depends on them</td>
+    </tr>
+    <tr>
+      <th>Agent behavior</th>
+      <td><strong>Lookup gate:</strong> glossary checked BEFORE Grep/Glob/WebSearch on any unrecognized term; challenges conflicting usage; sharpens fuzzy language</td>
+      <td><strong>Communication protocol:</strong> glossary terms used and linked in every discussion; terms referenced in specs/plans/HTML output</td>
+    </tr>
+    <tr>
+      <th>Update policy</th>
+      <td>Update inline the moment a definition is agreed (no batching); create the file lazily</td>
+      <td>Propose-then-confirm: draft the entry, write only after the user confirms</td>
+    </tr>
+    <tr>
+      <th>Content rules</th>
+      <td>Opinionated canonical term + aliases to avoid; what it IS, not what it does; no implementation details; no general programming concepts</td>
+      <td>Succinct definitions; cross-link related terms instead of repeating; diagrams where they clarify</td>
+    </tr>
+    <tr>
+      <th>Multi-glossary model</th>
+      <td>Per <em>bounded context</em> (DDD) — maps naturally onto our Modules</td>
+      <td>Per <em>topic</em> file under <code>docs/glossary/</code></td>
+    </tr>
+    <tr>
+      <th>Tooling ties</th>
+      <td>Pairs with <code>auto-doc</code> ADRs (<code>docs/adr/</code>)</td>
+      <td>Pairs with <code>plan-to-html</code> (auto-linked terms + in-page glossary appendix) and <code>repo-init</code> seeding</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>Where they already agree:</strong> 1–2 sentence definitions; one agreed meaning per term; the glossary as the authoritative source of truth; both expect the agent to surface ambiguity and propose entries; both get user agreement before a definition is final.
+</div>
+
+<h2 id="samples">2. The same entry in each format</h2>
+
+<div class="cols">
+<div>
+<h3>CONTEXT.md style</h3>
+<pre>## Language
+
+**Module**:
+A vertical slice of a system
+containing its own Clean
+Architecture layers.
+_Avoid_: feature, component,
+bounded context</pre>
+</div>
+<div>
+<h3>docs/glossary style</h3>
+<pre>## Module
+
+A vertical slice of a system under
+`src/Modules/&lt;Name&gt;/`, containing its
+own Clean Architecture layers:
+[Contracts](#contracts), [Domain](#domain),
+...communicate ONLY through Contracts.
+
+```mermaid
+graph TD
+  UI --> C[Contracts] ...
+```</pre>
+</div>
+</div>
+
+<h2 id="options">3. Merge options</h2>
+
+<div class="option recommended">
+<h3>Option A — One merged convention <span class="badge rec">RECOMMENDED</span></h3>
+<p><strong>Location wins from repo-foundry, content rules win from CONTEXT.md, behaviors are kept from both.</strong></p>
+<ul>
+  <li>Canonical file stays <code>docs/glossary/README.md</code> (stable entry point, per-term anchors, plan-to-html compatibility, IDE-clickable links).</li>
+  <li>Entry format: <code>## Term</code> heading + 1–2 sentence definition + adopt <code>_Avoid_:</code> alias lines + optional Mermaid + cross-links. Adopt "what it IS, not what it does", "no implementation details", "no general programming concepts".</li>
+  <li>Multi-context: per-context files <code>docs/glossary/&lt;context&gt;.md</code>; the index doubles as the context map, adopting the <code>Relationships</code> section from CONTEXT-MAP.md. Contexts usually correspond to Modules.</li>
+  <li>Update the <code>glossary</code> skill: activate on <code>docs/glossary/README.md</code> (keep <code>CONTEXT.md</code> for back-compat), search the <code>docs/glossary/</code> tree. <strong>Keep its glossary-before-search lookup gate unchanged</strong> — it complements the linking protocol rather than conflicting with it.</li>
+  <li>Update policy: propose-then-confirm, applied immediately after confirmation (both sides effectively do this already).</li>
+  <li>Bump <code>cogniva-skills</code> to 0.2.0; document the convention in <code>docs/strategy.md</code>; record the decision as ADR 0001 via <code>auto-doc</code>.</li>
+</ul>
+<p><strong>Cost:</strong> one skill edit + format touch-up of existing glossaries. <strong>Risk:</strong> low — back-compat keeps CONTEXT.md repos working.</p>
+</div>
+
+<div class="option">
+<h3>Option B — Adopt CONTEXT.md wholesale</h3>
+<ul>
+  <li>Move <code>docs/glossary/README.md</code> content into root <code>CONTEXT.md</code>; skill untouched.</li>
+  <li><strong>Loses:</strong> per-term anchors (bold terms aren't linkable), the stable <code>docs/</code> entry point, and plan-to-html term auto-linking would need a different parser; root-level file crowds the repo root in every project.</li>
+  <li><strong>Gains:</strong> zero changes to the existing skill.</li>
+</ul>
+<p><strong>Cost:</strong> rework of repo-foundry's converter/templates + the documented protocol. <strong>Risk:</strong> medium — breaks the linking workflow the team already uses.</p>
+</div>
+
+<div class="option">
+<h3>Option C — Pointer bridge (status quo plus glue)</h3>
+<ul>
+  <li>Keep both: <code>docs/glossary/README.md</code> stays canonical; a one-line root <code>CONTEXT.md</code> points to it ("The glossary lives at docs/glossary/README.md"), which also activates the skill.</li>
+  <li><strong>Gains:</strong> no edits to either convention today.</li>
+  <li><strong>Loses:</strong> permanent two-file indirection in every repo; the skill's instructions still talk about CONTEXT.md formats that nobody maintains; confusion persists for new team members.</li>
+</ul>
+<p><strong>Cost:</strong> trivial now, paid forever. <strong>Risk:</strong> low short-term, drifts long-term.</p>
+</div>
+
+<h2 id="next">4. If Option A is chosen</h2>
+<ol>
+  <li>Edit <code>plugins/cogniva-skills/skills/glossary/SKILL.md</code> + <code>CONTEXT-FORMAT.md</code>: activation paths, search paths, entry format (h2 headings + <code>_Avoid_</code> lines), index-as-context-map.</li>
+  <li>Add <code>_Avoid_:</code> lines to this repo's glossary entries where aliases exist (e.g. Module — avoid: feature, slice, bounded context).</li>
+  <li>Bump <code>cogniva-skills</code> version to 0.2.0 in <code>plugin.json</code> and the marketplace entry.</li>
+  <li>Record as ADR 0001 in <code>docs/adr/</code> (the auto-doc skill's format).</li>
+  <li>Remove the "unify glossary conventions" item from the strategy roadmap (it lands in the repo-foundry plan's Task 10 strategy doc).</li>
+</ol>
+
+<footer>
+  glossary conventions comparison · 2026-06-11 · status: awaiting team decision ·
+  hand-built in the plan-to-html output style
+</footer>
+
+</main>
+</body>
+</html>
