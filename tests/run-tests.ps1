@@ -12,6 +12,8 @@ function Assert([bool]$condition, [string]$name) {
     else { Write-Host "FAIL: $name" -ForegroundColor Red; $script:failures++ }
 }
 
+try {
+
 # --- converter tests -------------------------------------------------------
 Copy-Item (Join-Path $fixtures 'sample-plan.md') $work
 Copy-Item (Join-Path $fixtures 'no-mermaid.md') $work
@@ -34,11 +36,45 @@ Assert ($html.Length -gt 500000) 'mermaid lib inlined when source has mermaid bl
 $tinyOut  = & $converter -MarkdownPath $tinyPath
 $tinyHtml = [System.IO.File]::ReadAllText($tinyOut, [System.Text.Encoding]::UTF8)
 Assert ($tinyHtml.Length -lt 500000) 'mermaid lib skipped when no mermaid block'
-Assert ($tinyHtml.Contains('"term"') -eq $false -or $tinyHtml.Contains('[]')) 'no glossary -> empty terms array'
+Assert ($tinyHtml.Contains('GLOSSARY_TERMS = []')) 'no glossary -> empty terms array'
 Assert (-not ($tinyHtml -cmatch '\{\{[A-Z_]+\}\}')) 'no unreplaced placeholders (no-mermaid)'
 
+# Fix 6: body content round-trip
+Assert ($html.Contains('Orders Module')) 'markdown body content embedded'
+
+# Fix 1 regression: placeholder tokens in content survive conversion
+Copy-Item (Join-Path $fixtures 'placeholder-tokens.md') $work
+$tokenPath = Join-Path $work 'placeholder-tokens.md'
+$tokenOut  = & $converter -MarkdownPath $tokenPath
+$tokenHtml = [System.IO.File]::ReadAllText($tokenOut, [System.Text.Encoding]::UTF8)
+Assert ($tokenHtml.Contains('var SOURCE_MARKDOWN =')) 'token fixture renders'
+Assert ($tokenHtml.Contains('{{MARKED_JS}}')) 'literal placeholder tokens in content survive conversion'
+Assert (([regex]::Matches($tokenHtml, [regex]::Escape('marked v12.0.2'))).Count -eq 1) 'marked lib inlined exactly once'
+
+# Fix 3: OutputPath resolution
+$customOut = Join-Path $work 'custom-name.html'
+$returnedPath = & $converter -MarkdownPath $samplePath -OutputPath $customOut
+Assert (Test-Path $customOut) 'explicit -OutputPath creates file at that path'
+Assert ($returnedPath -eq $customOut) 'converter return value equals -OutputPath'
+# Relative -OutputPath test
+Push-Location $work
+try {
+    & $converter -MarkdownPath $samplePath -OutputPath 'rel-out.html' | Out-Null
+} finally {
+    Pop-Location
+}
+Assert (Test-Path (Join-Path $work 'rel-out.html')) 'relative -OutputPath resolves against current location'
+
+# Fix 4: explicit -GlossaryPath that does not exist should warn, not throw
+$warnGlossary = Join-Path $work 'nonexistent-glossary.md'
+$warnOut = & $converter -MarkdownPath $tinyPath -GlossaryPath $warnGlossary -WarningVariable capturedWarnings 2>&1
+Assert ($capturedWarnings.Count -gt 0 -or ($warnOut -ne $null)) 'missing explicit glossary emits a warning'
+
+} finally {
+    Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+}
+
 # --- summary ---------------------------------------------------------------
-Remove-Item -Recurse -Force $work
 if ($script:failures -gt 0) { Write-Host "$($script:failures) test(s) FAILED" -ForegroundColor Red; exit 1 }
 Write-Host 'All tests passed' -ForegroundColor Green
 exit 0

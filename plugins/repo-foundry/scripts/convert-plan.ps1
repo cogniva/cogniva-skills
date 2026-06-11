@@ -32,15 +32,19 @@ if ($h1.Success) { $title = $h1.Groups[1].Value.Trim() }
 
 # Glossary terms: each "## Term" heading + body becomes {term, anchor, definition}
 $terms = @()
-if ($GlossaryPath -and (Test-Path $GlossaryPath)) {
-    $glossaryText = [System.IO.File]::ReadAllText((Resolve-Path $GlossaryPath).Path, [System.Text.Encoding]::UTF8)
-    $sections = [regex]::Matches($glossaryText, '(?ms)^##\s+(.+?)\s*\r?$(.*?)(?=^##\s|\z)')
-    foreach ($s in $sections) {
-        $name = $s.Groups[1].Value.Trim()
-        $defn = [regex]::Replace($s.Groups[2].Value, '(?ms)```mermaid.*?```', '').Trim()
-        $anchor = [regex]::Replace($name.ToLowerInvariant(), '[^a-z0-9\s-]', '')
-        $anchor = [regex]::Replace($anchor, '\s+', '-')
-        $terms += [pscustomobject]@{ term = $name; anchor = $anchor; definition = $defn }
+if ($GlossaryPath) {
+    if (Test-Path $GlossaryPath) {
+        $glossaryText = [System.IO.File]::ReadAllText((Resolve-Path $GlossaryPath).Path, [System.Text.Encoding]::UTF8)
+        $sections = [regex]::Matches($glossaryText, '(?ms)^##\s+(.+?)\s*\r?$(.*?)(?=^##\s|\z)')
+        foreach ($s in $sections) {
+            $name = $s.Groups[1].Value.Trim()
+            $defn = [regex]::Replace($s.Groups[2].Value, '(?ms)```mermaid.*?```', '').Trim()
+            $anchor = [regex]::Replace($name.ToLowerInvariant(), '[^a-z0-9\s-]', '')
+            $anchor = [regex]::Replace($anchor, '\s+', '-')
+            $terms += [pscustomobject]@{ term = $name; anchor = $anchor; definition = $defn }
+        }
+    } else {
+        Write-Warning "Glossary not found: $GlossaryPath - generating without glossary links"
     }
 }
 
@@ -59,13 +63,28 @@ if ($markdown -match '(?m)^\s*```mermaid') {
 $titleHtml = [System.Net.WebUtility]::HtmlEncode($title)
 $generated = Get-Date -Format 'yyyy-MM-dd HH:mm'
 
-$html = $template.Replace('{{TITLE}}', $titleHtml)
-$html = $html.Replace('{{GENERATED}}', $generated)
-$html = $html.Replace('{{MARKDOWN_JSON}}', $markdownJson)
-$html = $html.Replace('{{TERMS_JSON}}', $termsJson)
-$html = $html.Replace('{{MARKED_JS}}', $markedJs)
-$html = $html.Replace('{{MERMAID_JS}}', $mermaidJs)
+# Fix 1: single-pass substitution so placeholder tokens inside $markdownJson
+# (e.g. when the source document quotes the template's own tokens) are not
+# corrupted by later sequential .Replace calls.
+$script:map = @{
+    'TITLE'         = $titleHtml
+    'GENERATED'     = $generated
+    'MARKDOWN_JSON' = $markdownJson
+    'TERMS_JSON'    = $termsJson
+    'MARKED_JS'     = $markedJs
+    'MERMAID_JS'    = $mermaidJs
+}
+$evaluator = { param($m)
+    $key = $m.Groups[1].Value
+    if ($script:map.ContainsKey($key)) { $script:map[$key] } else { $m.Value }
+}.GetNewClosure()
+$html = [regex]::Replace($template, '\{\{([A-Z_]+)\}\}', $evaluator)
 
-if (-not $OutputPath) { $OutputPath = [System.IO.Path]::ChangeExtension($MarkdownPath, '.html') }
+# Fix 3: resolve a relative -OutputPath against the PowerShell working location
+if (-not $OutputPath) {
+    $OutputPath = [System.IO.Path]::ChangeExtension($MarkdownPath, '.html')
+} else {
+    $OutputPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
+}
 [System.IO.File]::WriteAllText($OutputPath, $html, (New-Object System.Text.UTF8Encoding($false)))
 Write-Output $OutputPath
