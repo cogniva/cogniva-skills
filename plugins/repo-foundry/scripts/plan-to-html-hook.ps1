@@ -19,8 +19,8 @@ try {
     $glossary = Join-Path $cwd 'docs\glossary\README.md'
     if (Test-Path $glossary) { $params.GlossaryPath = $glossary }
 
-    $htmlPath = & $converter @params
-    $fileUrl = 'file:///' + (($htmlPath | Select-Object -Last 1) -replace '\\', '/')
+    $htmlPath = (& $converter @params 3>$null | Select-Object -Last 1)
+    $fileUrl = 'file:///' + (($htmlPath -replace '\\', '/') -replace ' ', '%20')
     $context = "plan-to-html hook: regenerated the HTML twin at $htmlPath. " +
         "Tell the user it is updated and END your message with this URL on its own line: $fileUrl"
     $out = @{ hookSpecificOutput = @{ hookEventName = 'PostToolUse'; additionalContext = $context } }
