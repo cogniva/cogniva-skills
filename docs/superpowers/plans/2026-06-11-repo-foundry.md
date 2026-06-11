@@ -452,7 +452,7 @@ $html = [System.IO.File]::ReadAllText($outPath, [System.Text.Encoding]::UTF8)
 Assert ($html.Contains('<title>Sample Plan</title>')) 'title extracted from first H1'
 Assert (-not ($html -match '\{\{[A-Z_]+\}\}')) 'no unreplaced placeholders'
 Assert (-not $html.Contains("alert('x')</script>")) 'embedded script tag cannot terminate the inline script block'
-Assert ($html.Contains('<') -or $html.Contains('<\/')) 'angle brackets escaped in embedded JSON (PS 5.1 emits <)'
+Assert (($html.IndexOf([char]92 + 'u003c') -ge 0) -or $html.Contains('<\/')) 'angle brackets escaped in embedded JSON (PS 5.1 emits backslash-u003c)'
 Assert ($html.Contains('"term":"Module"')) 'glossary terms embedded'
 Assert ($html.Contains('"anchor":"contracts"')) 'glossary anchors slugified'
 Assert ($html.Length -gt 500000) 'mermaid lib inlined when source has mermaid block'
