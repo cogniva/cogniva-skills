@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design: repo-foundry — reusable repo setup toolkit</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1f2328;
+    --muted: #59636e;
+    --border: #d1d9e0;
+    --accent: #0969da;
+    --code-bg: #f6f8fa;
+    --keystone: #fff8c5;
+    --keystone-border: #d4a72c;
+    --draft-bg: #fff1e5;
+    --draft-fg: #953800;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --fg: #e6edf3;
+      --muted: #9198a1;
+      --border: #3d444d;
+      --accent: #4493f8;
+      --code-bg: #161b22;
+      --keystone: #3a3000;
+      --keystone-border: #d4a72c;
+      --draft-bg: #3d2300;
+      --draft-fg: #f0883e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  main { max-width: 52rem; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+  header.doc { border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; }
+  h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 .5rem; }
+  h2 { font-size: 1.35rem; margin-top: 2.5rem; padding-bottom: .3rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.05rem; margin-top: 1.5rem; }
+  p, li { max-width: 48rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .badges { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .badge {
+    display: inline-block; font-size: .75rem; font-weight: 600;
+    padding: .15rem .6rem; border-radius: 999px; border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .badge.draft { background: var(--draft-bg); color: var(--draft-fg); border-color: transparent; }
+  nav.toc {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: .9rem 1.25rem; margin: 1.5rem 0; font-size: .9rem;
+  }
+  nav.toc strong { display: block; margin-bottom: .35rem; }
+  nav.toc ol { margin: 0; padding-left: 1.25rem; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.5;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace; }
+  p code, li code, td code {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: .1em .35em; font-size: .85em;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { border: 1px solid var(--border); padding: .45rem .7rem; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); }
+  figure { margin: 1.5rem 0; text-align: center; }
+  figcaption { font-size: .85rem; color: var(--muted); margin-top: .5rem; }
+  svg text { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .callout {
+    border-left: 4px solid var(--accent); background: var(--code-bg);
+    padding: .75rem 1rem; border-radius: 0 8px 8px 0; margin: 1.25rem 0;
+  }
+  .callout strong:first-child { color: var(--accent); }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: .85rem; color: var(--muted); }
+  @media print {
+    body { font-size: 11pt; }
+    nav.toc { display: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header class="doc">
+  <h1>Design: <code>repo-foundry</code> — reusable repo setup toolkit</h1>
+  <div class="badges">
+    <span class="badge draft">APPROVED 2026-06-11</span>
+    <span class="badge">2026-06-11</span>
+    <span class="badge">c:\WorkingGit\NewRepo</span>
+    <span class="badge">.NET / C# · Blazor</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#purpose">This repo's purpose &amp; layout</a></li>
+    <li><a href="#conventions">Architecture conventions</a></li>
+    <li><a href="#skills">The three skills</a></li>
+    <li><a href="#automation">Plan-to-HTML automation</a></li>
+    <li><a href="#testing">Testing &amp; verification</a></li>
+    <li><a href="#nongoals">Non-goals (for now)</a></li>
+  </ol>
+</nav>
+
+<h2 id="purpose">1. This repo's purpose &amp; layout</h2>
+<p>This repo is a <strong>local Claude Code plugin marketplace</strong> holding one plugin
+(<code>repo-foundry</code>) plus its own docs. Any future repo runs
+<code>/plugin install repo-foundry</code> once and gets all skills, hooks, and templates —
+fixes made here propagate, nothing drifts.</p>
+
+<pre>NewRepo/
+  .claude-plugin/marketplace.json
+  plugins/repo-foundry/
+    .claude-plugin/plugin.json
+    skills/
+      repo-init/SKILL.md        # scaffold a brand-new repo
+      add-module/SKILL.md       # add a Module to an existing repo
+      plan-to-html/SKILL.md     # convert a plan/spec md -> HTML
+    hooks/hooks.json            # auto-trigger plan-to-html
+    scripts/convert-plan.ps1    # the md -> HTML converter
+    templates/                  # glossary seed, CLAUDE.md, module layout, HTML/CSS
+  docs/
+    strategy.md                 # conventions + tooling decisions
+    glossary/README.md          # seeded with the terms below</pre>
+
+<h2 id="conventions">2. Architecture conventions</h2>
+<p>Baked into the templates and the generated repo <code>CLAUDE.md</code>:</p>
+<ul>
+  <li>Vertical slices are called <strong>Modules</strong>: <code>src/Modules/&lt;Name&gt;/</code></li>
+  <li><strong>Hosts</strong> (<code>src/Hosts/Web</code>, <code>src/Hosts/Wpf</code>) are composition
+      roots — each registers either the in-process <code>Application</code> or the HTTP
+      <code>Client</code> implementation of a Module's <code>Contracts</code></li>
+  <li>UIs are always <strong>Blazor</strong>; the same Module UI runs in a WPF host
+      (BlazorWebView) or a web host because it depends only on <code>Contracts</code></li>
+  <li>Tests mirror modules under <code>tests/</code></li>
+</ul>
+
+<table>
+  <thead><tr><th>Project</th><th>Role</th><th>May reference</th></tr></thead>
+  <tbody>
+    <tr><td><code>&lt;Name&gt;.Contracts</code></td><td>Pure public surface: interfaces, DTOs, integration events. The <em>only</em> thing other Modules and UIs reference.</td><td>nothing</td></tr>
+    <tr><td><code>&lt;Name&gt;.Domain</code></td><td>Entities, value objects, domain logic</td><td>nothing</td></tr>
+    <tr><td><code>&lt;Name&gt;.Application</code></td><td>Use cases; in-process implementation of Contracts</td><td>Domain, Contracts</td></tr>
+    <tr><td><code>&lt;Name&gt;.Infrastructure</code></td><td>Persistence, external services</td><td>Application, Domain</td></tr>
+    <tr><td><code>&lt;Name&gt;.Client</code> <em>(optional)</em></td><td>HTTP implementation of Contracts for remote deployments</td><td>Contracts</td></tr>
+    <tr><td><code>&lt;Name&gt;.UI</code></td><td>Blazor Razor class library</td><td>Contracts only</td></tr>
+    <tr><td>Hosts</td><td>Composition roots; pick Application or Client per deployment</td><td>everything</td></tr>
+  </tbody>
+</table>
+
+<figure>
+<svg viewBox="0 0 760 430" width="100%" style="max-width:680px" role="img" aria-label="Module dependency diagram">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--muted)"/>
+    </marker>
+  </defs>
+  <!-- UI box -->
+  <rect x="100" y="20" width="170" height="50" rx="8" fill="var(--code-bg)" stroke="var(--border)"/>
+  <text x="185" y="45" text-anchor="middle" fill="var(--fg)" font-size="15" font-weight="600">UI</text>
+  <text x="185" y="62" text-anchor="middle" fill="var(--muted)" font-size="11">Blazor RCL</text>
+  <!-- Client box -->
+  <rect x="490" y="20" width="170" height="50" rx="8" fill="var(--code-bg)" stroke="var(--border)"/>
+  <text x="575" y="45" text-anchor="middle" fill="var(--fg)" font-size="15" font-weight="600">Client</text>
+  <text x="575" y="62" text-anchor="middle" fill="var(--muted)" font-size="11">HTTP impl (optional)</text>
+  <!-- Contracts box (keystone) -->
+  <rect x="250" y="130" width="260" height="54" rx="8" fill="var(--keystone)" stroke="var(--keystone-border)" stroke-width="1.5"/>
+  <text x="380" y="153" text-anchor="middle" fill="var(--fg)" font-size="15" font-weight="700">Contracts</text>
+  <text x="380" y="172" text-anchor="middle" fill="var(--muted)" font-size="11">interfaces · DTOs · integration events</text>
+  <!-- Application box -->
+  <rect x="250" y="240" width="260" height="50" rx="8" fill="var(--code-bg)" stroke="var(--border)"/>
+  <text x="380" y="263" text-anchor="middle" fill="var(--fg)" font-size="15" font-weight="600">Application</text>
+  <text x="380" y="280" text-anchor="middle" fill="var(--muted)" font-size="11">in-process impl of Contracts</text>
+  <!-- Infrastructure box -->
+  <rect x="560" y="240" width="170" height="50" rx="8" fill="var(--code-bg)" stroke="var(--border)"/>
+  <text x="645" y="263" text-anchor="middle" fill="var(--fg)" font-size="15" font-weight="600">Infrastructure</text>
+  <text x="645" y="280" text-anchor="middle" fill="var(--muted)" font-size="11">persistence · services</text>
+  <!-- Domain box -->
+  <rect x="250" y="350" width="260" height="50" rx="8" fill="var(--code-bg)" stroke="var(--border)"/>
+  <text x="380" y="373" text-anchor="middle" fill="var(--fg)" font-size="15" font-weight="600">Domain</text>
+  <text x="380" y="390" text-anchor="middle" fill="var(--muted)" font-size="11">entities · value objects</text>
+  <!-- Arrows -->
+  <line x1="210" y1="70" x2="310" y2="128" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="550" y1="70" x2="455" y2="128" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="380" y1="238" x2="380" y2="187" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="392" y="218" fill="var(--muted)" font-size="11">implements</text>
+  <line x1="380" y1="292" x2="380" y2="347" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="558" y1="265" x2="513" y2="265" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="620" y1="292" x2="515" y2="362" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>
+<figcaption>Inside one Module. Hosts (Web, WPF) sit outside: each registers
+<strong>Application</strong> (in-process) or <strong>Client</strong> (HTTP) against
+<strong>Contracts</strong>. Cross-module references go through Contracts only.</figcaption>
+</figure>
+
+<div class="callout">
+  <strong>Glossary (propose-then-confirm):</strong> seed <code>docs/glossary/README.md</code> with
+  Module, Contracts, Client, Application, Domain, Infrastructure, Module UI, Host, Vertical Slice —
+  1–2 sentences each plus the dependency diagram above. <code>repo-init</code> seeds the same
+  glossary into every new repo. Design approval confirms this.
+</div>
+
+<h2 id="skills">3. The three skills</h2>
+<table>
+  <thead><tr><th>Skill</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>repo-init</code></td>
+      <td>Interactive scaffold: git init, solution + <code>src/Modules</code> /
+      <code>src/Hosts</code> / <code>tests</code> layout, glossary seed, repo CLAUDE.md with the
+      dependency rules, <code>.gitignore</code> / <code>.editorconfig</code>, first commit.</td>
+    </tr>
+    <tr>
+      <td><code>add-module</code></td>
+      <td>Scaffolds one Module's projects (Client offered but skippable), wires them into the
+      solution, adds a glossary entry for the new Module.</td>
+    </tr>
+    <tr>
+      <td><code>plan-to-html</code></td>
+      <td>Converts a markdown plan/spec into a <strong>single self-contained HTML file</strong>
+      (CSS + vendored marked.js / mermaid.js inlined — no network, portable, mailable). Clean
+      typographic layout, rendered Mermaid, collapsible h2 sections (expanded by default), and
+      auto-linked glossary terms (first whole-word occurrence per section links to its entry).</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="automation">4. Plan-to-HTML automation</h2>
+<ul>
+  <li><code>PostToolUse</code> hook on Write/Edit; script checks the path against
+      <code>docs/plans/**/*.md</code> and <code>docs/superpowers/specs/**/*.md</code></li>
+  <li>On match: <code>convert-plan.ps1</code> regenerates the sibling <code>.html</code>
+      (idempotent, overwrites)</li>
+  <li>Hook feeds context back so Claude reports “HTML ready” and offers to open it in your browser</li>
+  <li>Conversion failure never blocks the write — it warns and moves on</li>
+</ul>
+
+<h2 id="testing">5. Testing &amp; verification</h2>
+<ul>
+  <li><strong>Converter:</strong> sample plan fixture (headings, tables, Mermaid, code blocks) +
+      Pester test asserting valid self-contained output</li>
+  <li><strong>Skills:</strong> verified per the writing-skills checklist; hook tested by writing a
+      dummy plan and confirming HTML appears</li>
+  <li><strong>repo-init / add-module:</strong> dry-run against a temp directory before first real use</li>
+</ul>
+
+<h2 id="nongoals">6. Non-goals (for now)</h2>
+<ul>
+  <li>Remote marketplace / distribution — local path install only</li>
+  <li>Enforcing dependency rules via Roslyn analyzers or ArchUnitNET — CLAUDE.md rules first;
+      analyzers are a roadmap note in <code>strategy.md</code></li>
+  <li>NuGet packaging of module templates</li>
+</ul>
+
+<footer>
+  repo-foundry design · approved 2026-06-11 ·
+  this file is a hand-built preview of the <code>plan-to-html</code> output style
+</footer>
+
+</main>
+</body>
+</html>
