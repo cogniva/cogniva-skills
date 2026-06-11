@@ -48,7 +48,7 @@
       "name": "cogniva-skills",
       "source": "./plugins/cogniva-skills",
       "description": "Skills used internally at Cogniva",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "author": {
         "name": "Cogniva"
       }
@@ -84,7 +84,7 @@ Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins: **cogniva-ski
 
 | Piece | Purpose |
 |---|---|
-| `plugins/cogniva-skills/skills/glossary` | Terminology lookup via CONTEXT.md before codebase search |
+| `plugins/cogniva-skills/skills/glossary` | Glossary lookup (docs/glossary) before codebase search |
 | `plugins/cogniva-skills/skills/auto-doc` | Auto-document architectural decisions as ADRs |
 | `plugins/cogniva-skills/plugin-template` | Starter template for new skills |
 | `plugins/repo-foundry/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
@@ -1056,7 +1056,7 @@ copying files).
 | add-module | repo-foundry | skill | user adds a vertical slice |
 | plan-to-html | repo-foundry | skill | manual conversion / hook troubleshooting |
 | plan-to-html hook | repo-foundry | PostToolUse hook | any Write/Edit of watched plan/spec markdown |
-| glossary | cogniva-skills | skill | unrecognized terminology (CONTEXT.md lookup) |
+| glossary | cogniva-skills | skill | unrecognized terminology (docs/glossary lookup) |
 | auto-doc | cogniva-skills | skill | architectural decisions during design/planning |
 
 ## Consuming in a new repo
@@ -1076,9 +1076,6 @@ copying files).
 ## Roadmap (deliberately not yet)
 
 - Enforce dependency rules with Roslyn analyzers or ArchUnitNET tests.
-- Unify the two glossary conventions: the cogniva-skills `glossary` skill reads
-  `CONTEXT.md`, while repo-foundry seeds `docs/glossary/README.md` — pick one
-  location (or teach the skill both) as a team decision.
 - NuGet packaging of module templates.
 - pwsh (PowerShell 7) support in hook command for non-Windows teammates.
 ```

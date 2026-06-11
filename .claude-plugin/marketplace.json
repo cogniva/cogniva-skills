@@ -9,7 +9,7 @@
       "name": "cogniva-skills",
       "source": "./plugins/cogniva-skills",
       "description": "Skills used internally at Cogniva",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "author": {
         "name": "Cogniva"
       }

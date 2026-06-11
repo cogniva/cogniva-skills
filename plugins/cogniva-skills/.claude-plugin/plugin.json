@@ -1,6 +1,6 @@
 {
   "name": "cogniva-skills",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A standardised skill repository for Cogniva's use.",
   "author": {
     "name": "Cogniva"
