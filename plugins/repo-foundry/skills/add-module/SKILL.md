@@ -26,7 +26,7 @@ Add one Module named `<M>` (PascalCase, e.g. `Orders`) to an existing repo.
 
    If Client requested: dotnet new classlib -n <M>.Client -o src/Modules/<M>/<M>.Client
 
-2. Delete the template `Class1.cs` from each classlib.
+2. Delete the template Class1.cs from each classlib (e.g. rm src/Modules/<M>/<M>.Contracts/Class1.cs, repeat for Domain/Application/Infrastructure and Client if created), and remove the <TargetFramework> line from every new .csproj (including <M>.UI and the test project) so the repo's Directory.Build.props controls the target framework centrally.
 3. Wire references (these ARE the dependency rules - no others allowed):
 
    dotnet add src/Modules/<M>/<M>.Application reference src/Modules/<M>/<M>.Domain src/Modules/<M>/<M>.Contracts

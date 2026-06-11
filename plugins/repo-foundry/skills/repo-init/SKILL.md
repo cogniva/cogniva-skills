@@ -24,7 +24,7 @@ Scaffold a new Module-architecture .NET repo. Templates live at
 5. Create empty dirs: `docs/plans/`, `docs/superpowers/specs/`, `docs/superpowers/plans/`. Drop a `.gitkeep` file in each so git tracks them.
 6. Create the solution and shared build props:
 
-   dotnet new sln -n <RepoName>
+   dotnet new sln -n <RepoName> (SDK 10+ emits <RepoName>.slnx instead of .sln — fine; all dotnet sln commands work with it)
 
    Create `Directory.Build.props` at repo root:
 
@@ -39,10 +39,14 @@ Scaffold a new Module-architecture .NET repo. Templates live at
    </Project>
    ```
 
+   Note: every generated .csproj carries its own <TargetFramework> which OVERRIDES this props file — the add-module skill strips them; do the same for any project you create directly.
+
 7. Hosts (as chosen):
    - Web: `dotnet new web -n <RepoName>.Host.Web -o src/Hosts/Web` then `dotnet sln add src/Hosts/Web`
    - WPF: `dotnet new wpf -n <RepoName>.Host.Wpf -o src/Hosts/Wpf` then `dotnet sln add src/Hosts/Wpf`
      and `dotnet add src/Hosts/Wpf package Microsoft.AspNetCore.Components.WebView.Wpf`
+
+   After creating each host, remove the <TargetFramework> line from the Web host's .csproj so Directory.Build.props governs. EXCEPTION: keep the WPF host's own <TargetFramework> (WPF requires the -windows TFM, e.g. net8.0-windows).
 8. First Module: invoke the `add-module` skill with the chosen Module name. Skip add-module's build and commit steps — repo-init runs its own build (step 9) and commit (step 11).
 9. `dotnet build` - must succeed.
 10. Recommend the user install this plugin in the new repo:
