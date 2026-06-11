@@ -1,0 +1,19 @@
+{
+  "name": "cogniva-skills-dev",
+  "owner": {
+    "name": "Christine Salter",
+    "email": "c.salter@cogniva.ca"
+  },
+  "plugins": [
+    {
+      "name": "cogniva-skills",
+      "source": "./",
+      "description": "Skills used internally at Cogniva",
+      "version": "0.1.1",
+      "author": {
+        "name": "Christine Salter",
+        "email": "c.salter@cogniva.ca"
+      }
+    }
+  ]
+}
