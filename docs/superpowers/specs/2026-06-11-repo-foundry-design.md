@@ -83,7 +83,7 @@ graph TD
 
 ## Non-goals (for now)
 
-- Remote marketplace / distribution — local path install only
+- ~~Remote marketplace / distribution — local path install only~~ (superseded 2026-06-11: marketplace is hosted at github.com/cogniva/cogniva-skills; install via GitHub or a local clone)
 - Enforcing dependency rules via Roslyn analyzers or ArchUnitNET — CLAUDE.md rules first; analyzers are a roadmap note in `strategy.md`
 - NuGet packaging of module templates
 
