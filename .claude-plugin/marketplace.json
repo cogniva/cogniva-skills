@@ -8,16 +8,11 @@
     {
       "name": "cogniva-skills",
       "source": "./plugins/cogniva-skills",
-      "description": "Skills used internally at Cogniva",
-      "version": "0.2.0",
+      "description": "Cogniva's team toolkit: glossary and auto-doc skills, Module-architecture repo scaffolding, and plan-to-html conversion with an auto-HTML hook",
+      "version": "0.3.0",
       "author": {
         "name": "Cogniva"
       }
-    },
-    {
-      "name": "repo-foundry",
-      "source": "./plugins/repo-foundry",
-      "description": "Repo setup toolkit: scaffold Module-based .NET repos, add Modules, and auto-generate HTML twins of plans/specs"
     }
   ]
 }

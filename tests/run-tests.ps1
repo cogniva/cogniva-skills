@@ -1,9 +1,9 @@
 $ErrorActionPreference = 'Stop'
 $repoRoot  = Split-Path -Parent $PSScriptRoot
-$converter = Join-Path $repoRoot 'plugins\repo-foundry\scripts\convert-plan.ps1'
-$hook      = Join-Path $repoRoot 'plugins\repo-foundry\scripts\plan-to-html-hook.ps1'
+$converter = Join-Path $repoRoot 'plugins\cogniva-skills\scripts\convert-plan.ps1'
+$hook      = Join-Path $repoRoot 'plugins\cogniva-skills\scripts\plan-to-html-hook.ps1'
 $fixtures  = Join-Path $PSScriptRoot 'fixtures'
-$work      = Join-Path ([System.IO.Path]::GetTempPath().TrimEnd('\')) ('repo-foundry-tests-' + [guid]::NewGuid().ToString('N'))
+$work      = Join-Path ([System.IO.Path]::GetTempPath().TrimEnd('\')) ('cogniva-skills-tests-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $work | Out-Null
 
 $script:failures = 0

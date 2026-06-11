@@ -1,16 +1,16 @@
 # Cogniva — shared tooling marketplace
 
-Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins: **cogniva-skills** and **repo-foundry**.
+Cogniva's Claude Code plugin marketplace (`cogniva`). One plugin: **cogniva-skills**.
 
 | Piece | Purpose |
 |---|---|
 | `plugins/cogniva-skills/skills/glossary` | Glossary lookup (docs/glossary) before codebase search |
 | `plugins/cogniva-skills/skills/auto-doc` | Auto-document architectural decisions as ADRs |
+| `plugins/cogniva-skills/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
+| `plugins/cogniva-skills/skills/add-module` | Add a Module (vertical slice) to an existing repo |
+| `plugins/cogniva-skills/skills/plan-to-html` | Convert a markdown plan/spec to self-contained HTML |
+| `plugins/cogniva-skills/hooks` | Auto-regenerate HTML twins when plans/specs are written |
 | `plugins/cogniva-skills/plugin-template` | Starter template for new skills |
-| `plugins/repo-foundry/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
-| `plugins/repo-foundry/skills/add-module` | Add a Module (vertical slice) to an existing repo |
-| `plugins/repo-foundry/skills/plan-to-html` | Convert a markdown plan/spec to self-contained HTML |
-| `plugins/repo-foundry/hooks` | Auto-regenerate HTML twins when plans/specs are written |
 | `docs/strategy.md` | Conventions + tooling decisions |
 | `docs/glossary/README.md` | Canonical glossary (architecture terms) |
 
@@ -20,7 +20,6 @@ In Claude Code, from the consuming repo (GitHub, or substitute the path of a loc
 
 ```
 /plugin marketplace add cogniva/cogniva-skills
-/plugin install repo-foundry@cogniva
 /plugin install cogniva-skills@cogniva
 ```
 

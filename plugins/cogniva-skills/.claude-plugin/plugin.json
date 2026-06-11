@@ -1,7 +1,7 @@
 {
   "name": "cogniva-skills",
-  "version": "0.2.0",
-  "description": "A standardised skill repository for Cogniva's use.",
+  "version": "0.3.0",
+  "description": "Cogniva's team toolkit: glossary and auto-doc skills, Module-architecture repo scaffolding (repo-init, add-module), and plan-to-html conversion with an auto-HTML hook for plans/specs.",
   "author": {
     "name": "Cogniva"
   },
@@ -9,6 +9,9 @@
   "repository": "https://github.com/cogniva/cogniva-skills",
   "license": "MIT",
   "keywords": [
-    "skills"
+    "skills",
+    "scaffolding",
+    "glossary",
+    "plans"
   ]
 }
