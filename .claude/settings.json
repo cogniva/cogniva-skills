@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -File *)"
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -File *)",
+      "Bash(rm:*)"
     ]
   }
 }
