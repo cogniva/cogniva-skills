@@ -13,6 +13,11 @@
       "author": {
         "name": "Cogniva"
       }
+    },
+    {
+      "name": "repo-foundry",
+      "source": "./plugins/repo-foundry",
+      "description": "Repo setup toolkit: scaffold Module-based .NET repos, add Modules, and auto-generate HTML twins of plans/specs"
     }
   ]
 }

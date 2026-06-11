@@ -1,0 +1,8 @@
+{
+  "name": "repo-foundry",
+  "description": "Scaffolds .NET repos with Module (vertical slice) architecture, seeds glossaries, and converts plans/specs to self-contained HTML",
+  "version": "0.1.0",
+  "author": {
+    "name": "Cogniva"
+  }
+}
