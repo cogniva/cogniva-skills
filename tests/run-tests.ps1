@@ -70,6 +70,30 @@ $warnGlossary = Join-Path $work 'nonexistent-glossary.md'
 $warnOut = & $converter -MarkdownPath $tinyPath -GlossaryPath $warnGlossary -WarningVariable capturedWarnings 2>&1
 Assert ($capturedWarnings.Count -gt 0 -or ($warnOut -ne $null)) 'missing explicit glossary emits a warning'
 
+# --- hook tests ------------------------------------------------------------
+$hookWork = Join-Path $work 'hookrepo'
+New-Item -ItemType Directory -Path (Join-Path $hookWork 'docs\plans') -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $hookWork 'docs\glossary') -Force | Out-Null
+Copy-Item (Join-Path $fixtures 'sample-plan.md') (Join-Path $hookWork 'docs\plans\sample-plan.md')
+Copy-Item (Join-Path $fixtures 'glossary.md') (Join-Path $hookWork 'docs\glossary\README.md')
+
+$watchedPath = Join-Path $hookWork 'docs\plans\sample-plan.md'
+$payload = @{ tool_name = 'Write'; tool_input = @{ file_path = $watchedPath }; cwd = $hookWork } | ConvertTo-Json -Compress
+$stdout = $payload | powershell.exe -NoProfile -ExecutionPolicy Bypass -File $hook
+Assert ($LASTEXITCODE -eq 0) 'hook exits 0 on watched path'
+Assert (Test-Path (Join-Path $hookWork 'docs\plans\sample-plan.html')) 'hook generates html twin'
+$joined = $stdout -join ''
+Assert ($joined.Contains('hookSpecificOutput')) 'hook emits additionalContext JSON'
+Assert ($joined.Contains('file:///')) 'hook context includes file:/// url'
+
+$unwatched = @{ tool_name = 'Write'; tool_input = @{ file_path = (Join-Path $hookWork 'src\thing.cs') }; cwd = $hookWork } | ConvertTo-Json -Compress
+$stdout2 = $unwatched | powershell.exe -NoProfile -ExecutionPolicy Bypass -File $hook
+Assert ($LASTEXITCODE -eq 0) 'hook exits 0 on unwatched path'
+Assert ([string]::IsNullOrWhiteSpace(($stdout2 -join ''))) 'hook silent on unwatched path'
+
+$null = 'not json at all' | powershell.exe -NoProfile -ExecutionPolicy Bypass -File $hook
+Assert ($LASTEXITCODE -eq 0) 'hook exits 0 on malformed stdin (never blocks)'
+
 } finally {
     Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
 }
