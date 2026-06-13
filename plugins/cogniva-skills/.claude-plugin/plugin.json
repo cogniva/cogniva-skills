@@ -1,7 +1,7 @@
 {
   "name": "cogniva-skills",
-  "version": "0.3.0",
-  "description": "Cogniva's team toolkit: glossary and auto-doc skills, Module-architecture repo scaffolding (repo-init, add-module), and plan-to-html conversion with an auto-HTML hook for plans/specs.",
+  "version": "0.4.0",
+  "description": "Cogniva's team toolkit: glossary and auto-doc skills, Module-architecture repo scaffolding (repo-init, add-module), plan-to-html conversion with an auto-HTML hook, and a feature workflow (plan-feature, execute-feature, quick-fix, feature-status) that runs tasks in isolated git worktrees and auto-integrates into your checked-out branch.",
   "author": {
     "name": "Cogniva"
   },
