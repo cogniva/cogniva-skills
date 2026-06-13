@@ -66,3 +66,18 @@ An implementation plan document in `docs/plans/` or `docs/superpowers/plans/`, p
 ## Spec
 
 A validated design document in `docs/superpowers/specs/` or `docs/specs/`, produced by the brainstorming workflow. Also gets an HTML twin automatically.
+
+## Backlog
+
+Deferred or not-yet-planned work tracked under `docs/plans/`: loose one-line items in a `BACKLOG.md` (repo-level, or per-[Module](#module)), or feature-sized [Backlog stubs](#backlog-stub). Captured with the `backlog` skill; surfaced by `module-status` / `repo-status`.
+_Avoid_: todo list, icebox, wishlist
+
+## Backlog stub
+
+A feature-sized deferred idea tracked as a folder `docs/plans/<Module>/<Idea>/` with a `state.md` ([Status](#status) `deferred`) and a `backlog.md`, but **no** `<Idea>-plan.md`. The missing plan is what marks it a stub; promoting it (via `plan-feature`) writes the plan and flips its [Status](#status) to `planned`.
+_Avoid_: placeholder, draft plan
+
+## Status
+
+The lifecycle stage of a feature, recorded as the `Status:` line in its `state.md`: `deferred → planned → in-progress → blocked → integrated → done`. Seeded by `plan-feature`, advanced by `execute-feature`, and read by the status skills.
+_Avoid_: state, stage

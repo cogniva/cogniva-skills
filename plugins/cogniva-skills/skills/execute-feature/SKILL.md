@@ -24,7 +24,8 @@ Invoke: `/cogniva-skills:execute-feature <Module>/<Feature>` (or a plan path).
    switches it) and prints JSON `{ worktree, branch, base, reused }`. Capture
    `worktree` (absolute) and `branch` (`feature/<slug>`).
 4. Record `Target branch`, `Worktree`, and `branch` into the worktree's
-   `state.md` if not already present.
+   `state.md` if not already present, and set its `Status:` line to
+   `in-progress` (the status skills read this).
 
 ## Step 1 — parse the plan into tasks
 
@@ -50,9 +51,12 @@ workflow stops early on a BLOCKED task or after a ⛔ gate, and returns
 
 ## Step 3 — on workflow completion
 
-- **Blocked / gate hit:** report which task and why; STOP. The user resolves /
-  validates, then re-runs this skill — Step 1 marks finished tasks `done` and the
-  workflow resumes (or use the Workflow `resumeFromRunId`).
+- **Blocked / gate hit:** set `state.md` `Status: blocked`; report which task and
+  why; STOP. The user resolves / validates, then re-runs this skill — Step 1 marks
+  finished tasks `done`, set `Status: in-progress` again, and the workflow resumes
+  (or use the Workflow `resumeFromRunId`). If a BLOCKED task surfaced leftover
+  scope that won't be done here, capture it:
+  `/cogniva-skills:backlog module=<Module> tier=loose src=<Feature> — <description>`.
 - **All tasks done:** build/test the feature in the worktree (the repo's build +
   test commands). Only if GREEN, integrate (Step 4). If red, report and STOP.
 
@@ -64,8 +68,10 @@ Run:
 It pre-merges the target into the feature (sandbox), serializes via a lock, and
 **fast-forward LOCAL-pushes** into the target branch (`git push .` — never a
 remote). Interpret the JSON `status`:
-- `INTEGRATED` — done. The user's working tree now has the feature (it was clean).
-  Tell them; offer `git worktree remove "<worktree>"` (keep it if they may iterate).
+- `INTEGRATED` — done. Set `state.md` `Status: integrated`. The user's working
+  tree now has the feature (it was clean). Tell them; offer
+  `git worktree remove "<worktree>"` (keep it if they may iterate). (The user sets
+  `Status: done` once they've validated/closed it out.)
 - `QUEUED_DIRTY` — the target tree had uncommitted changes; nothing was clobbered.
   Tell the user to commit/stash, then re-run `execute-feature` (or a future
   `integrate`) to land it. Record "Integration: queued" in `state.md`.

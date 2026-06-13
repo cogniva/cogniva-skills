@@ -62,12 +62,34 @@ Then seed `docs/plans/<Module>/<Feature>/state.md`:
 ```markdown
 # <Feature> — execution state
 
+Status: planned
 Target branch: (set by execute-feature at run time)
 Worktree: (set by execute-feature)
 Integration: not started
 
 ## Log
 ```
+
+`Status:` tracks the feature lifecycle (`deferred → planned → in-progress →
+blocked → integrated → done`); seed it `planned`. The status skills
+(`feature-status`, `module-status`, `repo-status`) read it.
+
+## Capture deferrals (don't bury cut scope in prose)
+
+A focused design always cuts scope. Do NOT leave it as a "Deferred / future work"
+paragraph — record each cut item with `/cogniva-skills:backlog` so it survives:
+- A small follow-up → a loose line:
+  `/cogniva-skills:backlog module=<Module> tier=loose src=<Feature> — <description>`
+- A feature-sized chunk → a stub:
+  `/cogniva-skills:backlog module=<Module> tier=stub src=<Feature> — <description>`
+
+## Promotion (when this plan fulfills an existing backlog item)
+
+If this feature came from the backlog, close the loop:
+- **Loose item** in `docs/plans/<Module>/BACKLOG.md`: tick its line and append
+  `→ planned: <Module>/<Feature>` (append-only; don't delete it).
+- **Stub folder** `docs/plans/<Module>/<Feature>/`: write `<Feature>-plan.md` into
+  that same folder and flip its `state.md` `Status: deferred → planned`.
 
 The plan-to-html PostToolUse hook auto-generates the `.html` twin of the plan.
 End your message with the mockup file URL(s) and the plan path so the user can

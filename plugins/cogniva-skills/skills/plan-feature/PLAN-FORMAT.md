@@ -46,6 +46,19 @@ a fresh subagent context — so **every task must be self-contained**.
 - [ ] **Step 2:** Wait for the user to confirm before any later task runs.
 ```
 
+The companion `state.md` (seeded by plan-feature, advanced by execute-feature):
+
+```markdown
+# <Feature> — execution state
+
+Status: planned
+Target branch: (set by execute-feature at run time)
+Worktree: (set by execute-feature)
+Integration: not started
+
+## Log
+```
+
 ## Rules
 
 - Self-contained tasks: repeat code rather than referencing earlier tasks.
