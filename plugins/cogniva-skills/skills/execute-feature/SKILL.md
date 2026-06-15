@@ -12,6 +12,18 @@ session without bloating context.
 
 Invoke: `/cogniva-skills:execute-feature <Module>/<Feature>` (or a plan path).
 
+> **MERGE FLOW — read this first:**
+> When all tasks complete the feature is **automatically merged** into the
+> user's checked-out branch. There is NO pre-merge validation step — the user
+> validates AFTER the merge in their own working tree, then runs
+> `/cogniva-skills:complete-feature <Module>/<Feature>` to remove the worktree
+> and close out.
+>
+> ⛔ gates are **mid-process checkpoints** (e.g. "confirm the DB migration before
+> writing the code that depends on it") — NOT a pre-merge gate. After the user
+> resolves a gate and re-runs this skill, execution continues and the auto-merge
+> still happens at the end.
+
 `<plugin>` below = this plugin's root (the parent of this `skills/` dir).
 
 ## Step 0 — create / reuse the isolated worktree (Bash, once)
@@ -52,9 +64,11 @@ workflow stops early on a BLOCKED task or after a ⛔ gate, and returns
 ## Step 3 — on workflow completion
 
 - **Blocked / gate hit:** set `state.md` `Status: blocked`; report which task and
-  why; STOP. The user resolves / validates, then re-runs this skill — Step 1 marks
-  finished tasks `done`, set `Status: in-progress` again, and the workflow resumes
-  (or use the Workflow `resumeFromRunId`). If a BLOCKED task surfaced leftover
+  why; STOP. The user resolves / validates the specific gate concern, then re-runs
+  this skill — Step 1 marks finished tasks `done`, sets `Status: in-progress`
+  again, and the workflow resumes (or use the Workflow `resumeFromRunId`). After
+  the gate the workflow continues toward auto-merge; the gate is NOT a signal that
+  the user should validate the whole feature. If a BLOCKED task surfaced leftover
   scope that won't be done here, capture it:
   `/cogniva-skills:backlog module=<Module> tier=loose src=<Feature> — <description>`.
 - **All tasks done:** build/test the feature in the worktree (the repo's build +
@@ -68,10 +82,12 @@ Run:
 It pre-merges the target into the feature (sandbox), serializes via a lock, and
 **fast-forward LOCAL-pushes** into the target branch (`git push .` — never a
 remote). Interpret the JSON `status`:
-- `INTEGRATED` — done. Set `state.md` `Status: integrated`. The user's working
-  tree now has the feature (it was clean). Tell them; offer
-  `git worktree remove "<worktree>"` (keep it if they may iterate). (The user sets
-  `Status: done` once they've validated/closed it out.)
+- `INTEGRATED` — done. Set `state.md` `Status: integrated`. **The feature is now
+  live on the user's branch.** Tell them clearly: "The feature has been merged
+  into your branch. Validate it in your working tree. When satisfied, run
+  `/cogniva-skills:complete-feature <Module>/<Feature>` to remove the worktree
+  and set Status: done." Do NOT offer `git worktree remove` manually — that is
+  the complete-feature skill's job.
 - `QUEUED_DIRTY` — the target tree had uncommitted changes; nothing was clobbered.
   Tell the user to commit/stash, then re-run `execute-feature` (or a future
   `integrate`) to land it. Record "Integration: queued" in `state.md`.
