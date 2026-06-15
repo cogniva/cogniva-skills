@@ -8,8 +8,6 @@ Cogniva's Claude Code plugin marketplace (`cogniva`). One plugin: **cogniva-skil
 | `plugins/cogniva-skills/skills/auto-doc` | Auto-document architectural decisions as ADRs |
 | `plugins/cogniva-skills/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
 | `plugins/cogniva-skills/skills/add-module` | Add a Module (vertical slice) to an existing repo |
-| `plugins/cogniva-skills/skills/plan-to-html` | Convert a markdown plan/spec to self-contained HTML |
-| `plugins/cogniva-skills/hooks` | Auto-regenerate HTML twins when plans/specs are written |
 | `plugins/cogniva-skills/plugin-template` | Starter template for new skills |
 | `docs/strategy.md` | Conventions + tooling decisions |
 | `docs/glossary/README.md` | Canonical glossary (architecture terms) |
@@ -27,5 +25,4 @@ Then run the `repo-init` skill in an empty repo, or `add-module` in an existing 
 
 ## Develop
 
-Tests: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/run-tests.ps1`
 Validate plugin: `claude plugin validate .`
