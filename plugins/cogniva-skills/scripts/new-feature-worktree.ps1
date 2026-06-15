@@ -32,6 +32,18 @@ try {
         }
     }
 
+    # Record this worktree in a checkout-local ledger (in the shared git common dir, so every
+    # worktree created from this checkout is tracked in one place) so complete-feature can later
+    # sweep worktrees that have been integrated. Best-effort: a ledger failure must never fail
+    # worktree creation.
+    try {
+        $commonDir = (git -C $RepoRoot rev-parse --git-common-dir).Trim()
+        if (-not [System.IO.Path]::IsPathRooted($commonDir)) { $commonDir = Join-Path $RepoRoot $commonDir }
+        $ledger = Join-Path $commonDir 'cogniva-worktrees.tsv'
+        $already = (Test-Path $ledger) -and (Select-String -LiteralPath $ledger -SimpleMatch "`t$wt`t" -Quiet)
+        if (-not $already) { Add-Content -LiteralPath $ledger -Value "$branch`t$wt`t$BaseBranch" }
+    } catch { }
+
     [pscustomobject]@{ worktree = $wt; branch = $branch; base = $BaseBranch; reused = $reused } |
         ConvertTo-Json -Compress
     exit 0
