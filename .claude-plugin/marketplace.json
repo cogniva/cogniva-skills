@@ -9,7 +9,7 @@
       "name": "cogniva-skills",
       "source": "./plugins/cogniva-skills",
       "description": "Cogniva's team toolkit: glossary and auto-doc skills, Module-architecture repo scaffolding, a feature workflow with isolated-worktree execution, deferred-work capture (backlog), and status roll-ups",
-      "version": "0.6.1",
+      "version": "0.6.2",
       "author": {
         "name": "Cogniva"
       }
