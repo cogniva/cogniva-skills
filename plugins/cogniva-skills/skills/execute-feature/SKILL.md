@@ -1,0 +1,90 @@
+---
+name: execute-feature
+description: Use to execute a feature plan produced by plan-feature, from a single prompt, with a small model. Runs each task in a fresh subagent (lean context, no manual /clear, no reviewer fan-out) inside an isolated git worktree, then auto-integrates the result into the branch you have checked out. Resumable; stops at manual-validation (⛔) gates. Run several at once — each is isolated.
+---
+
+# Execute Feature
+
+Execute `docs/plans/<Module>/<Feature>/<Feature>-plan.md` task-by-task. The heavy
+work runs in a background Workflow of one-agent-per-task, so this session stays a
+lean control console — fire `quick-fix` or another `execute-feature` from the same
+session without bloating context.
+
+Invoke: `/cogniva-skills:execute-feature <Module>/<Feature>` (or a plan path).
+
+`<plugin>` below = this plugin's root (the parent of this `skills/` dir).
+
+## Step 0 — create / reuse the isolated worktree (Bash, once)
+
+1. Confirm a plan exists at `docs/plans/<Module>/<Feature>/<Feature>-plan.md`.
+2. Derive `<slug>` (kebab of `<Feature>`).
+3. Run:
+   `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/new-feature-worktree.ps1" -Slug <slug>`
+   It reads the user's current branch as the integration **target** (never
+   switches it) and prints JSON `{ worktree, branch, base, reused }`. Capture
+   `worktree` (absolute) and `branch` (`feature/<slug>`).
+4. Record `Target branch`, `Worktree`, and `branch` into the worktree's
+   `state.md` if not already present, and set its `Status:` line to
+   `in-progress` (the status skills read this).
+
+## Step 1 — parse the plan into tasks
+
+From the plan IN THE WORKTREE, build an ordered array of tasks:
+`{ n, title, body, isGate, done }` where
+- `body` = that task's full text (all its `- [ ]` steps, verbatim, self-contained),
+- `isGate` = the heading starts with `⛔`,
+- `done` = every checkbox in the task is already `- [x]` (resume support).
+
+## Step 2 — run the Workflow (background, one agent per task)
+
+Author/run the Workflow from `<plugin>/templates/execute-feature.workflow.js`
+(copy its script; do not rewrite it), passing:
+```
+args = { worktree, featureBranch: "feature/<slug>",
+         planPath:  "<worktree>/docs/plans/<Module>/<Feature>/<Feature>-plan.md",
+         statePath: "<worktree>/docs/plans/<Module>/<Feature>/state.md",
+         tasks: [ ...parsed... ] }
+```
+Tasks run SEQUENTIALLY in the ONE worktree (each builds on the previous). The
+workflow stops early on a BLOCKED task or after a ⛔ gate, and returns
+`{ results, done, blocked, gateHit, allDone }`.
+
+## Step 3 — on workflow completion
+
+- **Blocked / gate hit:** set `state.md` `Status: blocked`; report which task and
+  why; STOP. The user resolves / validates, then re-runs this skill — Step 1 marks
+  finished tasks `done`, set `Status: in-progress` again, and the workflow resumes
+  (or use the Workflow `resumeFromRunId`). If a BLOCKED task surfaced leftover
+  scope that won't be done here, capture it:
+  `/cogniva-skills:backlog module=<Module> tier=loose src=<Feature> — <description>`.
+- **All tasks done:** build/test the feature in the worktree (the repo's build +
+  test commands). Only if GREEN, integrate (Step 4). If red, report and STOP.
+
+## Step 4 — auto-integrate into the user's branch
+
+Run:
+`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
+
+It pre-merges the target into the feature (sandbox), serializes via a lock, and
+**fast-forward LOCAL-pushes** into the target branch (`git push .` — never a
+remote). Interpret the JSON `status`:
+- `INTEGRATED` — done. Set `state.md` `Status: integrated`. The user's working
+  tree now has the feature (it was clean). Tell them; offer
+  `git worktree remove "<worktree>"` (keep it if they may iterate). (The user sets
+  `Status: done` once they've validated/closed it out.)
+- `QUEUED_DIRTY` — the target tree had uncommitted changes; nothing was clobbered.
+  Tell the user to commit/stash, then re-run `execute-feature` (or a future
+  `integrate`) to land it. Record "Integration: queued" in `state.md`.
+- `CONFLICT` — a real semantic conflict with work already on the target. Report
+  the worktree path for resolution (human or a one-shot resolve agent); do not
+  force anything.
+- `ERROR` — surface the detail; do not retry blindly.
+
+## Rules
+
+- NEVER push to a remote. NEVER `git switch/checkout/branch` in the primary
+  checkout. All task work happens on `feature/<slug>` inside the worktree.
+- No reviewer fan-out — one agent per task. (An end-of-feature review is optional
+  and off by default.)
+- Keep this console lean: the Workflow runs in the background; you only relay
+  short status. Suggest `/clear` only if the console itself grows large.
