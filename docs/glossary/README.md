@@ -57,15 +57,15 @@ The architectural style of dividing a system by business capability rather than 
 
 ## Cogniva
 
-The brand name for this team's shared development tooling. The Claude Code plugin marketplace in this repo is named `cogniva` (hosted at github.com/cogniva/cogniva-skills); all tools ship in its single `cogniva-skills` plugin (glossary, auto-doc, repo-init, add-module, plan-to-html + the auto-HTML hook). Tools are never named after individual team members.
+The brand name for this team's shared development tooling. The Claude Code plugin marketplace in this repo is named `cogniva` (hosted at github.com/cogniva/cogniva-skills); all tools ship in its single `cogniva-skills` plugin (glossary, auto-doc, repo-init, add-module). Tools are never named after individual team members.
 
 ## Plan
 
-An implementation plan document in `docs/plans/` or `docs/superpowers/plans/`, produced by the writing-plans workflow. Automatically gets an HTML twin via the plan-to-html hook.
+An implementation plan document in `docs/plans/` or `docs/superpowers/plans/`, produced by the writing-plans workflow.
 
 ## Spec
 
-A validated design document in `docs/superpowers/specs/` or `docs/specs/`, produced by the brainstorming workflow. Also gets an HTML twin automatically.
+A validated design document in `docs/superpowers/specs/` or `docs/specs/`, produced by the brainstorming workflow.
 
 ## Backlog
 

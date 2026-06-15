@@ -50,8 +50,7 @@ Scaffold a new Module-architecture .NET repo. Templates live at
 8. First Module: invoke the `add-module` skill with the chosen Module name. Skip add-module's build and commit steps — repo-init runs its own build (step 9) and commit (step 11).
 9. `dotnet build` - must succeed.
 10. Recommend the user install this plugin in the new repo:
-    `/plugin marketplace add cogniva/cogniva-skills` (or the path of your local clone) then `/plugin install cogniva-skills@cogniva`
-    (enables the plan-to-html hook there).
+    `/plugin marketplace add cogniva/cogniva-skills` (or the path of your local clone) then `/plugin install cogniva-skills@cogniva`.
 11. Commit everything: `git add -A && git commit -m "chore: scaffold <RepoName> via cogniva-skills"`.
 
 ## Rules baked into the scaffold

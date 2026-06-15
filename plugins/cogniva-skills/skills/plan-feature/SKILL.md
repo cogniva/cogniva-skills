@@ -1,6 +1,6 @@
 ---
 name: plan-feature
-description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /cogniva-skills:execute-feature) plus self-contained HTML mockups viewable in VS Code's Simple Browser. Pairs with auto-doc (ADRs) and glossary. Does not depend on superpowers.
+description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /cogniva-skills:execute-feature). Pairs with auto-doc (ADRs) and glossary. Does not depend on superpowers.
 ---
 
 # Plan Feature
@@ -15,7 +15,6 @@ not implement.
 1. Module name `<Module>` and feature name `<Feature>` (PascalCase, e.g.
    `Selections` / `TaskpaneStatusBar`). Derive a kebab `<slug>` for branches.
 2. The outcome the feature must deliver, and any hard constraints.
-3. Whether UI is involved (if so, you will produce HTML mockups — see below).
 
 ## Design loop
 
@@ -24,22 +23,10 @@ not implement.
 2. For domain terms, consult `/cogniva-skills:glossary`; propose new entries
    before writing them.
 3. Surface real design decisions to the user with **AskUserQuestion** (one popup
-   per genuine fork). For UI choices, attach an HTML mockup (next section) so the
-   user decides visually — this is cheaper than describing layouts in prose.
+   per genuine fork). Describe UI choices in prose so the user can validate
+   against the implemented result rather than a mockup.
 4. When an architectural decision is made, use `/cogniva-skills:auto-doc` to
    record the ADR.
-
-## HTML mockups (self-contained, no server)
-
-For UI features, write static mockups to
-`docs/plans/<Module>/<Feature>/mockups/<name>.html`:
-- A single self-contained `.html` per screen/state: inline CSS, no external CDN.
-- Reference the plugin-vendored libraries ONLY if you actually render markdown or
-  a diagram: `vendor/marked.min.js`, `vendor/mermaid.min.js` (relative to the
-  plugin root). Plain UI wireframes need neither.
-- The user opens the file in VS Code's Simple Browser (Ctrl+Shift+P → "Simple
-  Browser: Show" → the file path) — there is NO localhost server.
-- Iterate on mockups in this session until the user is happy, THEN write the plan.
 
 ## Emit the plan
 
@@ -91,6 +78,5 @@ If this feature came from the backlog, close the loop:
 - **Stub folder** `docs/plans/<Module>/<Feature>/`: write `<Feature>-plan.md` into
   that same folder and flip its `state.md` `Status: deferred → planned`.
 
-The plan-to-html PostToolUse hook auto-generates the `.html` twin of the plan.
-End your message with the mockup file URL(s) and the plan path so the user can
-review, then tell them to run the REQUIRED EXECUTOR when ready.
+End your message with the plan path so the user can review, then tell them to
+run the REQUIRED EXECUTOR when ready.

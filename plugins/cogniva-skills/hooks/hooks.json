@@ -1,16 +1,5 @@
 {
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/scripts/plan-to-html-hook.ps1\""
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [

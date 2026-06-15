@@ -6,10 +6,10 @@ What this repo is, the conventions it encodes, and how to consume it.
 
 `cogniva` is Cogniva's Claude Code plugin marketplace (repo:
 github.com/cogniva/cogniva-skills). Its single `cogniva-skills` plugin carries
-the team toolkit: shared skills (glossary, auto-doc), repo-initialization
-scaffolding (repo-init, add-module), and plan-to-html conversion — so every new
-repo starts identical and improvements propagate (consuming repos
-reinstall/update the plugin instead of copying files).
+the team toolkit: shared skills (glossary, auto-doc) and repo-initialization
+scaffolding (repo-init, add-module) — so every new repo starts identical and
+improvements propagate (consuming repos reinstall/update the plugin instead of
+copying files).
 
 ## Conventions (canonical definitions: docs/glossary/README.md)
 
@@ -22,7 +22,7 @@ reinstall/update the plugin instead of copying files).
 - Every repo keeps a glossary at `docs/glossary/README.md` (seeded by repo-init)
   and grows it propose-then-confirm.
 - Specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/` or
-  `docs/plans/`; each markdown gets a self-contained HTML twin automatically.
+  `docs/plans/`.
 
 ## Tooling inventory
 
@@ -32,8 +32,6 @@ All tools ship in the `cogniva-skills` plugin:
 |---|---|---|
 | repo-init | skill | user starts a new repo |
 | add-module | skill | user adds a vertical slice |
-| plan-to-html | skill | manual conversion / hook troubleshooting |
-| plan-to-html hook | PostToolUse hook | any Write/Edit of watched plan/spec markdown |
 | glossary | skill | unrecognized terminology (docs/glossary lookup) |
 | auto-doc | skill | architectural decisions during design/planning |
 
@@ -48,8 +46,6 @@ All tools ship in the `cogniva-skills` plugin:
 - Change skills/templates/scripts here, bump `version` in
   `plugins/cogniva-skills/.claude-plugin/plugin.json`, commit; consuming repos
   pick it up via plugin update.
-- Tests: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/run-tests.ps1`
-  must pass before any commit to scripts or the HTML template.
 
 ## Roadmap (deliberately not yet)
 
