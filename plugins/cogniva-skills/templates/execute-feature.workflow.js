@@ -30,7 +30,11 @@ const TASK_RESULT = {
 
 phase('Execute')
 
-const { worktree, featureBranch, planPath, statePath, tasks } = args
+// Some Workflow runtimes deliver `args` as a JSON string rather than a parsed
+// object; normalize so destructuring works either way (otherwise this throws
+// "undefined is not an object (evaluating 'tasks.length')").
+const _args = typeof args === 'string' ? JSON.parse(args) : args
+const { worktree, featureBranch, planPath, statePath, tasks } = _args
 const results = []
 
 for (let i = 0; i < tasks.length; i++) {
