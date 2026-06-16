@@ -17,8 +17,8 @@
     {
       "name": "cogniva-skills",
       "source": "./plugins/cogniva-skills",
-      "description": "Cogniva's general-purpose toolkit: glossary and reference skills for any project",
-      "version": "0.7.0",
+      "description": "Cogniva's general-purpose toolkit: glossary, reference, and project-requirement skills for any project",
+      "version": "0.7.1",
       "author": {
         "name": "Cogniva"
       }
