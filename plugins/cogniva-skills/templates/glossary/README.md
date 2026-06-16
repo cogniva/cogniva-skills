@@ -59,7 +59,7 @@ The architectural style of dividing a system by business capability rather than 
 
 ## Cogniva
 
-The brand name for this team's shared development tooling. The Claude Code plugin marketplace is named `cogniva` (hosted at github.com/cogniva/cogniva-skills); all tools ship in its single `cogniva-skills` plugin (glossary, auto-doc, repo-init, add-module). Tools are never named after individual team members.
+The brand name for this team's shared development tooling. The Claude Code plugin marketplace is named `cogniva` (hosted at github.com/cogniva/cogniva-skills); general-purpose tools ship in `cogniva-skills` (glossary, reference), development-specific tools in `cogniva-dev` (auto-doc, backlog, repo-init, add-module, and the feature lifecycle). Tools are never named after individual team members.
 
 ## Plan
 

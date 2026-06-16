@@ -1,7 +1,7 @@
 # Feature plan format
 
 A feature plan is one markdown file: `docs/plans/<Module>/<Feature>/<Feature>-plan.md`.
-Its tasks are executed one-at-a-time by `/cogniva-skills:execute-feature`, each in
+Its tasks are executed one-at-a-time by `/cogniva-dev:execute-feature`, each in
 a fresh subagent context — so **every task must be self-contained**.
 
 ## Template
@@ -9,7 +9,7 @@ a fresh subagent context — so **every task must be self-contained**.
 ```markdown
 # <Feature> — Feature Plan
 
-> REQUIRED EXECUTOR: /cogniva-skills:execute-feature <Module>/<Feature>
+> REQUIRED EXECUTOR: /cogniva-dev:execute-feature <Module>/<Feature>
 > Tasks contain NO git worktree/branch step — execute-feature creates the worktree
 > and the tasks commit on the feature branch they are already on. Never run
 > git switch/checkout/branch inside a task.

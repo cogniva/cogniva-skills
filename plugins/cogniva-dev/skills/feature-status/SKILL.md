@@ -8,7 +8,7 @@ description: Use to see what feature work is remaining and in-flight. Read-only 
 Answer "what's left / what's in-flight" cheaply and read-only. No subagents, no
 edits.
 
-Invoke: `/cogniva-skills:feature-status [<Module>]` (omit `<Module>` to scan all).
+Invoke: `/cogniva-dev:feature-status [<Module>]` (omit `<Module>` to scan all).
 
 ## Steps
 
@@ -45,4 +45,4 @@ Totals: <X> features, <Y> tasks remaining, <Z> queued integrations, <W> pending 
 Flag anything needing the user: queued integrations (commit/stash to land),
 pending ⛔ gates (validate to continue), and CONFLICT notes in any `state.md`.
 For a Module- or repo-wide view that also folds in loose `BACKLOG.md` items, use
-`/cogniva-skills:module-status <Module>` or `/cogniva-skills:repo-status`.
+`/cogniva-dev:module-status <Module>` or `/cogniva-dev:repo-status`.

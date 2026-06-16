@@ -10,13 +10,13 @@ work runs in a background Workflow of one-agent-per-task, so this session stays 
 lean control console — fire `quick-fix` or another `execute-feature` from the same
 session without bloating context.
 
-Invoke: `/cogniva-skills:execute-feature <Module>/<Feature>` (or a plan path).
+Invoke: `/cogniva-dev:execute-feature <Module>/<Feature>` (or a plan path).
 
 > **MERGE FLOW — read this first:**
 > When all tasks complete the feature is **automatically merged** into the
 > user's checked-out branch. There is NO pre-merge validation step — the user
 > validates AFTER the merge in their own working tree, then runs
-> `/cogniva-skills:complete-feature <Module>/<Feature>` to remove the worktree
+> `/cogniva-dev:complete-feature <Module>/<Feature>` to remove the worktree
 > and close out.
 >
 > ⛔ gates are **mid-process checkpoints** (e.g. "confirm the DB migration before
@@ -70,7 +70,7 @@ workflow stops early on a BLOCKED task or after a ⛔ gate, and returns
   the gate the workflow continues toward auto-merge; the gate is NOT a signal that
   the user should validate the whole feature. If a BLOCKED task surfaced leftover
   scope that won't be done here, capture it:
-  `/cogniva-skills:backlog module=<Module> tier=loose src=<Feature> — <description>`.
+  `/cogniva-dev:backlog module=<Module> tier=loose src=<Feature> — <description>`.
 - **All tasks done:** build/test the feature in the worktree (the repo's build +
   test commands). Only if GREEN, integrate (Step 4). If red, report and STOP.
 
@@ -85,7 +85,7 @@ remote). Interpret the JSON `status`:
 - `INTEGRATED` — done. Set `state.md` `Status: integrated`. **The feature is now
   live on the user's branch.** Tell them clearly: "The feature has been merged
   into your branch. Validate it in your working tree. When satisfied, run
-  `/cogniva-skills:complete-feature <Module>/<Feature>` to remove the worktree
+  `/cogniva-dev:complete-feature <Module>/<Feature>` to remove the worktree
   and set Status: done." Do NOT offer `git worktree remove` manually — that is
   the complete-feature skill's job.
 - `QUEUED_DIRTY` — the target tree had uncommitted changes; nothing was clobbered.

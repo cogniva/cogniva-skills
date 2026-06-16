@@ -5,12 +5,12 @@ description: Use for small follow-up changes (UI tweak, bug fix, copy change) wi
 
 # Quick Fix
 
-A planless sibling of `/cogniva-skills:execute-feature` for small changes. Same
+A planless sibling of `/cogniva-dev:execute-feature` for small changes. Same
 isolation + auto-integration, no plan file. The work runs in a background
 Workflow, so you can fire `quick-fix` repeatedly from your control session and it
 stays lean.
 
-Invoke: `/cogniva-skills:quick-fix "<short description of the change>"`.
+Invoke: `/cogniva-dev:quick-fix "<short description of the change>"`.
 
 `<plugin>` = this plugin's root (parent of `skills/`).
 
@@ -41,7 +41,7 @@ re-run) / `CONFLICT` (report worktree for resolution) / `ERROR` (surface detail)
 ## Rules
 - Never push to remote. Never branch-switch the primary checkout.
 - Keep it small — if the change grows into a real feature, stop and suggest
-  `/cogniva-skills:plan-feature` instead.
+  `/cogniva-dev:plan-feature` instead.
 - If the fix surfaces a follow-up you are NOT doing now, don't drop it — capture
-  it: `/cogniva-skills:backlog module=<Module> tier=loose — <description>`. If this
+  it: `/cogniva-dev:backlog module=<Module> tier=loose — <description>`. If this
   fix resolved a loose `BACKLOG.md` item, tick it and append `→ done`.

@@ -1,6 +1,6 @@
 ---
 name: plan-feature
-description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /cogniva-skills:execute-feature). Pairs with auto-doc (ADRs) and glossary. Does not depend on superpowers.
+description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /cogniva-dev:execute-feature). Pairs with auto-doc (ADRs) and glossary. Does not depend on superpowers.
 ---
 
 # Plan Feature
@@ -20,12 +20,12 @@ not implement.
 
 1. Explore the target repo enough to design well (reuse existing code; respect
    the repo's architecture rules in its CLAUDE.md).
-2. For domain terms, consult `/cogniva-skills:glossary`; propose new entries
+2. For domain terms, consult `/cogniva-dev:glossary`; propose new entries
    before writing them.
 3. Surface real design decisions to the user with **AskUserQuestion** (one popup
    per genuine fork). Describe UI choices in prose so the user can validate
    against the implemented result rather than a mockup.
-4. When an architectural decision is made, use `/cogniva-skills:auto-doc` to
+4. When an architectural decision is made, use `/cogniva-dev:auto-doc` to
    record the ADR.
 
 ## Emit the plan
@@ -34,7 +34,7 @@ Write `docs/plans/<Module>/<Feature>/<Feature>-plan.md` following
 `PLAN-FORMAT.md` in this skill's directory (read it). Essentials:
 - Header with **Goal**, **Architecture**, **File structure (locked)**, a
   "Read these first" list, and the line:
-  `> REQUIRED EXECUTOR: /cogniva-skills:execute-feature <Module>/<Feature>`.
+  `> REQUIRED EXECUTOR: /cogniva-dev:execute-feature <Module>/<Feature>`.
 - Header MUST state: **no git worktree step in tasks** — execute-feature creates
   the worktree; tasks just commit on the feature branch they are already on.
 - Tasks numbered `### Task N: <title>`, each **self-contained** (repeat any code
@@ -64,11 +64,11 @@ blocked → integrated → done`); seed it `planned`. The status skills
 ## Capture deferrals (don't bury cut scope in prose)
 
 A focused design always cuts scope. Do NOT leave it as a "Deferred / future work"
-paragraph — record each cut item with `/cogniva-skills:backlog` so it survives:
+paragraph — record each cut item with `/cogniva-dev:backlog` so it survives:
 - A small follow-up → a loose line:
-  `/cogniva-skills:backlog module=<Module> tier=loose src=<Feature> — <description>`
+  `/cogniva-dev:backlog module=<Module> tier=loose src=<Feature> — <description>`
 - A feature-sized chunk → a stub:
-  `/cogniva-skills:backlog module=<Module> tier=stub src=<Feature> — <description>`
+  `/cogniva-dev:backlog module=<Module> tier=stub src=<Feature> — <description>`
 
 ## Promotion (when this plan fulfills an existing backlog item)
 
