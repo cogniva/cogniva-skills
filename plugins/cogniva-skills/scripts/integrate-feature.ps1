@@ -40,15 +40,25 @@ try {
     Set-Content -Path $lock -Value "$FeatureBranch $(Get-Date -Format o)" -NoNewline
 
     # 3. Fast-forward local push into the target branch.
-    $push = (git -C $WorktreePath push . "$($FeatureBranch):$($TargetBranch)" 2>&1) -join "`n"
-    if ($LASTEXITCODE -eq 0) {
+    # NOTE: do NOT decide success by parsing git's stderr. With receive.denyCurrentBranch=updateInstead,
+    # git writes progress ("To .", the update line) to stderr, and PowerShell's native `2>&1` capture
+    # keeps only the first line ("To .") while $LASTEXITCODE can misreport — producing a false ERROR on
+    # a push that actually succeeded. Instead, compare refs afterward: the target ref moving to the
+    # feature tip is the authoritative signal of integration.
+    $featureSha = (git -C $WorktreePath rev-parse "$FeatureBranch").Trim()
+    $push = (git -C $WorktreePath push --porcelain . "$($FeatureBranch):$($TargetBranch)" 2>&1) -join "`n"
+    $pushExit = $LASTEXITCODE
+    $targetSha = (git -C $WorktreePath rev-parse "$TargetBranch").Trim()
+
+    if ($targetSha -eq $featureSha) {
+        # Source of truth: target now points at the feature tip (covers a clean push AND an idempotent re-run).
         $result = [pscustomobject]@{ status = 'INTEGRATED'; detail = "$FeatureBranch -> $TargetBranch (fast-forward)" }
     }
-    elseif ($push -match 'denyCurrentBranch|working tree|not a fast.?forward|would be overwritten|fetch first|up.to.date.*rejected|changes.*staged|untracked') {
+    elseif ($push -match 'denyCurrentBranch|working tree|working directory|not a fast.?forward|would be overwritten|fetch first|up.to.date.*rejected|staged changes|unstaged|untracked|currently checked out') {
         $result = [pscustomobject]@{ status = 'QUEUED_DIRTY'; detail = "target '$TargetBranch' not clean/FF; commit or stash there, then re-run integrate. git: $push" }
     }
     else {
-        $result = [pscustomobject]@{ status = 'ERROR'; detail = $push }
+        $result = [pscustomobject]@{ status = 'ERROR'; detail = "push exit ${pushExit}: $push" }
     }
     $result | ConvertTo-Json -Compress
     switch ($result.status) { 'INTEGRATED' { exit 0 } 'QUEUED_DIRTY' { exit 3 } default { exit 1 } }
