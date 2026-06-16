@@ -11,13 +11,13 @@ Park work somewhere durable instead of in prose or in your head. Two tiers:
   not worth a folder (a UI tweak, a bug, a "should be X later").
 - **Tier 2 — feature-sized stub:** a folder under a Module with `state.md`
   (`Status: deferred`) + `backlog.md`. For a cohesive chunk of future capability
-  that will eventually earn a full `/cogniva-skills:plan-feature` plan.
+  that will eventually earn a full `/cogniva-dev:plan-feature` plan.
 
 Read `BACKLOG-FORMAT.md` in this skill's directory for the exact line grammar and
 stub layout. This skill is **model-driven** (you edit markdown directly — no
 script) and **append-only**: never delete or reorder existing items.
 
-Invoke: `/cogniva-skills:backlog [<item description>]` (omit to be asked).
+Invoke: `/cogniva-dev:backlog [<item description>]` (omit to be asked).
 
 ## Inputs
 
@@ -51,7 +51,7 @@ Invoke: `/cogniva-skills:backlog [<item description>]` (omit to be asked).
      backtick tags (`size:`, `area:`, `src:`) per `BACKLOG-FORMAT.md`.
    - **Stub:** create the folder with `state.md` (`Status: deferred`) and
      `backlog.md` (deferred scope, contracts/requests to use, acceptance criteria,
-     the MVP it depends on, and a one-line "expand with /cogniva-skills:plan-feature"
+     the MVP it depends on, and a one-line "expand with /cogniva-dev:plan-feature"
      pointer).
 
 5. **Report** the one-line result: tier, path, and the item text. No HTML, no
@@ -63,7 +63,7 @@ Any skill that finds work it is not doing now should route it here rather than
 burying it in prose. The caller invokes:
 
 ```
-/cogniva-skills:backlog  module=<Module> tier=loose|stub size=<S> src=<Feature> — <description>
+/cogniva-dev:backlog  module=<Module> tier=loose|stub size=<S> src=<Feature> — <description>
 ```
 
 Honor the passed `tier`/`module`; still dedup; record and return the one-line

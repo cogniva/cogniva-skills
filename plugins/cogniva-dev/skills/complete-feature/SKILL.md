@@ -7,10 +7,10 @@ description: Use after you have validated a merged feature to close out the exec
 
 Close out a feature that has been integrated into your branch and validated by you.
 
-Run AFTER `/cogniva-skills:execute-feature` has set `Status: integrated` AND you
+Run AFTER `/cogniva-dev:execute-feature` has set `Status: integrated` AND you
 have confirmed the feature works in your checked-out branch.
 
-Invoke: `/cogniva-skills:complete-feature <Module>/<Feature>`
+Invoke: `/cogniva-dev:complete-feature <Module>/<Feature>`
 
 `<plugin>` below = this plugin's root (the parent of this `skills/` dir).
 `<slug>` = kebab of `<Feature>`.

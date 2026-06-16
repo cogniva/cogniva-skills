@@ -6,10 +6,19 @@
   },
   "plugins": [
     {
+      "name": "cogniva-dev",
+      "source": "./plugins/cogniva-dev",
+      "description": "Cogniva's development toolkit: auto-doc, backlog, repo-init, feature lifecycle (plan-feature, execute-feature, quick-fix, complete-feature), and status roll-ups",
+      "version": "0.1.0",
+      "author": {
+        "name": "Cogniva"
+      }
+    },
+    {
       "name": "cogniva-skills",
       "source": "./plugins/cogniva-skills",
-      "description": "Cogniva's team toolkit: glossary and auto-doc skills, Module-architecture repo scaffolding, a feature workflow with isolated-worktree execution, deferred-work capture (backlog), and status roll-ups",
-      "version": "0.6.2",
+      "description": "Cogniva's general-purpose toolkit: glossary and reference skills for any project",
+      "version": "0.7.0",
       "author": {
         "name": "Cogniva"
       }

@@ -13,8 +13,8 @@ A flat checklist. One file per scope:
 ```markdown
 # <Module> — Backlog
 
-Loose & deferred work, not yet planned. Promote with /cogniva-skills:plan-feature;
-trivial fixes can go straight to /cogniva-skills:quick-fix.
+Loose & deferred work, not yet planned. Promote with /cogniva-dev:plan-feature;
+trivial fixes can go straight to /cogniva-dev:quick-fix.
 ```
 
 (For the repo-level file, title it `# Backlog` and drop `<Module>`.)
@@ -83,7 +83,7 @@ Integration: not started
 - <what "done" will look like>
 
 ## Expand
-Run `/cogniva-skills:plan-feature` for <Module>/<Idea> when <MVP> has landed.
+Run `/cogniva-dev:plan-feature` for <Module>/<Idea> when <MVP> has landed.
 ```
 
 ### Promotion
