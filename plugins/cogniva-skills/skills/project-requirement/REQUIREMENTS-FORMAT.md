@@ -35,7 +35,9 @@ RFC 2119 severity level and a lifecycle status from draft to verified.
    - **Description:** The system SHOULD enforce role-based access control so that
      users can only see data relevant to their assigned roles.
    - **Notes:** TBD: which roles are needed.
-   - **Open Questions:** Which roles are needed? Who decides?
+   - **Open Questions:**
+     - Which roles are needed?
+     - Who decides?
 
 ## Non-Functional Requirements
 
@@ -81,7 +83,12 @@ N.M **<Title>**
    - **Description:** <full requirement text>
    - **Notes:** <additional context, dependencies, clarifications>
    - **Open Questions:** <unresolved items requiring stakeholder input> (optional)
+     - <first open question>
+     - <second open question>
+     - <etc>
 ```
+
+**Note:** Every open question is its own bullet line. Never combine them inline.
 
 ### Field rules
 
@@ -99,8 +106,8 @@ N.M **<Title>**
   - **verified** — confirmed as implemented and working as specified.
 - **Source:** reference to the origin of the requirement (RFP section, meeting date, email, conversation). Be specific enough to trace back.
 - **Description:** full requirement text in present or future tense. Answer: what the system shall do. Keep it testable — if you can't define acceptance criteria, refine it.
-- **Notes:** any additional context, dependencies, clarifications, or clarifications. Open questions should be moved to the 'Open Questions' field.
-- **Open Questions:** (optional) unresolved items that require stakeholder input or clarification. Each question should be a distinct, answerable item. This field should be used in place of 'Notes' for open questions or lingering decisions.
+- **Notes:** any additional context, dependencies, or clarifications. Open questions should be moved to the 'Open Questions' field.
+- **Open Questions:** unresolved items that require stakeholder input or clarification. **Each item MUST be on its own indented bullet line.** Never combine multiple items on a single line with commas, semicolons, or other delimiters. Each question should be a distinct, answerable item.
 
 ## Default Sections
 
@@ -178,6 +185,18 @@ appended with a `-- retired: <reason>` note. Never delete an entry.
   MUST, SHOULD, SHOULD NOT, or MUST NOT.
 - **Skipping status updates.** Keep status current. Stale status misleads
   stakeholders about project progress.
+- **Failing to explicitly list open questions.** Questions that are implied
+  instead of explicit are questions that will be missed and will cause problems.
+- **Burying open questions in the 'Notes' section.** Questions in the 'Notes'
+  section are invisible and will cause problems.
+- **Combining multiple open questions into a single line.** Each open question
+  gets its own bullet line. Writing "Which roles? Who decides?" on one line makes
+  it impossible to track which questions have been answered.
+- **Moving items with Open Questions into their own section in REQUIREMENTS.md.** Questions that
+  need to be answered aren't a separate category of requirements. They can
+  (and sometimes should) be separate for executive summaries, in response to questions, etc;
+  it's just inside 'REQUIREMENTS.md' that it's automatically a mistake for them
+  to be separate.
 
 ## Gap Analysis
 

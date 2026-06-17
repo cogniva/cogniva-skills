@@ -64,7 +64,10 @@ Takes a natural-language statement and produces a structured draft entry:
 1. Parse the statement to infer severity (default: SHOULD if not specified).
 2. Extract a title from the statement (title case, short).
 3. Rewrite the description using RFC 2119 language (SHALL/SHOULD/MUST NOT).
-4. Identify any unanswered questions or missing details needed to finalize the requirement.
+4. Rigorously check for hidden assumptions or unanswered questions. If any are found, add them as 'Open Questions', one question per indented bullet line (never combine on a single line with commas or semicolons). If there are multiple open questions, format them exactly as shown below (each on its own line):
+  - **Open Questions:**
+   - Which roles are needed?
+   - Who decides?
 5. Show the draft entry and ask the user to confirm or adjust.
 6. On confirmation, use `add` to write the entry.
 
@@ -103,8 +106,8 @@ Total: 9 requirements (33% verified)
 /cogniva-skills:project-requirement open-questions [--section <name>]
 ```
 
-Extracts all `Open Questions` fields from every requirement and presents them
-as a consolidated list grouped by section:
+Extracts all 'Open Questions' fields (each item on its own bullet line) from
+every requirement and presents them as a consolidated list grouped by section:
 
 ```
 Open Questions
