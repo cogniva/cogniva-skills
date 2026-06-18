@@ -21,19 +21,19 @@ RFC 2119 severity level and a lifecycle status from draft to verified.
 ## Functional Requirements
 
 1.1 **User Authentication**
+   - **Description:** The system SHALL authenticate users via SAML 2.0 before
+     granting access to any module workspace.
    - **Severity:** MUST
    - **Status:** agreed
    - **Source:** RFP Section 3.2, meeting 2026-01-15
-   - **Description:** The system SHALL authenticate users via SAML 2.0 before
-     granting access to any module workspace.
    - **Notes:** Depends on IdP configuration from IT team.
 
 1.2 **Role-Based Access**
+   - **Description:** The system SHOULD enforce role-based access control so that
+     users can only see data relevant to their assigned roles.
    - **Severity:** SHOULD
    - **Status:** draft
    - **Source:** RFP Section 4.1
-   - **Description:** The system SHOULD enforce role-based access control so that
-     users can only see data relevant to their assigned roles.
    - **Notes:** TBD: which roles are needed.
    - **Open Questions:**
      - Which roles are needed?
@@ -42,18 +42,18 @@ RFC 2119 severity level and a lifecycle status from draft to verified.
 ## Non-Functional Requirements
 
 1.1 **Response Time**
+   - **Description:** The system MUST respond to all API requests within 200 ms
+     for 95th percentile of requests under normal load.
    - **Severity:** MUST
    - **Status:** implemented
    - **Source:** RFP Section 5.1
-   - **Description:** The system MUST respond to all API requests within 200 ms
-     for 95th percentile of requests under normal load.
    - **Notes:** Performance testing scheduled for 2026-03-01.
 
 1.2 **Audit Logging**
+   - **Description:** ~~The system MUST NOT log plaintext passwords.~~
    - **Severity:** MUST NOT
    - **Status:** verified
    - **Source:** Compliance policy CP-2024-07
-   - **Description:** ~~The system MUST NOT log plaintext passwords.~~
    - **Notes:** ~~Verified during security review on 2026-02-15.~~
 ```
 
@@ -77,10 +77,10 @@ Each entry follows this structure:
 
 ```markdown
 N.M **<Title>**
+   - **Description:** <full requirement text>
    - **Severity:** <MUST | SHOULD | SHOULD NOT | MUST NOT>
    - **Status:** <draft | agreed | implemented | verified>
    - **Source:** <document, section, or conversation reference>
-   - **Description:** <full requirement text>
    - **Notes:** <additional context, dependencies, clarifications>
    - **Open Questions:** <unresolved items requiring stakeholder input> (optional)
      - <first open question>
@@ -94,6 +94,7 @@ N.M **<Title>**
 
 - **Number:** auto-increment, per-section, append-only. Never delete or renumber.
 - **Title:** bold, title case. Short, descriptive, action-oriented.
+- **Description:** full requirement text in present or future tense. Answer: what the system shall do. Keep it testable — if you can't define acceptance criteria, refine it.
 - **Severity:** one of the four RFC 2119 terms:
   - **MUST** — absolute requirement, no exceptions.
   - **SHOULD** — strong expectation; exceptions require documented justification.
@@ -105,7 +106,6 @@ N.M **<Title>**
   - **implemented** — work is complete; awaiting verification.
   - **verified** — confirmed as implemented and working as specified.
 - **Source:** reference to the origin of the requirement (RFP section, meeting date, email, conversation). Be specific enough to trace back.
-- **Description:** full requirement text in present or future tense. Answer: what the system shall do. Keep it testable — if you can't define acceptance criteria, refine it.
 - **Notes:** any additional context, dependencies, or clarifications. Open questions should be moved to the 'Open Questions' field.
 - **Open Questions:** unresolved items that require stakeholder input or clarification. **Each item MUST be on its own indented bullet line.** Never combine multiple items on a single line with commas, semicolons, or other delimiters. Each question should be a distinct, answerable item.
 
@@ -143,10 +143,10 @@ appended with a `-- retired: <reason>` note. Never delete an entry.
 
 ```markdown
 ~~1.3 **Legacy Format Export**~~
+   - ~~**Description:** The system SHALL export data in legacy CSV format.~~
    - **Severity:** SHOULD
    - ~~**Status:** agreed~~
    - **Source:** RFP Section 6.0
-   - ~~**Description:** The system SHALL export data in legacy CSV format.~~
    - **Notes:** ~~Retired: client dropped legacy format in Q3 2026.~~
 ```
 
