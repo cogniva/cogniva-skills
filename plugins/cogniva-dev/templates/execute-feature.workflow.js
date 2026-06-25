@@ -7,6 +7,7 @@ export const meta = {
 // The execute-feature / quick-fix skill parses the plan and invokes Workflow with:
 //   args = {
 //     worktree:      absolute path to the feature worktree (already checked out on featureBranch),
+//     pluginRoot:    absolute path to this plugin's root (parent of skills/), for invoking scripts/git-commit.ps1,
 //     featureBranch: 'feature/<slug>',
 //     planPath:      absolute path to the plan .md inside the worktree (for ticking checkboxes),
 //     statePath:     absolute path to state.md inside the worktree (durable handoff between tasks),
@@ -34,7 +35,7 @@ phase('Execute')
 // object; normalize so destructuring works either way (otherwise this throws
 // "undefined is not an object (evaluating 'tasks.length')").
 const _args = typeof args === 'string' ? JSON.parse(args) : args
-const { worktree, featureBranch, planPath, statePath, tasks } = _args
+const { worktree, featureBranch, planPath, statePath, tasks, pluginRoot } = _args
 const results = []
 
 for (let i = 0; i < tasks.length; i++) {
@@ -47,8 +48,10 @@ for (let i = 0; i < tasks.length; i++) {
     `You are already checked out on ${featureBranch}. NEVER run git switch / checkout / branch — work where you are.`,
     `Use absolute paths under the worktree. Follow the task's steps verbatim, TDD-style:`,
     `write the failing test → run it (confirm it fails) → minimal implementation → run until green → run the task's full verification.`,
-    `On success: stage ONLY the files you changed, commit with the task's commit message (keep the repo's commit conventions),`,
-    `then edit ${planPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]",`,
+    `On success, commit with the cogniva-dev wrapper (ONE call, not a chain) — it stages, commits, and prints the short SHA:`,
+    `  powershell -NoProfile -ExecutionPolicy Bypass -File "${pluginRoot}/scripts/git-commit.ps1" -RepoPath "${worktree}" -Path <only this task's files> -Message "<the task's commit message>"`,
+    `Capture the short SHA it prints on stdout. Do NOT run \`git add\`/\`git commit\`/\`git rev-parse\` yourself, and never chain commands with && or prefix them with cd — run each command as its own Bash call (your cwd is already the worktree; use absolute paths).`,
+    `Then edit ${planPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]",`,
     `and append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.`,
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,
     ``,

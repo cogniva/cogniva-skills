@@ -61,6 +61,7 @@ Author/run the Workflow from `<plugin>/templates/execute-feature.workflow.js`
 (copy its script; do not rewrite it), passing:
 ```
 args = { worktree, featureBranch: "feature/<slug>",
+         pluginRoot: "<plugin>",   // parent of this skills/ dir — lets tasks commit via scripts/git-commit.ps1
          planPath:  "<worktree>/docs/plans/<Module>/<Feature>/<Feature>-plan.md",
          statePath: "<worktree>/docs/plans/<Module>/<Feature>/state.md",
          tasks: [ ...parsed... ] }
@@ -108,6 +109,10 @@ remote). Interpret the JSON `status`:
 
 - NEVER push to a remote. NEVER `git switch/checkout/branch` in the primary
   checkout. All task work happens on `feature/<slug>` inside the worktree.
+- Tasks commit via `scripts/git-commit.ps1` (one call, stages+commits+prints SHA),
+  not `git add && git commit`. Never chain shell commands with `&&`/`;` or prefix
+  with `cd` — each command is its own call; cwd is already the worktree. This keeps
+  every command matchable against the permission allowlist (see docs/adr/0003).
 - No reviewer fan-out — one agent per task. (An end-of-feature review is optional
   and off by default.)
 - Keep this console lean: the Workflow runs in the background; you only relay
