@@ -39,13 +39,21 @@ Invoke: `/cogniva-dev:execute-feature <Module>/<Feature>` (or a plan path).
    `state.md` if not already present, and set its `Status:` line to
    `in-progress` (the status skills read this).
 
-## Step 1 — parse the plan into tasks
+## Step 1 — parse the plan into tasks (deterministic script — no manual parsing)
 
-From the plan IN THE WORKTREE, build an ordered array of tasks:
-`{ n, title, body, isGate, done }` where
-- `body` = that task's full text (all its `- [ ]` steps, verbatim, self-contained),
-- `isGate` = the heading starts with `⛔`,
-- `done` = every checkbox in the task is already `- [x]` (resume support).
+Do NOT read or hand-build the task array. Run the parser against the plan IN THE
+WORKTREE and capture its stdout verbatim:
+
+`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/parse-plan-tasks.ps1" -PlanPath "<worktree>/docs/plans/<Module>/<Feature>/<Feature>-plan.md"`
+
+It prints a single JSON array of `{ n, title, body, isGate, done }` in document order:
+- `body` = the task's full text after its heading, verbatim (all `- [ ]` steps and fenced examples),
+- `isGate` = the heading is a `⛔` gate,
+- `done` = the task's real (non-fenced) checkboxes are all `- [x]` — drives resume.
+
+On failure it writes a message to stderr and exits non-zero (missing file, or no
+`## Task N:` headings); surface that and STOP. Use the captured JSON **verbatim** as
+`args.tasks` in Step 2 — do not transform, re-order, or re-derive any field.
 
 ## Step 2 — run the Workflow (background, one agent per task)
 
