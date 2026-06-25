@@ -10,8 +10,10 @@
 #   - body = every line AFTER the heading up to (not including) the next task heading, verbatim
 #     (fenced code blocks, "- [ ]" examples and all). Newlines normalised to LF.
 #   - done = fully checked: among checkbox lines that are NOT inside a fenced code block, at
-#     least one "- [x]" and zero "- [ ]". Fence-awareness keeps an EXAMPLE "- [ ]" printed
-#     inside a ``` block from making a finished task look unfinished (correct resume).
+#     least one "- [x]" and zero "- [ ]". Fence tracking is length-aware (CommonMark): a fence
+#     opened with N of ` or ~ closes only on >= N of the SAME char, so a 4-backtick fence that
+#     wraps a 3-backtick example does not close early. This keeps an EXAMPLE "- [ ]" printed
+#     inside a fenced block from making a finished task look unfinished (correct resume).
 # Failure: non-zero exit + a message on stderr (missing file / no tasks found); stdout stays empty.
 [CmdletBinding()]
 param(
@@ -63,12 +65,30 @@ try {
         $bodyLines = if ($end -gt $start) { @($lines[$start..($end - 1)]) } else { @() }
         $body = ($bodyLines -join "`n")
 
-        $inFence   = $false
-        $checked   = 0
-        $unchecked = 0
+        $inFence    = $false
+        $fenceChar  = ''
+        $fenceLen   = 0
+        $checked    = 0
+        $unchecked  = 0
         foreach ($bl in $bodyLines) {
             $trimmed = $bl.TrimStart()
-            if ($trimmed -match '^(```|~~~)') { $inFence = -not $inFence; continue }
+            # Length-aware fence tracking (CommonMark): a fence opened with N of `
+            # or ~ closes only on a line of >= N of the SAME char. A shorter or
+            # different-char fence line inside is literal content — this keeps a
+            # 4-backtick fence wrapping a 3-backtick example from closing early.
+            $fm = [regex]::Match($trimmed, '^(?<f>`{3,}|~{3,})')
+            if ($fm.Success) {
+                $marker = $fm.Groups['f'].Value
+                $char   = $marker[0]
+                $len    = $marker.Length
+                if (-not $inFence) {
+                    $inFence = $true; $fenceChar = $char; $fenceLen = $len
+                }
+                elseif ($char -eq $fenceChar -and $len -ge $fenceLen) {
+                    $inFence = $false; $fenceChar = ''; $fenceLen = 0
+                }
+                continue
+            }
             if ($inFence) { continue }
             if     ($trimmed -match '^- \[[xX]\]') { $checked++ }
             elseif ($trimmed -match '^- \[ \]')    { $unchecked++ }

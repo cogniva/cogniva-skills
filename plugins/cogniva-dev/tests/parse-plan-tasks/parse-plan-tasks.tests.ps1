@@ -43,6 +43,15 @@ Check 'syn: Task 3 is the gate, not done'            ($syn[2].isGate -eq $true -
 $expectT2 = "`n- [ ] **Step 1:** still to do.`n- [x] **Step 2:** partially done.`n"
 Check 'syn: Task 2 body is byte-faithful'            ($syn[1].body -eq $expectT2)
 
+# --- Nested fence fixture: length-aware fence nesting (4-tick wrapping 3-tick) --
+# A finished task whose body shows a 4-backtick fence wrapping a 3-backtick example.
+# The inner ``` must NOT close the outer ````, so the example "- [ ]" lines stay
+# fenced and the task still reads done. (Regression for the simple-toggle bug.)
+$nest = Parse 'nested-fence-plan.md'
+Check 'nest: 2 tasks'                                 ($nest.Count -eq 2)
+Check 'nest: Task 1 done=true (nested-fence "- [ ]" ignored)' ($nest[0].done -eq $true)
+Check 'nest: Task 2 done=false (real "- [ ]")'        ($nest[1].done -eq $false)
+
 if ($failures.Count -gt 0) {
     Write-Host ""
     Write-Host "FAILED: $($failures.Count) assertion(s)."
