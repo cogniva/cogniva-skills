@@ -1,6 +1,6 @@
 # PlanParserScript — execution state
 
-Status: integrated
+Status: done
 Target branch: main
 Worktree: C:\dev\cogniva-skills-plan-parser-script
 Feature branch: feature/plan-parser-script
@@ -15,3 +15,4 @@ Integration: integrated a7de2da (fast-forward into main)
 - Gate (Task 5) resolution: user ran `claude plugin validate .` — it flagged the marketplace entry still pinned at 0.1.0 vs plugin.json 0.2.0. Fixed: bumped `.claude-plugin/marketplace.json` cogniva-dev entry to 0.2.0 (commit 1af010a). Gate Step 1 (parser vs real external fixture) and Step 2 (SKILL.md Step 1 unambiguous) both confirmed by eyeball.
 - Resume found Task 1 falsely reading not-done: parser's 3-backtick fence toggle mis-closed on the inner ``` of this plan's own 4-backtick fences, leaking fenced `- [ ]` examples. Fixed with length-aware (CommonMark) fence tracking + nested-fence-plan.md fixture + 3 assertions (17/17 green; prior 14 unbroken). Commit 34ab77e. Task 1 now reads done.
 - Integration: first attempt ERRORed — repo lacked `receive.denyCurrentBranch=updateInstead` (cogniva-skills is the marketplace repo, not a repo-init scaffold) and primary tree had untracked stale copies of this plan's docs colliding with the feature's tracked versions. Resolved: backed up + removed the two stale untracked files (docs/plans/ExecuteFeature/PlanParserScript/{plan,state}.md → scratchpad), set the config, re-ran integrate → INTEGRATED (fast-forward, main == a7de2da). Suite green on main (17/17).
+- Closed out: validated by user, worktree removed.
