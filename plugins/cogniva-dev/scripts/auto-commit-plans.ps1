@@ -1,4 +1,4 @@
-# Stop hook: auto-commit uncommitted docs/plans, docs/specs, and docs/glossary files.
+# Stop hook: auto-commit uncommitted docs/plans, docs/specs, docs/glossary, and docs/adr files.
 # Contract: NEVER block the stop - exit 0 on every path.
 try {
     $raw = [Console]::In.ReadToEnd()
@@ -19,13 +19,13 @@ try {
     if ($LASTEXITCODE -ne 0) { exit 0 }
     $gitRoot = $gitRoot.Trim()
 
-    $docPaths = @('docs/plans', 'docs/specs', 'docs/glossary')
+    $docPaths = @('docs/plans', 'docs/specs', 'docs/glossary', 'docs/adr')
     $status = & git -C $gitRoot status --porcelain -- $docPaths 2>&1
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($status)) { exit 0 }
 
     # Stage only the tracked doc paths - never a broad git add
     & git -C $gitRoot add -- $docPaths 2>&1 | Out-Null
-    & git -C $gitRoot commit -m "chore: auto-commit plans, specs, and glossary docs" 2>&1 | Out-Null
+    & git -C $gitRoot commit -m "chore: auto-commit plans, specs, glossary, and ADR docs" 2>&1 | Out-Null
     exit 0
 } catch {
     exit 0
