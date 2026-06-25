@@ -184,7 +184,7 @@ nothing.
 **Files:**
 - Create: `plugins/cogniva-dev/scripts/parse-plan-tasks.ps1`
 
-- [ ] **Step 1 (write the script):** create `plugins/cogniva-dev/scripts/parse-plan-tasks.ps1`
+- [x] **Step 1 (write the script):** create `plugins/cogniva-dev/scripts/parse-plan-tasks.ps1`
       with EXACTLY:
       ```powershell
       # Parse a feature plan markdown file into the ordered task array execute-feature consumes.
@@ -285,24 +285,24 @@ nothing.
           exit 1
       }
       ```
-- [ ] **Step 2 (run the test, expect green):** run (Bash):
+- [x] **Step 2 (run the test, expect green):** run (Bash):
       ```bash
       powershell -NoProfile -ExecutionPolicy Bypass -File "plugins/cogniva-dev/tests/parse-plan-tasks/parse-plan-tasks.tests.ps1"; echo "exit:$?"
       ```
       Expected: every line prints `PASS`, then `All parse-plan-tasks assertions passed.` and
       `exit:0`. If any assertion FAILS, fix the script (not the test) until green.
-- [ ] **Step 3 (spot-check the raw JSON shape):** run (Bash):
+- [x] **Step 3 (spot-check the raw JSON shape):** run (Bash):
       ```bash
       powershell -NoProfile -ExecutionPolicy Bypass -File "plugins/cogniva-dev/scripts/parse-plan-tasks.ps1" -PlanPath "plugins/cogniva-dev/tests/parse-plan-tasks/synthetic-plan.md" | python -c "import sys,json; a=json.load(sys.stdin); print(len(a), [t['n'] for t in a], [t['isGate'] for t in a], [t['done'] for t in a])"
       ```
       Expected output: `3 [1, 2, 3] [False, False, True] [True, False, False]`
-- [ ] **Step 4 (verify failure path — missing file):** run (Bash):
+- [x] **Step 4 (verify failure path — missing file):** run (Bash):
       ```bash
       powershell -NoProfile -ExecutionPolicy Bypass -File "plugins/cogniva-dev/scripts/parse-plan-tasks.ps1" -PlanPath "does/not/exist.md" 1>/tmp/out.txt 2>/tmp/err.txt; echo "exit:$?"; echo "stdout-bytes:$(wc -c </tmp/out.txt)"; cat /tmp/err.txt
       ```
       Expected: `exit:1`, `stdout-bytes:0` (stdout empty), and a stderr line containing
       `plan file not found`.
-- [ ] **Step 5 (commit):**
+- [x] **Step 5 (commit):**
       `git add plugins/cogniva-dev/scripts/parse-plan-tasks.ps1` then
       `git commit -m "feat(cogniva-dev): add deterministic parse-plan-tasks.ps1 for execute-feature"`
 
@@ -316,7 +316,7 @@ unchanged.
 **Files:**
 - Modify: `plugins/cogniva-dev/skills/execute-feature/SKILL.md`
 
-- [ ] **Step 1 (replace the Step 1 section):** in
+- [x] **Step 1 (replace the Step 1 section):** in
       `plugins/cogniva-dev/skills/execute-feature/SKILL.md`, replace this EXACT block:
       ```
       ## Step 1 — parse the plan into tasks
@@ -345,17 +345,17 @@ unchanged.
       `## Task N:` headings); surface that and STOP. Use the captured JSON **verbatim** as
       `args.tasks` in Step 2 — do not transform, re-order, or re-derive any field.
       ```
-- [ ] **Step 2 (verify the old instruction is gone):** run (Bash):
+- [x] **Step 2 (verify the old instruction is gone):** run (Bash):
       ```bash
       grep -n "build an ordered array" plugins/cogniva-dev/skills/execute-feature/SKILL.md; echo "exit:$?"
       ```
       Expected output: no matching lines, then `exit:1` (grep found nothing).
-- [ ] **Step 3 (verify the new instruction is present):** run (Bash):
+- [x] **Step 3 (verify the new instruction is present):** run (Bash):
       ```bash
       grep -c "parse-plan-tasks.ps1" plugins/cogniva-dev/skills/execute-feature/SKILL.md
       ```
       Expected output: `1`
-- [ ] **Step 4 (commit):**
+- [x] **Step 4 (commit):**
       `git add plugins/cogniva-dev/skills/execute-feature/SKILL.md` then
       `git commit -m "feat(cogniva-dev): execute-feature Step 1 calls parse-plan-tasks.ps1 instead of hand-parsing"`
 
@@ -367,7 +367,7 @@ plus a skill change qualifies. Then validate the marketplace.
 **Files:**
 - Modify: `plugins/cogniva-dev/.claude-plugin/plugin.json`
 
-- [ ] **Step 1 (bump the version):** in `plugins/cogniva-dev/.claude-plugin/plugin.json`, replace
+- [x] **Step 1 (bump the version):** in `plugins/cogniva-dev/.claude-plugin/plugin.json`, replace
       ```
         "version": "0.1.0",
       ```
@@ -375,18 +375,18 @@ plus a skill change qualifies. Then validate the marketplace.
       ```
         "version": "0.2.0",
       ```
-- [ ] **Step 2 (confirm the bump):** run (Bash):
+- [x] **Step 2 (confirm the bump):** run (Bash):
       ```bash
       grep '"version"' plugins/cogniva-dev/.claude-plugin/plugin.json
       ```
       Expected output: a line containing `"version": "0.2.0",`
-- [ ] **Step 3 (validate the marketplace):** run (Bash):
+- [x] **Step 3 (validate the marketplace):** run (Bash):
       ```bash
       claude plugin validate .; echo "exit:$?"
       ```
       Expected: validation succeeds and prints `exit:0`. If `claude` is unavailable in the
       worktree, note it in the commit and proceed (validation is also run by the user at the gate).
-- [ ] **Step 4 (commit):**
+- [x] **Step 4 (commit):**
       `git add plugins/cogniva-dev/.claude-plugin/plugin.json` then
       `git commit -m "chore(cogniva-dev): bump version to 0.2.0 for parse-plan-tasks"`
 
@@ -396,7 +396,7 @@ The automated test uses a LOCAL copy of the fixture. The acceptance also require
 produce the right array against the REAL plan on disk, and the SKILL.md rewrite to read as one
 unambiguous command. Both are a human eyeball — hard stop.
 
-- [ ] **Step 1:** From the worktree, run the parser against the REAL external fixture and confirm
+- [x] **Step 1:** From the worktree, run the parser against the REAL external fixture and confirm
       the array matches what the skill built by hand: 5 entries, n 1–5, `isGate` true only for
       Task 5, `done` = true,true,true,true,false:
       ```bash
@@ -404,6 +404,6 @@ unambiguous command. Both are a human eyeball — hard stop.
       ```
       Expected: `5`, `[1, 2, 3, 4, 5]`, `[False, False, False, False, True]`,
       `[True, True, True, True, False]`, and a Task-3 body snippet that begins with the real prose.
-- [ ] **Step 2:** Re-read `plugins/cogniva-dev/skills/execute-feature/SKILL.md` Step 1 and confirm
+- [x] **Step 2:** Re-read `plugins/cogniva-dev/skills/execute-feature/SKILL.md` Step 1 and confirm
       it is unambiguous: one command to run, one JSON to capture, zero model judgment about parsing.
-- [ ] **Step 3:** Wait for the user to confirm both before the feature is marked integrated.
+- [x] **Step 3:** Wait for the user to confirm both before the feature is marked integrated.
