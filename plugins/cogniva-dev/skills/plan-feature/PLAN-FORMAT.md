@@ -37,8 +37,9 @@ a fresh subagent context — so **every task must be self-contained**.
 - [ ] **Step 2 (run it, expect fail):** `<exact command>` → <expected output>
 - [ ] **Step 3 (implement):** <exact implementation code>
 - [ ] **Step 4 (run until green):** `<exact command>` → <expected output>
-- [ ] **Step 5 (commit):** `git add <only this task's files>` then
-      `git commit -m "<conventional message>"`
+- [ ] **Step 5 (commit):** Commit only this task's files with message
+      `<conventional message>`. (execute-feature commits via `scripts/git-commit.ps1`
+      — describe the message and the files; do NOT write a `git add && git commit` chain.)
 
 ## ⛔ Task N: <title>  (manual validation gate — execute-feature STOPS here)
 
@@ -66,3 +67,9 @@ Integration: not started
 - One action per `- [ ]` step (2-5 min).
 - Prefix a task with `⛔` when a human must validate before proceeding.
 - Order tasks so each builds on the previous (they share one worktree, sequentially).
+- Verification commands must be **allowlistable**: prefer single read-only verbs
+  (`grep`, `cat`, `test`, `ls`, `head`) or a named script run via
+  `powershell -NoProfile -ExecutionPolicy Bypass -File "<path>.ps1" …`. Do NOT write
+  `&&`/`;`-chained command lines or inline `pwsh -Command "…"` / `powershell -Command "…"`
+  — each is a unique, un-allowlistable string that prompts at execute time (see docs/adr/0003).
+- One command per `- [ ]` step. If a step needs two commands, make it two steps.
