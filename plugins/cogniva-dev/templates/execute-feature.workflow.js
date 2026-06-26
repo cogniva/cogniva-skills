@@ -9,8 +9,8 @@ export const meta = {
 //     worktree:      absolute path to the feature worktree (already checked out on featureBranch),
 //     pluginRoot:    absolute path to this plugin's root (parent of skills/), for invoking scripts/git-commit.ps1,
 //     featureBranch: 'feature/<slug>',
-//     planPath:      absolute path to the plan .md inside the worktree (for ticking checkboxes),
-//     statePath:     absolute path to state.md inside the worktree (durable handoff between tasks),
+//     planPath:      absolute path to the plan .md in the PRIMARY checkout (control-plane; for ticking checkboxes),
+//     statePath:     absolute path to state.md in the PRIMARY checkout (control-plane; durable handoff between tasks),
 //     tasks: [ { n, title, body, isGate, done } ]   // self-contained task sections, in order
 //   }
 // Tasks run SEQUENTIALLY (each builds on the previous in the SAME worktree) — do NOT parallelize and
@@ -44,15 +44,16 @@ for (let i = 0; i < tasks.length; i++) {
 
   const prompt = [
     `Implement EXACTLY ONE task of a feature plan, then stop. Do not start the next task.`,
-    `Your only working directory is this git worktree: ${worktree}`,
+    `Your working directory for ALL CODE is this git worktree: ${worktree}`,
     `You are already checked out on ${featureBranch}. NEVER run git switch / checkout / branch — work where you are.`,
     `Use absolute paths under the worktree. Follow the task's steps verbatim, TDD-style:`,
     `write the failing test → run it (confirm it fails) → minimal implementation → run until green → run the task's full verification.`,
     `On success, commit with the cogniva-dev wrapper (ONE call, not a chain) — it stages, commits, and prints the short SHA:`,
     `  powershell -NoProfile -ExecutionPolicy Bypass -File "${pluginRoot}/scripts/git-commit.ps1" -RepoPath "${worktree}" -Path <only this task's files> -Message "<the task's commit message>"`,
     `Capture the short SHA it prints on stdout. Do NOT run \`git add\`/\`git commit\`/\`git rev-parse\` yourself, and never chain commands with && or prefix them with cd — run each command as its own Bash call (your cwd is already the worktree; use absolute paths).`,
-    `Then edit ${planPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]",`,
-    `and append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.`,
+    `Two control files live in the PRIMARY checkout, OUTSIDE your worktree — edit them in place by absolute path; they are untracked metadata, NOT part of your commit, and must NEVER be passed to git-commit.ps1:`,
+    `  - plan:  ${planPath}  — flip THIS task's checkboxes from "- [ ]" to "- [x]".`,
+    `  - state: ${statePath} — append one short line: created/modified paths, key decisions, and the commit SHA.`,
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,
     ``,
     `=== TASK ${t.n}: ${t.title} ===`,
