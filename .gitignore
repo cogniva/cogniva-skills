@@ -1,1 +1,4 @@
 .claude/settings.local.json
+/docs/plans/**
+/docs/scratchpad/**
+/docs/superpowers/**
