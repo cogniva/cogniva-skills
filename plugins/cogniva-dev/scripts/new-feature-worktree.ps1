@@ -1,7 +1,7 @@
 # Create (or reuse) an isolated git worktree on feature/<slug> for an execute-feature/quick-fix run.
 # Isolation model: a worktree-on-a-branch never touches the primary checkout's HEAD, so concurrent
 # runs cannot interfere. We never switch branches in the primary checkout.
-# Output (last line): JSON { worktree, branch, base, reused }
+# Output (last line): JSON { worktree, branch, base, reused, repoRoot }
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Slug,
@@ -44,7 +44,7 @@ try {
         if (-not $already) { Add-Content -LiteralPath $ledger -Value "$branch`t$wt`t$BaseBranch" }
     } catch { }
 
-    [pscustomobject]@{ worktree = $wt; branch = $branch; base = $BaseBranch; reused = $reused } |
+    [pscustomobject]@{ worktree = $wt; branch = $branch; base = $BaseBranch; reused = $reused; repoRoot = $RepoRoot } |
         ConvertTo-Json -Compress
     exit 0
 }
