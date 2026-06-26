@@ -28,23 +28,38 @@ Invoke: `/cogniva-dev:execute-feature <Module>/<Feature>` (or a plan path).
 
 ## Step 0 — create / reuse the isolated worktree (Bash, once)
 
-1. Confirm a plan exists at `docs/plans/<Module>/<Feature>/<Feature>-plan.md`.
+> **Plan + state live in the PRIMARY checkout — never the worktree.** The plan
+> and `state.md` are *control-plane* artifacts: execute-feature reads and
+> updates them in place in the primary checkout. They are NOT carried into the
+> worktree — `docs/plans/**` is often gitignored, and a fresh worktree only
+> contains tracked, committed files, so uncommitted/ignored plan files never
+> appear there. The worktree holds ONLY the code deliverable. Always resolve
+> plan and state against the primary checkout's `repoRoot`; never
+> `<worktree>/docs/plans/...`. (complete-feature already reads `state.md` from
+> the primary checkout for the same reason — see docs/adr/0004.)
+
+1. Confirm a plan exists at `docs/plans/<Module>/<Feature>/<Feature>-plan.md`
+   in the primary checkout.
 2. Derive `<slug>` (kebab of `<Feature>`).
 3. Run:
    `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/new-feature-worktree.ps1" -Slug <slug>`
    It reads the user's current branch as the integration **target** (never
-   switches it) and prints JSON `{ worktree, branch, base, reused }`. Capture
-   `worktree` (absolute) and `branch` (`feature/<slug>`).
-4. Record `Target branch`, `Worktree`, and `branch` into the worktree's
-   `state.md` if not already present, and set its `Status:` line to
-   `in-progress` (the status skills read this).
+   switches it) and prints JSON `{ worktree, branch, base, reused, repoRoot }`.
+   Capture `worktree` (absolute), `branch` (`feature/<slug>`), and `repoRoot`
+   (the primary checkout — where plan and state live).
+4. Define the control-plane paths against `repoRoot` (NOT the worktree):
+   - `planPath  = <repoRoot>/docs/plans/<Module>/<Feature>/<Feature>-plan.md`
+   - `statePath = <repoRoot>/docs/plans/<Module>/<Feature>/state.md`
+5. Record `Target branch`, `Worktree`, and `branch` into `statePath` (the
+   primary-checkout `state.md`) if not already present, and set its `Status:`
+   line to `in-progress` (the status skills read this).
 
 ## Step 1 — parse the plan into tasks (deterministic script — no manual parsing)
 
-Do NOT read or hand-build the task array. Run the parser against the plan IN THE
-WORKTREE and capture its stdout verbatim:
+Do NOT read or hand-build the task array. Run the parser against the plan in the
+PRIMARY checkout (`planPath` from Step 0) and capture its stdout verbatim:
 
-`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/parse-plan-tasks.ps1" -PlanPath "<worktree>/docs/plans/<Module>/<Feature>/<Feature>-plan.md"`
+`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/parse-plan-tasks.ps1" -PlanPath "<planPath>"`
 
 It prints a single JSON array of `{ n, title, body, isGate, done }` in document order:
 - `body` = the task's full text after its heading, verbatim (all `- [ ]` steps and fenced examples),
@@ -62,8 +77,8 @@ Author/run the Workflow from `<plugin>/templates/execute-feature.workflow.js`
 ```
 args = { worktree, featureBranch: "feature/<slug>",
          pluginRoot: "<plugin>",   // parent of this skills/ dir — lets tasks commit via scripts/git-commit.ps1
-         planPath:  "<worktree>/docs/plans/<Module>/<Feature>/<Feature>-plan.md",
-         statePath: "<worktree>/docs/plans/<Module>/<Feature>/state.md",
+         planPath:  "<planPath>",   // primary checkout — control-plane, see Step 0
+         statePath: "<statePath>",  // primary checkout — control-plane, see Step 0
          tasks: [ ...parsed... ] }
 ```
 Tasks run SEQUENTIALLY in the ONE worktree (each builds on the previous). The
