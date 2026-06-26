@@ -9,7 +9,7 @@
       "name": "cogniva-dev",
       "source": "./plugins/cogniva-dev",
       "description": "Cogniva's development toolkit: auto-doc, backlog, repo-init, feature lifecycle (plan-feature, execute-feature, quick-fix, complete-feature), and status roll-ups",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "author": {
         "name": "Cogniva"
       }
