@@ -61,6 +61,12 @@ Integration: not started
 blocked → integrated → done`); seed it `planned`. The status skills
 (`feature-status`, `module-status`, `repo-status`) read it.
 
+Both `<Feature>-plan.md` and `state.md` are **control-plane** files: they live
+in the primary checkout and execute-feature reads/updates them there in place —
+they are deliberately NOT carried into the feature worktree (see
+docs/adr/0004). Just write them; no manual commit is needed (the Stop-hook
+commits `docs/plans/` where it is tracked).
+
 ## Capture deferrals (don't bury cut scope in prose)
 
 A focused design always cuts scope. Do NOT leave it as a "Deferred / future work"

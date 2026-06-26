@@ -25,8 +25,10 @@ Run the Workflow from `<plugin>/templates/execute-feature.workflow.js` with a
 SINGLE synthesized task for trivial fixes, or a short ordered task list for
 multi-step ones. Each task body must be self-contained and include: what to
 change, how to verify (test or manual check), and a commit step. Pass
-`planPath`/`statePath` only if you created a state file; otherwise omit checkbox
-ticking from the task body and rely on the commit(s).
+`planPath`/`statePath` only if you created a state file — and as
+**primary-checkout** paths (built from the worktree script's `repoRoot`), never
+`<worktree>/...` (see execute-feature Step 0 / docs/adr/0004). Otherwise omit
+checkbox ticking from the task body and rely on the commit(s).
 
 The task-agent works ONLY in `<worktree>` on `feature/<slug>`, never switches
 branches, stages only its own files, and commits.
