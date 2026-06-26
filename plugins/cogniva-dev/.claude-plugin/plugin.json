@@ -1,6 +1,6 @@
 {
   "name": "cogniva-dev",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Cogniva's development toolkit: architectural decision documentation (auto-doc), deferred work capture (backlog), repo scaffolding (repo-init, add-module), the feature lifecycle (plan-feature, execute-feature, quick-fix, complete-feature) with isolated-worktree execution, on-demand worktree cleanup (sweep-worktrees), and read-only status roll-ups (feature-status, module-status, repo-status).",
   "author": { "name": "Cogniva" },
   "homepage": "https://github.com/cogniva/cogniva-skills",
