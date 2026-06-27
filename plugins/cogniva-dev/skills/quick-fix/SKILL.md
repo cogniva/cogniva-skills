@@ -12,7 +12,11 @@ stays lean.
 
 Invoke: `/cogniva-dev:quick-fix "<short description of the change>"`.
 
-`<plugin>` = this plugin's root (parent of `skills/`).
+`<plugin>` = this plugin's root — the directory containing `scripts/` AND
+`templates/`, i.e. the **parent** of `skills/`. It is NOT the skill's own folder
+(`.../skills/quick-fix/`). Resolve it once from the `scripts/...` command in Step 0
+and reuse that exact root verbatim everywhere `<plugin>` appears (including the
+`templates/...` path in Step 1) — do not re-derive or search for it.
 
 ## Step 0 — isolated worktree (Bash)
 Derive a short `<slug>` from the description (e.g. `fix-status-bar-alignment`), then:
@@ -21,9 +25,10 @@ Capture `worktree` and `branch` (`feature/<slug>`). The user's current branch is
 the integration target (never switched).
 
 ## Step 1 — make the change (Workflow, background)
-Run the Workflow from `<plugin>/templates/execute-feature.workflow.js` with a
-SINGLE synthesized task for trivial fixes, or a short ordered task list for
-multi-step ones. Each task body must be self-contained and include: what to
+Run the Workflow from `<plugin>/templates/execute-feature.workflow.js` (same
+`<plugin>` root as Step 0 — it sits beside `scripts/`, never under `skills/`; copy
+its script verbatim, do not rewrite or hand-author it). Use a SINGLE synthesized
+task for trivial fixes, or a short ordered task list for multi-step ones. Each task body must be self-contained and include: what to
 change, how to verify (test or manual check), and a commit step. Pass
 `planPath`/`statePath` only if you created a state file — and as
 **primary-checkout** paths (built from the worktree script's `repoRoot`), never

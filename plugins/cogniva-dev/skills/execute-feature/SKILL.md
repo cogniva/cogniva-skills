@@ -24,7 +24,13 @@ Invoke: `/cogniva-dev:execute-feature <Module>/<Feature>` (or a plan path).
 > resolves a gate and re-runs this skill, execution continues and the auto-merge
 > still happens at the end.
 
-`<plugin>` below = this plugin's root (the parent of this `skills/` dir).
+`<plugin>` below = this plugin's root — the directory that contains `scripts/`
+AND `templates/`, i.e. the **parent** of the `skills/` dir. It is NOT the skill's
+own folder (`.../skills/execute-feature/`), and `templates/` is NOT under the
+skill. You resolve `<plugin>` once when you run the `scripts/...` command in
+Step 0; reuse that **exact same root** verbatim everywhere `<plugin>` appears
+below (including the `templates/...` path in Step 2). Do not re-derive it, and do
+not Glob/Read-search for the template under the skill dir.
 
 ## Step 0 — create / reuse the isolated worktree (Bash, once)
 
@@ -72,8 +78,13 @@ On failure it writes a message to stderr and exits non-zero (missing file, or no
 
 ## Step 2 — run the Workflow (background, one agent per task)
 
-Author/run the Workflow from `<plugin>/templates/execute-feature.workflow.js`
-(copy its script; do not rewrite it), passing:
+Read the canonical workflow script at `<plugin>/templates/execute-feature.workflow.js`
+— the SAME `<plugin>` root you ran the `scripts/...` commands from in Steps 0–1; it
+sits **beside** `scripts/`, never under `skills/`. Run it verbatim (copy its script;
+do not rewrite it). If the Read fails, you have the wrong `<plugin>` path — fix it and
+retry. Do NOT hand-author the workflow from `WORKFLOW-NOTES.md`: that file documents
+the contract for reference, it is not a substitute for the template, and a hand-rolled
+version may diverge on resume/checkbox handling. Pass:
 ```
 args = { worktree, featureBranch: "feature/<slug>",
          pluginRoot: "<plugin>",   // parent of this skills/ dir — lets tasks commit via scripts/git-commit.ps1
