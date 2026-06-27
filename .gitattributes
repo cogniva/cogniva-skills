@@ -1,3 +1,6 @@
 * text=auto
 *.min.js -text
 *.ps1 text eol=crlf
+# Workflow scripts are passed inline to the Workflow tool; CR bytes trip its
+# approval-dialog control-char check. Force LF regardless of core.autocrlf.
+*.workflow.js text eol=lf
