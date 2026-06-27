@@ -22,6 +22,14 @@ try {
     $gitDir = (git -C $RepoRoot rev-parse --git-common-dir).Trim()
     if (-not [System.IO.Path]::IsPathRooted($gitDir)) { $gitDir = Join-Path $RepoRoot $gitDir }
 
+    # 0. Deterministic ADR backstop: commit any floating docs/adr/** written inside the
+    #    worktree onto the feature branch so the FF push below carries it into the target.
+    #    Best-effort — a rescue failure must NEVER fail integration (see docs/adr/0005).
+    #    Output is swallowed so it cannot pollute this script's last-line-JSON contract.
+    try {
+        & (Join-Path $PSScriptRoot 'rescue-worktree-adrs.ps1') -WorktreePath $WorktreePath -FeatureBranch $FeatureBranch -Mode Commit *> $null
+    } catch { }
+
     # 1. Pre-merge target into the feature (sandbox). FF the feature up to target first.
     git -C $WorktreePath merge --no-edit $TargetBranch *>$null
     if ($LASTEXITCODE -ne 0) {
