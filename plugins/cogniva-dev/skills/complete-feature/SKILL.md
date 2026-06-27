@@ -38,6 +38,24 @@ In `docs/plans/<Module>/<Feature>/state.md` (primary checkout):
 The Stop-hook auto-commits `docs/plans/` on session end; no manual commit needed
 here.
 
+## Step 2.5 — rescue any straggler ADRs (deterministic net)
+
+Before removing the worktree, sweep it for any floating ADR that never made it
+into the integrated result (normally none — `integrate-feature.ps1` already
+committed worktree ADRs onto the feature branch; see docs/adr/0005). Because the
+feature is already integrated by now, stragglers are copied into the PRIMARY
+checkout's `docs/adr/` (where the Stop hook commits them), not onto a dead feature
+branch:
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/rescue-worktree-adrs.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -Mode CopyToPrimary
+```
+
+Parse the JSON last line. If `status` is `RESCUED`, tell the user which ADR file(s)
+were copied into `docs/adr/` (and any `renumbered` from→to). If `NOOP`, say nothing.
+This is best-effort and never blocks removal — proceed to Step 3 regardless of its
+result. (First run may prompt once until the script is allowlisted per docs/adr/0002.)
+
 ## Step 3 — remove the worktree
 
 ```
