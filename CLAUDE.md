@@ -6,7 +6,7 @@ This repo is **cogniva** — Cogniva's local Claude Code plugin marketplace. It 
 
 - `.claude-plugin/marketplace.json` — the marketplace manifest (name: `cogniva`)
 - `plugins/cogniva-skills/` — general-purpose skills: `glossary` (terminology) and `reference` (bibliography) for any project; plugin template for new skills
-- `plugins/cogniva-dev/` — development-specific skills: `auto-doc`, `backlog`, `repo-init`, `add-module`, `plan-feature`, `execute-feature`, `quick-fix`, `complete-feature`, `feature-status`, `module-status`, `repo-status`; scripts, hooks, and repo scaffolding templates
+- `plugins/cogniva-dev/` — development-specific skills: `auto-doc`, `backlog`, `repo-init`, `add-module`, `explore-idea`, `plan-feature`, `execute-feature`, `quick-fix`, `complete-feature`, `feature-status`, `module-status`, `repo-status`; scripts, hooks, and repo scaffolding templates
 - `docs/glossary/README.md` — canonical glossary; use its terms and link them, e.g. [Module](docs/glossary/README.md#module)
 - `docs/strategy.md` — conventions + tooling decisions
 - `docs/plans/<Module>/<Feature>/` — feature plans + `state.md` (lifecycle `Status:`); `docs/plans/<Module>/<Idea>/` with `backlog.md` + no plan is a deferred **backlog stub**; `BACKLOG.md` (repo-level and per-Module) holds loose deferred items. Capture with `backlog`; view with `feature-status`/`module-status`/`repo-status`
