@@ -38,6 +38,11 @@ checkbox ticking from the task body and rely on the commit(s).
 The task-agent works ONLY in `<worktree>` on `feature/<slug>`, never switches
 branches, stages only its own files, and commits.
 
+If the Workflow tool rejects the script with an error like *"script contains
+control characters that would be hidden in the approval dialog"*, the template
+has CRLF line endings — it must be LF. See execute-feature Step 2 for the check
+and fix (`tr -cd '\r' < <template> | wc -c` should be 0).
+
 ## Step 2 — build/test, then auto-integrate
 Build/test in the worktree. If green:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`

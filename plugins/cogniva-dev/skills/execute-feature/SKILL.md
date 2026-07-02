@@ -96,6 +96,14 @@ Tasks run SEQUENTIALLY in the ONE worktree (each builds on the previous). The
 workflow stops early on a BLOCKED task or after a ⛔ gate, and returns
 `{ results, done, blocked, gateHit, allDone }`.
 
+If the Workflow tool rejects the script with an error like *"script contains
+control characters that would be hidden in the approval dialog"*, the template
+has CRLF line endings (a lone `\r` trips the guard). The template must be LF —
+check with e.g. `tr -cd '\r' < "<plugin>/templates/execute-feature.workflow.js" | wc -c`
+(expect 0). `.gitattributes` enforces `eol=lf`; if a copy still has CRLF, its
+checkout escaped that rule (stale plugin cache or subtree checkout under
+`core.autocrlf=true`) — re-checkout or strip the CRs before rerunning.
+
 ## Step 3 — on workflow completion
 
 - **Blocked / gate hit:** set `state.md` `Status: blocked`; report which task and
