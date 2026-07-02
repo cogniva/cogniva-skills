@@ -1,0 +1,6 @@
+# Workflow scripts are passed inline to the Workflow tool; a lone CR byte trips
+# its approval-dialog control-char check and causes a spurious permissions panic.
+# The repo-root .gitattributes carries the same rule, but it does not travel when
+# this plugin is distributed/checked out as a subtree — keep the rule co-located
+# with the template so LF is enforced regardless of core.autocrlf on the consumer.
+*.workflow.js text eol=lf

@@ -8,14 +8,14 @@ description: Use to see the whole state of ONE Module - in-flight features, defe
 Answer "what is the state of this Module" — what is in-flight, what is deferred,
 and what is loose — cheaply and read-only. No subagents, no edits.
 
-Invoke: `/cogniva-dev:module-status <Module>`.
+Invoke: `/module-status <Module>`.
 
 ## Steps
 
 Scan `docs/plans/<Module>/`:
 
 1. **Feature folders** (contain `<Feature>-plan.md`): do the same scan as
-   `/cogniva-dev:feature-status`, scoped to this Module —
+   `/feature-status`, scoped to this Module —
    - task progress from checkboxes: done = tasks fully `- [x]`, total = task count,
    - **next actionable** = first task not fully checked,
    - **pending gate** = next `⛔` task at or before the next actionable,
@@ -54,5 +54,5 @@ Action items: <queued integrations to land, pending ⛔ gates to validate, block
 
 Flag anything needing the user: `blocked`/gate features, queued integrations,
 CONFLICT notes in any `state.md`. To capture a new deferred item, point them at
-`/cogniva-dev:backlog`; to start one, `/cogniva-dev:plan-feature` (stub) or
-`/cogniva-dev:execute-feature` (planned).
+`/backlog`; to start one, `/plan-feature` (stub) or
+`/execute-feature` (planned).

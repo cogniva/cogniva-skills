@@ -9,7 +9,7 @@ The **live roadmap**: the one skill you look at to know the overall state of the
 repo. Read-only, no subagents, no edits — there is intentionally no committed
 `ROADMAP.md`; this view *is* the roadmap.
 
-Invoke: `/cogniva-dev:repo-status`.
+Invoke: `/repo-status`.
 
 ## Steps
 
@@ -49,6 +49,6 @@ Repo status
 ```
 
 Keep it terse — one row per Module. For depth on one Module use
-`/cogniva-dev:module-status <Module>`; for per-task detail use
-`/cogniva-dev:feature-status [<Module>]`. To capture new work use
-`/cogniva-dev:backlog`.
+`/module-status <Module>`; for per-task detail use
+`/feature-status [<Module>]`. To capture new work use
+`/backlog`.
