@@ -1,3 +1,13 @@
+---
+status: superseded by 0006 (2026-07-02)
+---
+
+> **Superseded (2026-07-02) by [ADR 0006](0006-plan-and-state-live-in-the-worktree.md).**
+> cogniva-dev adopted NewCogniva's pristine-primary model — plan + `state.md` now live
+> **in the feature worktree** and integrate via the merge, the opposite of this ADR.
+> `auto-commit-plans.ps1` and its Stop hook were removed. Retained as history; the
+> decision below is no longer in effect.
+
 # Plan and state.md are primary-checkout control-plane artifacts, never resolved in the worktree
 
 **Context.** execute-feature creates a fresh git worktree per feature, then read the

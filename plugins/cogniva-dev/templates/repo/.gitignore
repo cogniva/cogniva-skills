@@ -16,3 +16,8 @@ node_modules/
 # OS
 Thumbs.db
 .DS_Store
+
+# cogniva-dev worktree workflow: disposable scratch the AI may write in the
+# primary checkout (never committed, so it cannot dirty your branch)
+.explore/
+.plans-staging/

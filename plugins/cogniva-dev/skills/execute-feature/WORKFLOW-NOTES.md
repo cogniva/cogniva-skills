@@ -17,6 +17,18 @@ order — each builds on the previous. Therefore:
 Isolation between *different* execute-feature runs comes from each run having its
 own worktree+branch (see `scripts/new-feature-worktree.ps1`).
 
+## Multi-plan features (one feature, several ordered sub-plans)
+A large feature may be planned as an orchestration manifest (`<Feature>-plan.md`
+with a `## Sub-plans (execution order)` table) plus `subplans/NN-<slug>.md` files.
+The skill flattens every sub-plan's tasks, IN LISTED (dependency-sorted) ORDER,
+into the single `tasks` array — so the workflow is unchanged: same sequential
+one-agent-per-task loop in the SAME worktree. The only difference is that each task
+carries its own `planPath` (the sub-plan file whose checkboxes it ticks) and a
+`subplan` label. There is still exactly ONE integration, after ALL sub-plans
+complete and the worktree is green — the user validates the whole feature once,
+never per sub-plan. The split is invisible to the user (plan-feature never reveals
+it).
+
 ## State / resume
 - Progress lives in the plan's checkboxes (`- [x]`) and `state.md`, both inside
   the worktree — durable across crashes and gate stops.

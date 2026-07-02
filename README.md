@@ -24,15 +24,19 @@ Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins:
 | `plugins/cogniva-dev/skills/backlog` | Capture deferred or not-yet-planned work |
 | `plugins/cogniva-dev/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
 | `plugins/cogniva-dev/skills/add-module` | Add a Module (vertical slice) to an existing repo |
+| `plugins/cogniva-dev/skills/explore-idea` | Brainstorm and develop an idea before any planning |
 | `plugins/cogniva-dev/skills/plan-feature` | Design one feature with a strong model before implementation |
 | `plugins/cogniva-dev/skills/execute-feature` | Execute a feature plan task-by-task in isolated worktrees |
 | `plugins/cogniva-dev/skills/quick-fix` | Planless sibling of execute-feature for small changes |
-| `plugins/cogniva-dev/skills/complete-feature` | Close out an integrated feature |
+| `plugins/cogniva-dev/skills/cleanup-work` | Close out this session's integrated worktrees |
+| `plugins/cogniva-dev/skills/cleanup-allwork` | Checkout-wide reap of every cleanupable worktree |
+| `plugins/cogniva-dev/skills/module-deps` | Regenerate the Module dependency graph from .csproj references |
 | `plugins/cogniva-dev/skills/feature-status` | Read-only scan of per-feature task progress |
 | `plugins/cogniva-dev/skills/module-status` | Read-only view of one Module's features and backlog |
 | `plugins/cogniva-dev/skills/repo-status` | Cross-Module roll-up of the live roadmap |
-| `plugins/cogniva-dev/scripts/` | Worktree and integration scripts |
-| `plugins/cogniva-dev/hooks/` | Session hooks (Stop: auto-commit plans) |
+| `plugins/cogniva-dev/skills/workflow-status` | Read-only status of background Workflow runs |
+| `plugins/cogniva-dev/scripts/` | Worktree, integration, and ledger scripts |
+| `plugins/cogniva-dev/hooks/` | Session hooks |
 | `plugins/cogniva-dev/templates/` | Repo scaffolding templates and workflow scripts |
 
 ### Install into any repo

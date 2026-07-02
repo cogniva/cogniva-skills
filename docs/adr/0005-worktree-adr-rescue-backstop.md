@@ -1,6 +1,13 @@
 ---
-status: accepted (stopgap — supersedable; see note)
+status: superseded — removed 2026-07-02 (backstop deleted; see note at top)
 ---
+
+> **Superseded (2026-07-02).** The `rescue-worktree-adrs.ps1` backstop and its
+> `integrate-feature.ps1` wiring were **removed** as part of aligning cogniva-dev's
+> feature lifecycle with NewCogniva's model, which has no ADR-rescue step (decision
+> C2 in [the migration plan](../plans/worktree-ledger-migration.md)). This ADR is
+> retained as history — the decision below is no longer in effect. The stopgap note
+> at the bottom always anticipated this removal.
 
 # Deterministic worktree ADR rescue backstop at integration
 

@@ -22,14 +22,6 @@ try {
     $gitDir = (git -C $RepoRoot rev-parse --git-common-dir).Trim()
     if (-not [System.IO.Path]::IsPathRooted($gitDir)) { $gitDir = Join-Path $RepoRoot $gitDir }
 
-    # 0. Deterministic ADR backstop: commit any floating docs/adr/** written inside the
-    #    worktree onto the feature branch so the FF push below carries it into the target.
-    #    Best-effort — a rescue failure must NEVER fail integration (see docs/adr/0005).
-    #    Output is swallowed so it cannot pollute this script's last-line-JSON contract.
-    try {
-        & (Join-Path $PSScriptRoot 'rescue-worktree-adrs.ps1') -WorktreePath $WorktreePath -FeatureBranch $FeatureBranch -Mode Commit *> $null
-    } catch { }
-
     # 1. Pre-merge target into the feature (sandbox). FF the feature up to target first.
     git -C $WorktreePath merge --no-edit $TargetBranch *>$null
     if ($LASTEXITCODE -ne 0) {
@@ -54,7 +46,10 @@ try {
     # a push that actually succeeded. Instead, compare refs afterward: the target ref moving to the
     # feature tip is the authoritative signal of integration.
     $featureSha = (git -C $WorktreePath rev-parse "$FeatureBranch").Trim()
-    $push = (git -C $WorktreePath push --porcelain . "$($FeatureBranch):$($TargetBranch)" 2>&1) -join "`n"
+    # --no-verify: skip the Git LFS pre-push hook. This is a LOCAL push (remote ".", same
+    # object store), so there are no LFS objects to transfer, and 'git lfs pre-push .' errors
+    # on "." as a remote. The hook still runs on real remote pushes (e.g. user -> origin).
+    $push = (git -C $WorktreePath push --no-verify --porcelain . "$($FeatureBranch):$($TargetBranch)" 2>&1) -join "`n"
     $pushExit = $LASTEXITCODE
     $targetSha = (git -C $WorktreePath rev-parse "$TargetBranch").Trim()
 

@@ -19,7 +19,13 @@ Scaffold a new Module-architecture .NET repo. Templates live at
 1. Verify the target directory is empty (or contains only `.git`). If not, stop and ask.
 2. `git init` (then `git symbolic-ref HEAD refs/heads/main` if git < 2.28).
 3. Copy from the plugin `templates/repo/` into the repo root:
-   `CLAUDE.md`, `.gitignore`, `.editorconfig`, `.gitattributes`.
+   `CLAUDE.md`, `.gitignore`, `.editorconfig`, `.gitattributes`, and the whole
+   `.claude/` folder. The `.claude/cogniva-dev/` marker is what **opts this repo
+   into the worktree guards** (`guard-primary-edit` / `guard-primary-git` only
+   enforce where that dir exists); `.claude/settings.json` denies primary-checkout
+   branch switches as a node-independent backstop. The `.gitignore` already ignores
+   the AI's scratch dirs (`.explore/`, `.plans-staging/`). (The guards require
+   `node` on PATH; without it they fail open — allow.)
 4. Copy `templates/glossary/README.md` to `docs/glossary/README.md`.
 5. Create empty dirs: `docs/plans/`, `docs/superpowers/specs/`, `docs/superpowers/plans/`. Drop a `.gitkeep` file in each so git tracks them.
 6. Create the solution and shared build props:

@@ -29,11 +29,11 @@ Run the Workflow from `<plugin>/templates/execute-feature.workflow.js` (same
 `<plugin>` root as Step 0 — it sits beside `scripts/`, never under `skills/`; copy
 its script verbatim, do not rewrite or hand-author it). Use a SINGLE synthesized
 task for trivial fixes, or a short ordered task list for multi-step ones. Each task body must be self-contained and include: what to
-change, how to verify (test or manual check), and a commit step. Pass
-`planPath`/`statePath` only if you created a state file — and as
-**primary-checkout** paths (built from the worktree script's `repoRoot`), never
-`<worktree>/...` (see execute-feature Step 0 / docs/adr/0004). Otherwise omit
-checkbox ticking from the task body and rely on the commit(s).
+change, how to verify (test or manual check), and a commit step. quick-fix is
+planless — omit `planPath`/`statePath` and rely on the commit(s) for the record.
+(If you do synthesize a state file, it lives in the WORKTREE — `<worktree>/...`,
+committed on the feature branch so it rides the merge — never the primary
+checkout. See execute-feature Step 4.)
 
 The task-agent works ONLY in `<worktree>` on `feature/<slug>`, never switches
 branches, stages only its own files, and commits.
@@ -46,9 +46,17 @@ and fix (`tr -cd '\r' < <template> | wc -c` should be 0).
 ## Step 2 — build/test, then auto-integrate
 Build/test in the worktree. If green:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
-Handle the JSON `status` exactly as execute-feature does:
-`INTEGRATED` (offer worktree removal) / `QUEUED_DIRTY` (commit-or-stash then
-re-run) / `CONFLICT` (report worktree for resolution) / `ERROR` (surface detail).
+Handle the JSON `status` exactly as execute-feature Step 4 does:
+- `INTEGRATED` — the fix is live on the user's branch. Mark the worktree
+  **cleanupable** so it can close itself out later:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/mark-cleanupable.ps1" -Worktree "<worktree>" -Branch "feature/<slug>" -Summary "<one line of what the fix did>"`
+  Then tell the user: "Merged into your branch. Validate it, then run
+  `/cogniva-dev:cleanup-work` to close out (removes the worktree). If this session
+  is gone, `/cogniva-dev:cleanup-allwork` finishes it." Do NOT run `git worktree
+  remove` manually — cleanup-work / cleanup-allwork own that.
+- `QUEUED_DIRTY` — commit/stash on the target, then re-run integrate to land it.
+- `CONFLICT` — report the worktree path for resolution; force nothing.
+- `ERROR` — surface the detail; do not retry blindly.
 
 ## Rules
 - Never push to remote. Never branch-switch the primary checkout.

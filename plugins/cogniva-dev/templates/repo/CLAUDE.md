@@ -29,3 +29,17 @@ This repo uses Module (vertical slice) architecture. Definitions: docs/glossary/
 ## Plans and specs
 
 - Specs: `docs/superpowers/specs/` or `docs/specs/` - Plans: `docs/superpowers/plans/` or `docs/plans/`.
+
+## Git / worktree workflow
+
+This repo opts into the `cogniva-dev` **pristine-primary** model (marked by
+`.claude/cogniva-dev/`). Nothing Claude does lands on your checked-out branch
+outside a git worktree:
+
+- Claude does not edit the primary checkout directly, and does not
+  `git switch`/`checkout` or move branches there. The plugin's guards enforce
+  this; the only directly-editable paths here are gitignored scratch
+  (`.explore/**`, `.plans-staging/**`).
+- All work - including plan/`state.md` files - is authored in a git worktree
+  (created by `/cogniva-dev:plan-feature` / `execute-feature` / `quick-fix`) and
+  fast-forward-merges into your branch. Delete `.claude/cogniva-dev/` to opt out.

@@ -1,11 +1,25 @@
 {
   "hooks": {
-    "Stop": [
+    "PreToolUse": [
       {
+        "matcher": "Write|Edit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/scripts/auto-commit-plans.ps1\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/guard-primary-edit.js\"",
+            "timeout": 20,
+            "statusMessage": "Guarding primary checkout (edits must use a worktree)"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/guard-primary-git.js\"",
+            "timeout": 15,
+            "statusMessage": "Checking git command against shared-checkout branch guard"
           }
         ]
       }
