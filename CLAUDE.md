@@ -10,7 +10,6 @@ This repo is **cogniva** — Cogniva's local Claude Code plugin marketplace. It 
 - `docs/glossary/README.md` — canonical glossary; use its terms and link them, e.g. [Module](docs/glossary/README.md#module)
 - `docs/strategy.md` — conventions + tooling decisions
 - `docs/plans/<Module>/<Feature>/` — feature plans + `state.md` (lifecycle `Status:`); `docs/plans/<Module>/<Idea>/` with `backlog.md` + no plan is a deferred **backlog stub**; `BACKLOG.md` (repo-level and per-Module) holds loose deferred items. Capture with `backlog`; view with `feature-status`/`module-status`/`repo-status`
-- `docs/superpowers/specs/`, `docs/superpowers/plans/` — design specs and implementation plans
 
 ## Common tasks
 
