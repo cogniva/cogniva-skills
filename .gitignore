@@ -2,3 +2,8 @@
 /docs/plans/**
 /docs/scratchpad/**
 /docs/superpowers/**
+
+# cogniva-dev worktree workflow: disposable scratch the AI may write in the
+# primary checkout (never committed, so it cannot dirty the branch)
+.explore/
+.plans-staging/
