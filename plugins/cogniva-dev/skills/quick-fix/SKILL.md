@@ -55,7 +55,13 @@ has CRLF line endings — it must be LF. See execute-feature Step 2 for the chec
 and fix (`tr -cd '\r' < <template> | wc -c` should be 0).
 
 ## Step 2 — build/test, then auto-integrate
-Build/test in the worktree. If green:
+Run the repo green gate exactly as **execute-feature Step 3** defines it: read
+`<worktree>/.claude/cogniva-dev/green-gate.json` and run its `commands` in order (each
+must exit 0). If the file is ABSENT, skip the gate with the same one-line note ("No
+`.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test gate…");
+a present-but-empty `commands: []` is an intentional no-gate. Commit any lingering
+worktree changes first — a gate over a dirty tree is a lie. If the gate is green (or
+skipped):
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
 Handle the JSON `status` exactly as execute-feature Step 4 does:
 - `INTEGRATED` — the fix is live on the user's branch. Mark the worktree
