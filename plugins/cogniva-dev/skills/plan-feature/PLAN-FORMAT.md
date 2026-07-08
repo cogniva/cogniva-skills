@@ -26,6 +26,21 @@ a fresh subagent context — so **every task must be self-contained**.
 <list every file created/modified, with a one-line responsibility each>
 \`\`\`
 
+## Candidate ADRs
+
+<!-- Include ONLY if the design produced human-confirmed candidate ADRs. Omit the
+     whole section otherwise. These are NOT written to docs/adr/ by plan-feature —
+     execute-feature writes each concrete ADR when it finishes the task it's
+     attached to (see "Write with"). Give the full content so the executor writes it
+     verbatim, adding only the next number. Provenance is required; include a
+     Relitigation line only when it differs from the provenance default. -->
+
+### ADR-C1: <short title of the decision>
+**Provenance:** Suggested by human
+**Relitigation:** Open to discussion
+<1-3 sentences: context, decision, why.>
+**Write with:** Task N
+
 ## Task N: <title>
 
 **Files:**
@@ -37,8 +52,11 @@ a fresh subagent context — so **every task must be self-contained**.
 - [ ] **Step 2 (run it, expect fail):** `<exact command>` → <expected output>
 - [ ] **Step 3 (implement):** <exact implementation code>
 - [ ] **Step 4 (run until green):** `<exact command>` → <expected output>
-- [ ] **Step 5 (commit):** `git add <only this task's files>` then
-      `git commit -m "<conventional message>"`
+- [ ] **Step 5 (write ADR, only if this task has one in `## Candidate ADRs`):**
+      scan `docs/adr/` for the next number and write the confirmed candidate
+      (`ADR-Cn`) verbatim to `docs/adr/NNNN-<slug>.md` per auto-doc's ADR-FORMAT.
+- [ ] **Step 6 (commit):** `git add <only this task's files + any ADR written above>`
+      then `git commit -m "<conventional message>"`
 
 ## ⛔ Task N: <title>  (manual validation gate — execute-feature STOPS here)
 
@@ -133,3 +151,7 @@ Integration: not started
 - Order tasks so each builds on the previous (they share one worktree, sequentially).
 - Multi-plan: list sub-plans in a valid dependency order; the listed order IS the
   execution order. Sub-plans are self-contained too — never "same as sub-plan 01".
+- Candidate ADRs are human-confirmed during planning but written to `docs/adr/` only
+  by execute-feature, at the task each is attached to. Never write ADRs from
+  plan-feature. In a multi-plan feature, put each candidate ADR in the sub-plan whose
+  task finalizes it (the `## Candidate ADRs` section is per-plan/per-sub-plan).

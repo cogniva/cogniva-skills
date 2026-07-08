@@ -24,6 +24,17 @@ Derive a short `<slug>` from the description (e.g. `fix-status-bar-alignment`), 
 Capture `worktree` and `branch` (`feature/<slug>`). The user's current branch is
 the integration target (never switched).
 
+## Step 0.5 — candidate ADRs (confirm BEFORE dispatch)
+While scoping the fix, hold any architectural decision worth recording as a
+*candidate* ADR (title, 1–3 sentences, **provenance**, and **relitigation** only if
+it differs from the provenance default — see `/auto-doc`). Most quick-fixes produce
+none. If any exist, present them to the user and get an explicit yes/amend/drop
+**before** you dispatch the Workflow — never write an ADR without confirmation, and
+never write one from this control session. Fold each confirmed candidate into the
+relevant task body as a final step: "write ADR `NNNN-<slug>.md` (next number by
+scanning `docs/adr/`) with this exact content", so the concrete ADR is written
+**during execution**, committed with that task.
+
 ## Step 1 — make the change (Workflow, background)
 Run the Workflow from `<plugin>/templates/execute-feature.workflow.js` (same
 `<plugin>` root as Step 0 — it sits beside `scripts/`, never under `skills/`; copy
@@ -60,6 +71,10 @@ Handle the JSON `status` exactly as execute-feature Step 4 does:
 
 ## Rules
 - Never push to remote. Never branch-switch the primary checkout.
+- Never write an ADR without human confirmation, and never from this control
+  session — concrete ADRs are written by the task agent during execution (Step 0.5).
+- Before reopening anything in `docs/adr/`, respect its relitigation weight (see
+  `/auto-doc`); surface a needed change to the user rather than working around it.
 - Keep it small — if the change grows into a real feature, stop and suggest
   `/cogniva-dev:plan-feature` instead.
 - If the fix surfaces a follow-up you are NOT doing now, don't drop it — capture

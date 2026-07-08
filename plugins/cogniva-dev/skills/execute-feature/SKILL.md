@@ -162,6 +162,24 @@ remote). Interpret the JSON `status`:
   force anything.
 - `ERROR` — surface the detail; do not retry blindly.
 
+## ADRs during execution
+
+Concrete ADRs are written HERE, not by plan-feature. If the plan has a
+`## Candidate ADRs` section, each candidate names the task it's attached to
+("Write with: Task N"). When that task completes, its agent writes the confirmed
+candidate **verbatim** to `docs/adr/NNNN-<slug>.md` — scan `docs/adr/` for the next
+number (see auto-doc's ADR-FORMAT), copy the candidate's title + Provenance +
+Relitigation + body, and commit it with that task's files.
+
+- The ADRs were already human-confirmed during planning. Do NOT invent new ones,
+  reword them, or add ADRs the plan didn't list — just materialize what's there.
+- Rare number collisions (parallel worktrees) surface as a merge conflict at
+  integration; resolve by renumbering. Don't pre-reserve.
+- Treat the plan's decisions and any existing ADRs as **settled**. If a task truly
+  can't proceed without reopening a documented decision, BLOCK and surface it to the
+  human with the reason — honour the ADR's relitigation weight; never silently change
+  course or re-propose a `Blockers only` / `Compelling reasons only` call.
+
 ## Rules
 
 - NEVER push to a remote. NEVER `git switch/checkout/branch` in the primary

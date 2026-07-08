@@ -1,7 +1,7 @@
 {
   "name": "cogniva-dev",
-  "version": "0.3.0",
-  "description": "Cogniva's development toolkit: pre-planning idea exploration (explore-idea), architectural decision documentation (auto-doc), deferred work capture (backlog), repo scaffolding (repo-init, add-module), the feature lifecycle (plan-feature, execute-feature, quick-fix) with isolated-worktree execution and ledger-based cleanup (cleanup-work, cleanup-allwork), Module dependency-graph generation (module-deps), and read-only status roll-ups (feature-status, module-status, repo-status, workflow-status).",
+  "version": "0.4.0",
+  "description": "Cogniva's development toolkit: pre-planning idea exploration (explore-idea), human-confirmed architectural decision records with provenance and relitigation weight (auto-doc), deferred work capture (backlog), repo scaffolding (repo-init, add-module), the feature lifecycle (plan-feature, execute-feature, quick-fix) with isolated-worktree execution and ledger-based cleanup (cleanup-work, cleanup-allwork), Module dependency-graph generation (module-deps), and read-only status roll-ups (feature-status, module-status, repo-status, workflow-status).",
   "author": { "name": "Cogniva" },
   "homepage": "https://github.com/cogniva/cogniva-skills",
   "repository": "https://github.com/cogniva/cogniva-skills",

@@ -116,6 +116,8 @@ Status: exploring   (disposable - gitignored, not a plan)
 - [ ] ...
 
 ## Candidate glossary terms / ADRs (capture only - do not write)
+<!-- For candidate ADRs, note likely provenance (suggested by human/agent, or a hard
+     requirement) so plan-feature can carry it forward. Nothing is written to docs/adr/ here. -->
 - ...
 
 ## Parking lot / tangents

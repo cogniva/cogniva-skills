@@ -25,8 +25,34 @@ not implement.
 3. Surface real design decisions to the user with **AskUserQuestion** (one popup
    per genuine fork). Describe UI choices in prose so the user can validate
    against the implemented result rather than a mockup.
-4. When an architectural decision is made, use `/auto-doc` to
-   record the ADR.
+4. **Honour existing ADRs.** Before reopening anything already in `docs/adr/`, read
+   the ADR and respect its relitigation weight (see `/auto-doc`) — don't reopen a
+   `Compelling reasons only` / `Blockers only` decision without cause. If you think
+   one should change, surface it to the user with the reason rather than quietly
+   working around it.
+5. **Keep a candidate-ADR list — do NOT write ADRs during design.** When an
+   architectural decision lands, add it to a running list of *candidate* ADRs
+   (title, the decision in 1–3 sentences, its **provenance**, and a **relitigation**
+   weight only if it differs from the provenance default — see `/auto-doc`). Do not
+   ask about them yet and do not write anything to `docs/adr/`. Provenance is
+   *Suggested by agent* only once the human explicitly approves your idea; err
+   toward *Suggested by human*; ask before *Required by human*.
+
+## Confirm candidate ADRs (once, at handoff)
+
+When the design is essentially settled and you're ready to hand off to
+execute-feature — **not before** — present the full candidate-ADR list to the user
+in one pass and get an explicit decision on each. For every candidate show: the
+one-line decision, its **provenance**, and its **relitigation** weight (only when it
+differs from the provenance default). The user confirms, amends, or drops each.
+
+- If the human hasn't already agreed to an idea you proposed, this is where you get
+  that yes — an unconfirmed agent idea does not become a candidate ADR.
+- Approved candidates are written **into the plan** (a `## Candidate ADRs` section
+  and a per-task association — see below). They are **not** written to `docs/adr/`
+  here; execute-feature materializes the concrete ADR when it finishes the task the
+  candidate is attached to.
+- If there are no candidate ADRs, skip this — don't invent decisions to record.
 
 ## Emit the plan
 
@@ -53,6 +79,12 @@ Write `docs/plans/<Module>/<Feature>/<Feature>-plan.md` following
   integration, not mid-run. Only mark a `### ⛔ Task N:` gate for a genuinely
   irreversible mid-task action that must be confirmed before later tasks depend
   on it (e.g. a destructive migration).
+- If any candidate ADRs were confirmed, add a `## Candidate ADRs` section to the
+  plan (full title + provenance + relitigation + the 1–3 sentence body for each, so
+  the executor writes it verbatim with only a number), and in each task that
+  finalizes such a decision add a step: **"On completion, write ADR: <candidate
+  title>"**. execute-feature reads these and writes the concrete `docs/adr/NNNN-*.md`
+  when it finishes that task. See `PLAN-FORMAT.md`.
 - No placeholders ("TBD", "TODO", "implement later") — those are plan failures.
 
 Then seed `docs/plans/<Module>/<Feature>/state.md`:
@@ -129,8 +161,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-
 powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/mark-cleanupable.ps1" -Worktree "<worktree>" -Branch "feature/<slug>" -Summary "plan <Module>/<Feature>"
 ```
 
-One plan-feature = one commit on the user's branch. (Any ADRs from `/auto-doc` and
-glossary edits made on the SAME worktree ride the same integration.) If you abandon
+One plan-feature = one commit on the user's branch. (Any glossary edits made on the
+SAME worktree ride the same integration; candidate ADRs live inside the plan, not in
+`docs/adr/`, and only become concrete files during execute-feature.) If you abandon
 the design before integrating, the worktree is disposable — nothing ever touched the
 user's branch.
 
