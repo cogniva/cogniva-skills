@@ -105,22 +105,30 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
   `/backlog module=<Module> tier=loose src=<Feature> — <description>`.
 - **All tasks done — GREEN GATE (mandatory, no shortcuts):**
   1. **Commit everything first.** `git -C "<worktree>" status --porcelain` MUST be
-     empty before you build. The per-task agents commit their own files, but tick
-     edits / state.md / stray files can linger — stage and commit them on the
-     feature branch now. NEVER run the gate build against a dirty tree: a green
-     build over uncommitted changes is a lie (those changes do NOT ride into the
-     merge, so `main` can break even though "it built"). Verify clean, THEN build.
-  2. **Build the WHOLE solution, not scoped projects.** `dotnet build Cogniva.slnx`
-     in the worktree. Scoped per-project builds miss downstream/cross-module
-     consumers (especially OTHER modules' TEST projects that implement a changed
-     `*.Contracts` interface via fakes). The running-WPF-host root-build lock does
-     NOT apply here: a worktree builds to its OWN `bin/`, so a full `slnx` build is
-     safe and is the only gate that catches these breaks. Must be 0 errors.
-  3. **Run the full test suite.** `dotnet test Cogniva.slnx` (the UI tests under
-     `tests/UiTests/` are SUSPENDED per CLAUDE.md — ignore those; every other
-     project must be green).
-  4. Only if ALL green, integrate (Step 4). If red, report the exact failing
-     project/file and STOP.
+     empty before the gate runs. The per-task agents commit their own files, but tick
+     edits / state.md / stray files can linger — stage and commit them on the feature
+     branch now. NEVER run the gate against a dirty tree: a green gate over
+     uncommitted changes is a lie (those changes do NOT ride into the merge, so the
+     target can break even though "it passed"). This holds even when the gate runs no
+     commands. Verify clean, THEN gate.
+  2. **Run the repo's configured gate.** Read `<worktree>/.claude/cogniva-dev/green-gate.json`.
+     Schema: `{ "commands": [ { "run": "<shell command>", "label": "<short, optional>",
+     "note": "<optional reasoning, shown in reports>" } ] }`. Run each `commands[].run`
+     IN ORDER, in the worktree. Each must exit 0. The FIRST non-zero exit fails the
+     gate: report the failing command (its `label` if present) and its output, and
+     STOP — do not integrate.
+  3. **No gate file → skip, don't block.** If `green-gate.json` is ABSENT, skip the
+     gate and proceed to Step 4 after emitting exactly ONE line: "No
+     `.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test
+     gate. Add one to gate future runs (see the opt-in README)." Do NOT prompt, do
+     NOT fall back to any build command. Absence is expected for docs-only or
+     early-stage repos. A present-but-empty `commands: []` means an intentional
+     no-gate — proceed silently. (A .NET Module repo's gate typically runs a
+     whole-solution `dotnet build <RepoName>.slnx` — which catches cross-module test
+     consumers that scoped per-project builds miss — then `dotnet test <RepoName>.slnx`
+     with the suspended UI tests excluded; see the opt-in README for the worked example.)
+  4. Only if the gate is GREEN (or skipped/empty), integrate (Step 4). If red, report
+     the exact failing command and its output, and STOP.
 
   For a multi-plan feature this fires only after EVERY sub-plan's tasks are done —
   there is no per-sub-plan integration. Tick the `## Sub-plans` checklist in the
