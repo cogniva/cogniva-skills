@@ -1,0 +1,5 @@
+{
+  "commands": [
+    { "run": "claude plugin validate .", "label": "validate", "note": "This is a Claude Code plugin marketplace repo, not a .NET solution — the gate validates the plugins." }
+  ]
+}
