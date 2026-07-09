@@ -4,12 +4,15 @@
     "name": "Cogniva",
     "email": "tools@cogniva.ca"
   },
+  "metadata": {
+    "description": "Cogniva's plugin suite for general-purpose development and project management"
+  },
   "plugins": [
     {
       "name": "cogniva-dev",
       "source": "./plugins/cogniva-dev",
       "description": "Cogniva's development toolkit: auto-doc, backlog, repo-init, feature lifecycle (plan-feature, execute-feature, quick-fix) with ledger-based worktree cleanup (cleanup-work, cleanup-allwork), module-deps, and status roll-ups",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "author": {
         "name": "Cogniva"
       }
