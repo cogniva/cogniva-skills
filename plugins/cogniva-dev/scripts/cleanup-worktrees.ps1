@@ -219,7 +219,16 @@ try {
             exit 0
         }
 
-        # Selector for Scope = 'list'
+        # Selector for Scope = 'list'. Flatten/split the incoming paths first:
+        # invoked as `-Worktrees "a","b","c"` through `powershell -File` from a
+        # NON-PowerShell parent (the Bash tool / Git Bash), the comma-joined token
+        # arrives as a SINGLE string element "a,b,c" rather than a 3-element array,
+        # so the selector would build one bogus key and match nothing (all-empty,
+        # silent no-op). Splitting on commas makes the documented comma form work
+        # regardless of how the parent shell tokenizes it, and is a no-op for a real
+        # multi-element array.
+        $Worktrees = @($Worktrees | ForEach-Object { $_ -split ',' } |
+                       ForEach-Object { $_.Trim() } | Where-Object { $_ })
         $wanted = @{}
         foreach ($w in $Worktrees) { if ($w) { $wanted[$w.TrimEnd('\','/').ToLowerInvariant()] = $true } }
 

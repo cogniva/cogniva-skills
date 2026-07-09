@@ -27,8 +27,13 @@ integrated + green, awaiting your validation).
 ## Step 2 - run the close-out
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/cleanup-worktrees.ps1" -Scope list -Worktrees "<path1>","<path2>"
+powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/cleanup-worktrees.ps1" -Scope list -Worktrees "<path1>,<path2>,<path3>"
 ```
+
+Pass the worktree paths as ONE comma-joined `-Worktrees` value (no spaces around
+the commas). Driven from the Bash tool via `powershell -File`, a `"a","b"` token is
+delivered as a single argument anyway; the script splits on commas, so the
+comma-joined form is the robust one. A single path is just `-Worktrees "<path>"`.
 
 (Target branch defaults to your current branch; pass `-TargetBranch` only to
 override.) The engine, per `cleanupable` worktree in the list:
