@@ -25,3 +25,19 @@ This repo is **cogniva** — Cogniva's local Claude Code plugin marketplace. It 
   - **Major** (`0.3.0 → 1.0.0`) — leave the call to the user.
   - When a change sits on the patch/minor line, offer the smaller bump and say why.
 
+## Cogniva-dev workflow instructions
+
+Repo obligations the cogniva-dev workflow skills (plan-feature, quick-fix,
+execute-feature) honor at named phases — a per-repo injection point so those
+generic skills pick up this repo's rules without anything repo-specific being
+hard-coded into them. Each `### <phase>` block is followed by any workflow skill
+that reaches that phase; a skill that never reaches it ignores it; an absent
+section or block is a silent no-op. See `docs/strategy.md` for the convention and
+the phase vocabulary.
+
+### before-integrate
+
+- If this integration changed a plugin's skills/scripts/templates, apply the
+  version-bump rule under `## Rules` — **offer** the bump on that plugin now,
+  while the worktree is still open, so it rides the same merge.
+

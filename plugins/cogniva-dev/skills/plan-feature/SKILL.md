@@ -18,6 +18,10 @@ not implement.
 
 ## Design loop
 
+**Repo obligations (`before-planning`).** Check this repo's CLAUDE.md for a
+`## Cogniva-dev workflow instructions` section; if it has a `### before-planning`
+block, follow it before designing. Absent → nothing to do.
+
 1. Explore the target repo enough to design well (reuse existing code; respect
    the repo's architecture rules in its CLAUDE.md).
 2. For domain terms, consult `/glossary`; propose new entries
@@ -149,6 +153,11 @@ If this feature came from the backlog, close the loop:
   that same folder (on the worktree) and flip its `state.md` `Status: deferred → planned`.
 
 ## Integrate (one commit)
+
+**Repo obligations (`before-integrate`).** Before you commit and integrate, check
+this repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a
+`### before-integrate` block; honor it on the worktree now so anything it
+produces rides this commit. Absent → nothing to do.
 
 When the plan — and any sub-plans plus `state.md` — is complete on the worktree,
 commit the plan folder as a single commit (stage ONLY that folder, never `git add

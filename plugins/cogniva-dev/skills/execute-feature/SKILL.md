@@ -138,6 +138,11 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
 
 ## Step 4 — auto-integrate into the user's branch
 
+**Repo obligations (`before-integrate`).** Before the steps below, check this
+repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
+block; honor it on the worktree now (commit anything it produces on the feature
+branch so it rides the merge). Absent → nothing to do.
+
 First, **in the WORKTREE** (NEVER the primary checkout — the guard blocks it and a
 direct primary edit would dirty the shared tree), set `state.md` `Status: integrated`
 and commit it on the feature branch so the merge carries it:

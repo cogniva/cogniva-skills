@@ -60,8 +60,14 @@ Run the repo green gate exactly as **execute-feature Step 3** defines it: read
 must exit 0). If the file is ABSENT, skip the gate with the same one-line note ("No
 `.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test gate…");
 a present-but-empty `commands: []` is an intentional no-gate. Commit any lingering
-worktree changes first — a gate over a dirty tree is a lie. If the gate is green (or
-skipped):
+worktree changes first — a gate over a dirty tree is a lie.
+
+**Repo obligations (`before-integrate`).** Before integrating, check this repo's
+CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
+block; honor it on the worktree now (commit anything it produces on the feature
+branch so it rides the merge). Absent → nothing to do.
+
+If the gate is green (or skipped):
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
 Handle the JSON `status` exactly as execute-feature Step 4 does:
 - `INTEGRATED` — the fix is live on the user's branch. Mark the worktree

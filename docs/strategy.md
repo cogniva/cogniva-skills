@@ -47,6 +47,26 @@ All tools ship in the `cogniva-skills` plugin:
   `plugins/cogniva-skills/.claude-plugin/plugin.json`, commit; consuming repos
   pick it up via plugin update.
 
+## Repo-scoped workflow instructions
+
+The cogniva-dev workflow skills (plan-feature, quick-fix, execute-feature) honor
+an optional `## Cogniva-dev workflow instructions` section in a repo's CLAUDE.md.
+It is a per-repo injection point: a repo adds its own obligations to those
+generic skills without anything repo-specific being baked into the skills.
+
+Inside it, each `### <phase>` block is a checkpoint. A skill that reaches a phase
+reads the matching block and follows it; a skill that never reaches that phase
+ignores it; an absent section or block is a silent no-op. Phases currently wired:
+
+- `before-planning` — plan-feature, at the start of its design loop.
+- `before-integrate` — plan-feature / quick-fix / execute-feature, on the
+  worktree just before integration (so anything the block produces rides the
+  same merge).
+
+The vocabulary is open: add a phase by naming it in a skill checkpoint and
+listing it here. This repo's own CLAUDE.md uses `before-integrate` to fire the
+plugin version-bump offer while the worktree is still open.
+
 ## Roadmap (deliberately not yet)
 
 - Enforce dependency rules with Roslyn analyzers or ArchUnitNET tests.
