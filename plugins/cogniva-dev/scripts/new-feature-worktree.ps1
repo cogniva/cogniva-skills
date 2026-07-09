@@ -52,7 +52,7 @@ try {
             if (-not $existing) {
                 $rec = [pscustomobject]@{
                     branch    = $branch
-                    worktree  = $wt
+                    worktree  = (Get-CanonicalPath $wt)      # store canonical so mark-cleanupable finds THIS record, no matter the slash direction
                     base      = $BaseBranch
                     owner     = $Owner
                     createdAt = (Get-Date).ToString('o')

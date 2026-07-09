@@ -67,9 +67,21 @@ function Unlock-Ledger([string]$Lock) {
     if ($Lock -and (Test-Path $Lock)) { Remove-Item -LiteralPath $Lock -Force -ErrorAction SilentlyContinue }
 }
 
+# Canonical form of a worktree path for STORAGE and COMPARISON. Worktree records
+# are keyed by this, so a path must canonicalize identically no matter which slash
+# direction the caller used. new-feature-worktree.ps1 records backslash paths; a
+# forward-slash path from mark-cleanupable.ps1 must still match the same record
+# (else a second, divergent record is appended and the in-progress one lingers
+# forever). Normalize `/`->`\`, resolve to a full path, drop a trailing separator,
+# and lowercase (Windows paths are case-insensitive). ASCII-only, PS 5.1-safe.
+function Get-CanonicalPath([string]$P) {
+    if (-not $P) { return '' }
+    $q = $P -replace '/', '\'
+    try { $q = [System.IO.Path]::GetFullPath($q) } catch {}
+    return $q.TrimEnd('\').ToLowerInvariant()
+}
+
 function Test-SamePath([string]$A, [string]$B) {
     if (-not $A -or -not $B) { return $false }
-    $na = $A.TrimEnd('\','/').ToLowerInvariant()
-    $nb = $B.TrimEnd('\','/').ToLowerInvariant()
-    return $na -eq $nb
+    return (Get-CanonicalPath $A) -eq (Get-CanonicalPath $B)
 }

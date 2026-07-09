@@ -60,7 +60,7 @@ try {
         if (-not $found) {
             $rec = [pscustomobject]@{
                 branch    = $Branch
-                worktree  = $Worktree
+                worktree  = (Get-CanonicalPath $Worktree)   # store canonical so future lookups match regardless of slash direction
                 base      = $Base
                 owner     = $Branch
                 createdAt = (Get-Date).ToString('o')

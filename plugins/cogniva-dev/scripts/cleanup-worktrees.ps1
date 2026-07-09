@@ -230,14 +230,14 @@ try {
         $Worktrees = @($Worktrees | ForEach-Object { $_ -split ',' } |
                        ForEach-Object { $_.Trim() } | Where-Object { $_ })
         $wanted = @{}
-        foreach ($w in $Worktrees) { if ($w) { $wanted[$w.TrimEnd('\','/').ToLowerInvariant()] = $true } }
+        foreach ($w in $Worktrees) { if ($w) { $wanted[(Get-CanonicalPath $w)] = $true } }
 
         $merged = Get-MergedSet $RepoRoot $TargetBranch
 
         $remaining = @()
         foreach ($r in $records) {
             $wt = $r.worktree; $branch = $r.branch
-            $key = if ($wt) { $wt.TrimEnd('\','/').ToLowerInvariant() } else { '' }
+            $key = if ($wt) { Get-CanonicalPath $wt } else { '' }
 
             # Stale: worktree gone -> prune regardless of state.
             if (-not $wt -or -not (Test-Path $wt)) { $pruned += $wt; continue }
