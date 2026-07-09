@@ -29,8 +29,13 @@ function Read-Ledger([string]$LedgerPath) {
     # wrapped item -> callers iterate once over the whole blob and Write-Ledger
     # re-nests it into { value, Count } corruption. Assign first, then @() keeps
     # the already-Object[] flat. (See memory: ledger-convertfromjson-bug.)
+    #
+    # Read UTF-8 explicitly: Write-Ledger emits UTF-8 (no BOM). On PS 5.1
+    # `Get-Content -Raw` with no -Encoding decodes the host ANSI codepage, which
+    # would mis-read any multi-byte char (e.g. an em-dash in a recipe summary) - so
+    # pin -Encoding utf8. Handles a BOM too if some other writer left one.
     try {
-        $data = Get-Content -Raw -LiteralPath $LedgerPath | ConvertFrom-Json
+        $data = Get-Content -Raw -Encoding utf8 -LiteralPath $LedgerPath | ConvertFrom-Json
         if ($null -eq $data) { return @() }
         return @($data)
     } catch { return @() }
@@ -38,9 +43,16 @@ function Read-Ledger([string]$LedgerPath) {
 
 function Write-Ledger([string]$LedgerPath, $Records) {
     $arr = @($Records)
-    if ($arr.Count -eq 0) { Set-Content -LiteralPath $LedgerPath -Value '[]'; return }
-    if ($arr.Count -eq 1) { Set-Content -LiteralPath $LedgerPath -Value ('[' + ($arr[0] | ConvertTo-Json -Depth 12) + ']'); return }
-    Set-Content -LiteralPath $LedgerPath -Value ($arr | ConvertTo-Json -Depth 12)
+    if ($arr.Count -eq 0)     { $json = '[]' }
+    elseif ($arr.Count -eq 1) { $json = '[' + ($arr[0] | ConvertTo-Json -Depth 12) + ']' }
+    else                      { $json = ($arr | ConvertTo-Json -Depth 12) }
+    # Write UTF-8 WITHOUT BOM. PS 5.1 `Set-Content` with no -Encoding writes the
+    # host ANSI codepage (Windows-1252): an em-dash becomes byte 0x97 and the file
+    # is NOT valid UTF-8, so any UTF-8 consumer (python, pwsh 7 whose Get-Content
+    # default IS utf8) fails to read it - and Read-Ledger's swallowing try/catch
+    # would then silently return zero records, disabling cleanup. WriteAllText with
+    # a BOM-less UTF8Encoding is portable and PS 5.1-safe.
+    [System.IO.File]::WriteAllText($LedgerPath, $json, (New-Object System.Text.UTF8Encoding($false)))
 }
 
 function Lock-Ledger([string]$CommonDir) {
