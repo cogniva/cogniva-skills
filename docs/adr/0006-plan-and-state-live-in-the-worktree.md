@@ -43,3 +43,10 @@ enforcement (`guard-primary-edit.js` wiring) and the repo-init opt-in marker are
 tracked separately in [the migration plan](../plans/worktree-ledger-migration.md);
 the plan/execute/quick-fix skills already instruct this model regardless of whether
 the guard hook is wired yet.
+
+**Addendum (2026-07-10).** Tier-1 backlog capture is exempt from the guard:
+`docs/plans/BACKLOG.md` and `docs/plans/<Module>/BACKLOG.md` may be appended
+directly in the primary checkout — they are append-only bookkeeping, not workflow
+output, and a worktree round-trip for a one-line item defeats
+`/cogniva-dev:backlog`'s purpose. Everything else under `docs/plans/**` — plans,
+`state.md`, and a deferred stub's `backlog.md` — remains worktree-only.

@@ -39,7 +39,8 @@ outside a git worktree:
 - Claude does not edit the primary checkout directly, and does not
   `git switch`/`checkout` or move branches there. The plugin's guards enforce
   this; the only directly-editable paths here are gitignored scratch
-  (`.explore/**`, `.plans-staging/**`).
+  (`.explore/**`, `.plans-staging/**`) and tier-1 backlog files
+  (`docs/plans/BACKLOG.md`, `docs/plans/<Module>/BACKLOG.md`).
 - All work - including plan/`state.md` files - is authored in a git worktree
   (created by `/cogniva-dev:plan-feature` / `execute-feature` / `quick-fix`) and
   fast-forward-merges into your branch. Delete `.claude/cogniva-dev/` to opt out.

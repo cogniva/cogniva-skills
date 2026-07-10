@@ -78,3 +78,8 @@ fix surfaced).
   work is actually picked up.
 - Keep it lightweight: one line or one small folder, then stop. This skill never
   writes feature code and never runs subagents.
+- In a guard-opted-in repo's primary checkout, tier-1 loose appends work directly:
+  `BACKLOG.md` files (`docs/plans/BACKLOG.md`, `docs/plans/<Module>/BACKLOG.md`)
+  are exempt from the primary-edit guard. Tier-2 stub creation is NOT exempt —
+  create stubs inside a worktree (e.g. while other worktree work is open, or via
+  `/cogniva-dev:quick-fix`).

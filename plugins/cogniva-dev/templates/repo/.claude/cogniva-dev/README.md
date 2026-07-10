@@ -9,7 +9,8 @@ While opted in, inside this repo's **primary checkout** Claude may not:
 
 - edit files directly — all work happens in a git worktree that fast-forward-merges
   into your branch (the only directly-editable paths are the gitignored scratch dirs
-  `.explore/**` and `.plans-staging/**`);
+  `.explore/**` and `.plans-staging/**`, plus tier-1 backlog capture:
+  `docs/plans/BACKLOG.md` and `docs/plans/<Module>/BACKLOG.md`);
 - `git switch` / `checkout`, or create/delete/move branches.
 
 Feature work runs via `/cogniva-dev:plan-feature`, `/cogniva-dev:execute-feature`,

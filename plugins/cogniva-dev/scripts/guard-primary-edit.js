@@ -8,6 +8,9 @@
 // which never appear on your branch so they cannot dirty it:
 //   - .explore/**       (explore-idea's brainstorm docs)
 //   - .plans-staging/** (general gitignored scratch staging)
+// ...plus tier-1 backlog capture, which IS tracked but append-only bookkeeping:
+//   - docs/plans/BACKLOG.md and docs/plans/<Module>/BACKLOG.md
+//     (deferred stubs' backlog.md, plans, and state.md remain guarded)
 // ALWAYS ALLOWED:
 //   - any file inside a LINKED worktree (that is where all work belongs)
 //   - any repo that has not opted in (no .claude/cogniva-dev/ marker at its root)
@@ -64,12 +67,26 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
     const exempt = first === '.explore' || first === '.plans-staging';
     if (exempt) return allow();
 
+    // Tier-1 backlog capture is exempt: appending a loose item to a BACKLOG.md is
+    // append-only bookkeeping, not workflow output, and a worktree round-trip for a
+    // one-line append defeats the backlog skill's purpose (see ADR 0006 addendum).
+    // Depth is enforced (docs/plans/BACKLOG.md or docs/plans/<Module>/BACKLOG.md)
+    // so a deferred stub's docs/plans/<Module>/<Idea>/backlog.md — the same name on
+    // a case-insensitive filesystem — stays guarded along with plans and state.md.
+    const parts = rel.toLowerCase().split('/');
+    const backlogExempt =
+      parts[0] === 'docs' && parts[1] === 'plans' &&
+      (parts.length === 3 || parts.length === 4) &&
+      parts[parts.length - 1] === 'backlog.md';
+    if (backlogExempt) return allow();
+
     return deny(
       'Blocked: this is the shared PRIMARY checkout - Claude must NOT edit it directly (code, docs, or .claude). ' +
       'Every change must go through a git worktree that fast-forward-merges into your branch. ' +
       'Use the /cogniva-dev:quick-fix skill for a small change, or /cogniva-dev:execute-feature for planned ' +
       'work - both create the worktree, integrate, and mark it cleanupable for you. ' +
-      'The ONLY paths editable directly here are gitignored scratch: .explore/**, .plans-staging/**.'
+      'The ONLY paths editable directly here are gitignored scratch (.explore/**, .plans-staging/**) ' +
+      'and tier-1 backlog files (docs/plans/BACKLOG.md, docs/plans/<Module>/BACKLOG.md).'
     );
   } catch (e) { return allow(); }
 });

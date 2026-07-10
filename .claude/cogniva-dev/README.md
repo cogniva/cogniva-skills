@@ -10,7 +10,8 @@ While opted in, inside the **primary checkout** Claude may not:
 
 - edit files directly — all work happens in a git worktree that fast-forward-merges
   into the branch (the only directly-editable paths are the gitignored scratch dirs
-  `.explore/**` and `.plans-staging/**`);
+  `.explore/**` and `.plans-staging/**`, plus tier-1 backlog capture:
+  `docs/plans/BACKLOG.md` and `docs/plans/<Module>/BACKLOG.md`);
 - `git switch` / `checkout`, or create/delete/move branches (also denied in
   `.claude/settings.json` as a node-independent backstop).
 
