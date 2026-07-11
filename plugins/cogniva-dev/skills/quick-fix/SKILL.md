@@ -18,6 +18,11 @@ Invoke: `/cogniva-dev:quick-fix "<short description of the change>"`.
 and reuse that exact root verbatim everywhere `<plugin>` appears (including the
 `templates/...` path in Step 1) — do not re-derive or search for it.
 
+`<plugin>` is tooling, not the target. It usually lives in a DIFFERENT checkout
+(the plugin marketplace repo); the repo being fixed is the one you were invoked
+from (your current working directory). Even when the fix concerns a Claude Code
+skill or plugin, look for it in the target repo — never under `<plugin>`.
+
 ## Step 0 — isolated worktree (Bash)
 Derive a short `<slug>` from the description (e.g. `fix-status-bar-alignment`), then:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/new-feature-worktree.ps1" -Slug <slug>`
@@ -62,8 +67,8 @@ must exit 0). If the file is ABSENT, skip the gate with the same one-line note (
 a present-but-empty `commands: []` is an intentional no-gate. Commit any lingering
 worktree changes first — a gate over a dirty tree is a lie.
 
-**Repo obligations (`before-integrate`).** Before integrating, check this repo's
-CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
+**Repo obligations (`before-integrate`).** Before integrating, check the target
+repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
 block; honor it on the worktree now (commit anything it produces on the feature
 branch so it rides the merge). Absent → nothing to do.
 

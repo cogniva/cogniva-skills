@@ -25,7 +25,7 @@ Invoke: `/execute-feature <Module>/<Feature>` (or a plan path).
 > resolves a gate and re-runs this skill, execution continues and the auto-merge
 > still happens at the end.
 
-`<plugin>` below = this plugin's root (the parent of this `skills/` dir); it holds the `scripts/` and `templates/` these steps reference.
+`<plugin>` below = this plugin's root (the parent of this `skills/` dir); it holds the `scripts/` and `templates/` these steps reference. `<plugin>` is tooling, not the target: it usually lives in a DIFFERENT checkout (the plugin marketplace repo). The repo being worked on is the one you were invoked from — even when the plan's tasks touch a Claude Code skill or plugin, those files live in the target repo, never under `<plugin>`.
 
 ## Step 0 — create / reuse the isolated worktree (Bash, once)
 
@@ -138,8 +138,8 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
 
 ## Step 4 — auto-integrate into the user's branch
 
-**Repo obligations (`before-integrate`).** Before the steps below, check this
-repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
+**Repo obligations (`before-integrate`).** Before the steps below, check the
+target repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
 block; honor it on the worktree now (commit anything it produces on the feature
 branch so it rides the merge). Absent → nothing to do.
 

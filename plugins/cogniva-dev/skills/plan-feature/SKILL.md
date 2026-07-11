@@ -10,6 +10,16 @@ model can execute later with lean, per-task context. Output is a feature folder
 under `docs/plans/<Module>/<Feature>/`. Keep THIS session focused on design — do
 not implement.
 
+**Two repos may be in play — don't conflate them.** The **target repo** is the
+checkout you were invoked from (your current working directory): all exploration,
+worktrees, plans, and edits happen there. This skill's own files and the
+`<plugin>` scripts ship in the cogniva plugin install — usually a DIFFERENT
+checkout (the plugin marketplace repo). Read formats and run scripts from there,
+but never explore it or treat it as the subject of the feature. Even when the
+feature being designed concerns a Claude Code skill or plugin, that skill lives
+in the **target repo** unless the user explicitly points elsewhere — do not go
+looking for it under `<plugin>`.
+
 ## Gather first (ask the user)
 
 1. Module name `<Module>` and feature name `<Feature>` (PascalCase, e.g.
@@ -18,7 +28,7 @@ not implement.
 
 ## Design loop
 
-**Repo obligations (`before-planning`).** Check this repo's CLAUDE.md for a
+**Repo obligations (`before-planning`).** Check the target repo's CLAUDE.md for a
 `## Cogniva-dev workflow instructions` section; if it has a `### before-planning`
 block, follow it before designing. Absent → nothing to do.
 
@@ -155,7 +165,7 @@ If this feature came from the backlog, close the loop:
 ## Integrate (one commit)
 
 **Repo obligations (`before-integrate`).** Before you commit and integrate, check
-this repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a
+the target repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a
 `### before-integrate` block; honor it on the worktree now so anything it
 produces rides this commit. Absent → nothing to do.
 
