@@ -34,9 +34,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/cleanup-wo
 (Target branch defaults to the checkout's current branch; pass `-TargetBranch`
 only to override.) For each `cleanupable` record the engine retries a queued
 integrate, runs the recipe (flips `state.md` `Status:`, commits that doc), removes
-the worktree once merged + clean, and prunes the record. Stale records (worktree
-already gone) are pruned. It never touches `in-progress` records, never
-force-removes, never deletes branches, never pushes to a remote.
+the worktree once merged + clean, deletes the merged feature branch (`git branch
+-d` only - git refuses unless fully merged), and prunes the record. Stale records
+(worktree already gone) are pruned. It never touches `in-progress` records, never
+force-removes, never force-deletes, never pushes to a remote.
 
 Parse the last JSON line: `{ closed, kept, pruned }`.
 
@@ -53,7 +54,10 @@ If the ledger is empty/missing this is a no-op - report that.
 
 ## Rules
 
-- NEVER force-remove a worktree, delete a branch, or push to a remote.
+- NEVER force-remove a worktree, force-delete a branch (`-D`), or push to a
+  remote. Merged feature branches are deleted with plain `-d` at close-out -
+  git refuses unless fully merged, so no work can be lost. Kept worktrees keep
+  their branches.
 - Only `cleanupable` records are actioned; `in-progress` worktrees (any session)
   are always preserved.
 - Closing a forgotten `cleanupable` worktree assumes its validation passed. That

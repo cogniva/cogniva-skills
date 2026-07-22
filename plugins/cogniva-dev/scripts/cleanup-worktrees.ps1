@@ -16,9 +16,11 @@
 #   1. If the worktree path is gone -> prune the stale record.
 #   2. If the worktree is clean: flip its OWN state.md Status (recipe) + commit on
 #      the feature branch, fast-forward integrate (lands the flip AND any commits
-#      still queued from an earlier QUEUED_DIRTY), re-check, then remove + prune.
-#   3. If the worktree is dirty, or it still will not merge -> keep it, with a
-#      reason. Never --force, never delete branches, never push to a remote, never
+#      still queued from an earlier QUEUED_DIRTY), re-check, then remove the
+#      worktree, delete the merged feature branch (`branch -d` ONLY - git refuses
+#      unless fully merged, so nothing can be destroyed; never -D), and prune.
+#   3. If the worktree is dirty, or it still will not merge -> keep it (branch
+#      included), with a reason. Never --force, never push to a remote, never
 #      touch the primary working tree.
 #
 # Stale records (worktree path missing) are pruned regardless of state.
@@ -299,7 +301,16 @@ try {
                     if ($LASTEXITCODE -eq 0) { $removeOk = $true }
                 } catch { }
                 if ($removeOk) {
-                    $closed += [pscustomobject]@{ branch = $branch; worktree = $wt; statusUpdated = $statusUpdated; summary = $sum; followups = $fu }
+                    # Tidy up the now-merged feature branch. Plain -d ONLY (never
+                    # -D): git refuses unless the branch is fully merged into HEAD,
+                    # so this cannot destroy work even if the merged-set check above
+                    # was somehow stale. Failure is non-fatal - the close-out stands.
+                    $branchDeleted = $false
+                    try {
+                        git -C $RepoRoot branch -d $branch 2>$null | Out-Null
+                        if ($LASTEXITCODE -eq 0) { $branchDeleted = $true }
+                    } catch { }
+                    $closed += [pscustomobject]@{ branch = $branch; worktree = $wt; branchDeleted = $branchDeleted; statusUpdated = $statusUpdated; summary = $sum; followups = $fu }
                     # pruned by omission from $remaining
                 } else {
                     $remaining += $r

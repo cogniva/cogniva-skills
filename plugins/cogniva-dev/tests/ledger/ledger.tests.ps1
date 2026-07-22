@@ -121,6 +121,10 @@ try {
     Check 'Bug 1: both worktrees are closed (not a silent no-op)' (@($result.closed).Count -eq 2)
     Check 'Bug 1: nothing was left kept' (@($result.kept).Count -eq 0)
     Check 'ledger is empty after both close out' (@(Read-Ledger $ledgerPath).Count -eq 0)
+    Check 'merged feature branches are deleted at close-out (ADR 0012)' `
+        (-not (& git -C $repo branch --list 'feature/*'))
+    Check 'closed records report branchDeleted = true' `
+        (@($result.closed | Where-Object { $_.branchDeleted }).Count -eq 2)
 }
 finally {
     foreach ($d in $worktreeDirs) { if ($d -and (Test-Path $d)) { Remove-Item -LiteralPath $d -Recurse -Force -ErrorAction SilentlyContinue } }

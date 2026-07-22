@@ -39,8 +39,10 @@ comma-joined form is the robust one. A single path is just `-Worktrees "<path>"`
 override.) The engine, per `cleanupable` worktree in the list:
 - retries the fast-forward integrate if it was queued (target was dirty earlier),
 - runs the recipe (flips `state.md` `Status:` to its target, commits that doc),
-- removes the worktree once merged + clean, and prunes its ledger record.
-It never touches `in-progress` records and never force-removes or deletes branches.
+- removes the worktree once merged + clean, deletes the merged feature branch
+  (`git branch -d` only - git refuses unless fully merged), and prunes its
+  ledger record.
+It never touches `in-progress` records and never force-removes or force-deletes.
 
 Parse the last JSON line: `{ closed, kept, pruned }`.
 
@@ -56,7 +58,10 @@ Parse the last JSON line: `{ closed, kept, pruned }`.
 
 ## Rules
 
-- NEVER force-remove a worktree, delete a branch, or push to a remote.
+- NEVER force-remove a worktree, force-delete a branch (`-D`), or push to a
+  remote. Merged feature branches are deleted with plain `-d` at close-out -
+  git refuses unless fully merged, so no work can be lost. Kept worktrees keep
+  their branches.
 - Only acts on `cleanupable` records for the worktrees you pass - in-progress work
   is always left alone.
 - This is the routine path; `/cleanup-allwork` is the catch-all for forgotten or
