@@ -1,6 +1,6 @@
 # BacklogGrooming — execution state
 
-Status: in-progress
+Status: integrated
 Target branch: main
 Worktree: C:\dev\cogniva-skills-backlog-grooming (branch feature/backlog-grooming)
 Integration: not started
