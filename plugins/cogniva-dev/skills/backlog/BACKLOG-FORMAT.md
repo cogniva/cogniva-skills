@@ -35,15 +35,37 @@ trivial fixes can go straight to /cogniva-dev:quick-fix.
 
 ### Resolving / promoting an item
 
-Done by `plan-feature` / `quick-fix` when the work is actually picked up — tick the
-box and append a `→` pointer:
+An item is closed by ticking the box and appending a `→` **exit verb**. Never
+delete the line — the verb is the history.
+
+Pick-up verbs (written by `plan-feature` / `quick-fix` when work starts):
 
 ```markdown
 - [x] Whole-facet picker → planned: C3Data/ModelUiFoundation  `2026-06-13`
 - [x] Status-bar misalignment → done  `2026-06-13`
 ```
 
-Append-only otherwise: never delete or reorder existing lines.
+Grooming verbs (written when a review finds the item no longer needs doing —
+always with a receipt: the feature, commit, or decision that justifies the
+verdict):
+
+```markdown
+- [x] Cache facet counts → obsolete: counts now computed in SQL  `2026-07-25`
+- [x] Export to CSV → superseded-by: C3Data/BulkExport  `2026-07-25`
+- [x] Tooltip on size column → merged-into: Polish grid columns  `2026-07-25`
+- [x] Dark-mode toggle → wont-do: theming dropped per strategy call  `2026-07-25`
+```
+
+- `→ obsolete: <why the premise no longer holds>`
+- `→ superseded-by: <Module>/<Feature> or <newer item>` — a later feature or
+  item covers this ground; the pointer names the winner.
+- `→ merged-into: <surviving item>` — this line's scope now lives in another
+  (usually new) item; add the merged scope THERE before closing here.
+- `→ wont-do: <the decision>` — still valid work, deliberately declined.
+
+The status skills only distinguish open (`- [ ]`) from closed (`- [x]`), so
+every verb counts as resolved. Append-only otherwise: never delete or reorder
+existing lines.
 
 ## Tier 2 — feature-sized stub (`<Module>/<Idea>/`)
 
@@ -91,3 +113,8 @@ Run `/cogniva-dev:plan-feature` for <Module>/<Idea> when <MVP> has landed.
 When the stub is picked up, `plan-feature` writes `<Idea>-plan.md` into this same
 folder and flips `state.md` `Status: deferred → planned`. The `backlog.md` can stay
 as design notes or be folded into the plan.
+
+The grooming verbs apply to stubs too, via `state.md`: flip
+`Status: deferred → obsolete` (or `superseded`, `wont-do`) and add a dated `## Log`
+line carrying the same receipt (e.g. `2026-07-25 — superseded by C3Data/BulkExport`).
+Leave the folder in place — never delete a stub.
