@@ -15,7 +15,7 @@ Park work somewhere durable instead of in prose or in your head. Two tiers:
 
 Read `BACKLOG-FORMAT.md` in this skill's directory for the exact line grammar and
 stub layout. This skill is **model-driven** (you edit markdown directly — no
-script) and **append-only**: never delete or reorder existing items.
+script) and **append-by-default**: never delete or reorder existing items (grooming may close or reword them — see the groom-backlog skill).
 
 Invoke: `/cogniva-dev:backlog [<item description>]` (omit to be asked).
 
@@ -73,9 +73,10 @@ fix surfaced).
 
 ## Rules
 
-- Append-only. Never delete or rewrite existing items here — promotion (ticking an
+- Append-by-default. Never delete existing items here — promotion (ticking an
   item, flipping a stub's `Status`) is done by `plan-feature`/`quick-fix` when the
-  work is actually picked up.
+  work is picked up; closure and confirmed in-place rewording are done by
+  `groom-backlog`.
 - Keep it lightweight: one line or one small folder, then stop. This skill never
   writes feature code and never runs subagents.
 - In a guard-opted-in repo's primary checkout, tier-1 loose appends work directly:

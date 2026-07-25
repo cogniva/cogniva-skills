@@ -64,8 +64,9 @@ verdict):
 - `→ wont-do: <the decision>` — still valid work, deliberately declined.
 
 The status skills only distinguish open (`- [ ]`) from closed (`- [x]`), so
-every verb counts as resolved. Append-only otherwise: never delete or reorder
-existing lines.
+every verb counts as resolved. Append-by-default otherwise: a confirmed grooming
+verdict may reword an open item in place (see the groom-backlog skill), but lines
+are never deleted or reordered.
 
 ## Tier 2 — feature-sized stub (`<Module>/<Idea>/`)
 
