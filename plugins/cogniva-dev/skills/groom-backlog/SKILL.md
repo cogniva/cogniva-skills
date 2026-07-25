@@ -57,6 +57,9 @@ it is deliberately lazy-loaded so ordinary sessions never pay for it.
    primary-edit guard: loose `BACKLOG.md` edits are exempt (direct); stub
    `state.md` edits are NOT — in a guard-opted repo batch them through ONE
    `/cogniva-dev:quick-fix`. Report one line per applied verdict.
+   If the directly-edited backlog file(s) are git-tracked in the primary
+   checkout, OFFER to commit them — never auto-commit — suggesting a one-line
+   message, e.g. `chore(backlog): groom <scope> — close N items`.
 
 5. **Deep pass — opt-in only.** If invoked with `deep`, or the user asks after
    seeing the standard results, read `DEEP-GROOM.md` and follow it. Otherwise,
