@@ -54,6 +54,23 @@ function Invoke-Git {
     } finally { $ErrorActionPreference = $old }
 }
 
+# Output-returning sibling of Invoke-Git, for callers that need git's stdout, not
+# just success/failure. Same rationale: a bare `git -C` under 'Stop' turns benign
+# stderr into a terminating error that only the OUTER catch sees - one such call
+# mid-sweep aborted the ENTIRE sweep for every record. Localize the preference,
+# suppress stderr, and return the stdout lines - an EMPTY array on failure, so
+# callers can treat "git failed" like "no output" and the sweep keeps going.
+function Invoke-GitOut {
+    param([string]$Worktree, [Parameter(ValueFromRemainingArguments = $true)][string[]]$GitArgs)
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $out = @(& git -C $Worktree @GitArgs 2>$null)
+        if ($LASTEXITCODE -ne 0) { return @() }
+        return $out
+    } finally { $ErrorActionPreference = $old }
+}
+
 # Flip the Status line IN THE WORKTREE copy of state.md and commit it on the
 # feature branch. $StatePath is the recipe's reference path (rooted in the PRIMARY
 # checkout); we map it into $Worktree and only ever edit/commit THERE. Returns
@@ -117,7 +134,7 @@ function Get-RecipeStateRel([string]$StatePath, [string]$RepoRoot) {
 # destination). Used to classify worktree dirt.
 function Get-DirtyPaths([string]$Worktree) {
     $out = @()
-    foreach ($line in @(git -C $Worktree status --porcelain 2>$null)) {
+    foreach ($line in @(Invoke-GitOut $Worktree status --porcelain)) {
         if (-not $line) { continue }
         $p = $line.Substring(3).Trim()
         if ($p -match ' -> ') { $p = ($p -split ' -> ')[-1].Trim() }
@@ -198,15 +215,26 @@ function Invoke-Integrate([string]$Worktree, [string]$Branch, [string]$TargetBra
 
 function Get-MergedSet([string]$RepoRoot, [string]$TargetBranch) {
     $m = @{}
-    foreach ($b in (git -C $RepoRoot branch --merged $TargetBranch --format='%(refname:short)')) {
+    foreach ($b in @(Invoke-GitOut $RepoRoot branch --merged $TargetBranch --format='%(refname:short)')) {
         $n = $b.Trim(); if ($n) { $m[$n] = $true }
     }
     return $m
 }
 
 try {
-    if (-not $RepoRoot)     { $RepoRoot     = (git rev-parse --show-toplevel).Trim() }
-    if (-not $TargetBranch) { $TargetBranch = (git -C $RepoRoot branch --show-current).Trim() }
+    if (-not $RepoRoot) {
+        # Anchor the default root to the PRIMARY checkout, never to wherever the
+        # caller happens to be standing. `--show-toplevel` resolves to the CURRENT
+        # worktree - invoked from inside a feature worktree it made the sweep
+        # target ITSELF ($TargetBranch became the feature branch, the branch was
+        # "integrated" into itself, and `worktree remove` gutted the very worktree
+        # the sweep was rooted in). The common dir is <primary>/.git no matter
+        # which worktree we run from, so its parent IS the primary root.
+        $commonGitDir = (@(Invoke-GitOut '.' rev-parse --path-format=absolute --git-common-dir) -join '').Trim()
+        if (-not $commonGitDir) { throw 'not inside a git repository (cannot locate the primary checkout)' }
+        $RepoRoot = Split-Path -Parent $commonGitDir
+    }
+    if (-not $TargetBranch) { $TargetBranch = (@(Invoke-GitOut $RepoRoot branch --show-current) -join '').Trim() }
     . (Join-Path $PSScriptRoot 'ledger-lib.ps1')
     $commonDir = Get-CommonDir $RepoRoot
     $ledger = Get-LedgerPath $commonDir
@@ -240,94 +268,111 @@ try {
         foreach ($r in $records) {
             $wt = $r.worktree; $branch = $r.branch
             $key = if ($wt) { Get-CanonicalPath $wt } else { '' }
+            # Per-record isolation: any unexpected throw below costs only THIS record.
+            # Before this wrap, one poisoned record (a gutted worktree, one git stderr
+            # line promoted to a terminating error) escaped to the OUTER catch and
+            # aborted the whole sweep for every other worktree. Keep the record, with
+            # the error as the reason, and move on.
+            try {
 
-            # Stale: worktree gone -> prune regardless of state.
-            if (-not $wt -or -not (Test-Path $wt)) { $pruned += $wt; continue }
+                # Stale: worktree gone -> prune regardless of state.
+                if (-not $wt -or -not (Test-Path $wt)) { $pruned += $wt; continue }
+                # A present-but-gutted worktree (empty dir, dead .git file) passes the
+                # Test-Path check above but every git call inside it dies with "not a
+                # git repository" - it must take the prune path here, not fall into the
+                # git calls below and throw. The `git worktree prune` near the end
+                # cleans up the metadata.
+                if (-not (Invoke-Git $wt rev-parse --is-inside-work-tree)) { $pruned += $wt; continue }
 
-            $inScope = ($Scope -eq 'all') -or $wanted.ContainsKey($key)
-            # Never touch in-progress, and skip anything out of scope.
-            if ($r.state -ne 'cleanupable' -or -not $inScope) { $remaining += $r; continue }
+                $inScope = ($Scope -eq 'all') -or $wanted.ContainsKey($key)
+                # Never touch in-progress, and skip anything out of scope.
+                if ($r.state -ne 'cleanupable' -or -not $inScope) { $remaining += $r; continue }
 
-            $sp = $null; $ts = $null; $sum = $null; $fu = $null
-            if ($r.recipe) { $sp = $r.recipe.statePath; $ts = $r.recipe.targetStatus; $sum = $r.recipe.summary; $fu = $r.recipe.followups }
+                $sp = $null; $ts = $null; $sum = $null; $fu = $null
+                if ($r.recipe) { $sp = $r.recipe.statePath; $ts = $r.recipe.targetStatus; $sum = $r.recipe.summary; $fu = $r.recipe.followups }
 
-            # Dirty worktree -> classify the dirt before deciding. We never close out
-            # over genuine user WIP, but the recipe's OWN close-out flip (state.md
-            # Status -> done, left uncommitted by a prior interrupted sweep) is NOT
-            # user work - it is exactly what we are here to commit. So keep the
-            # worktree only when something OTHER than the recipe's state.md is dirty;
-            # if the sole dirt is that one file, fall through and let the (idempotent)
-            # recipe commit it. This is what stops the "uncommitted state.md flip ->
-            # kept forever" loop.
-            $recipeRel = Get-RecipeStateRel $sp $RepoRoot
-            $dirtyPaths = Get-DirtyPaths $wt
-            if ($dirtyPaths.Count -gt 0) {
-                $otherDirt = @($dirtyPaths | Where-Object { -not $recipeRel -or ($_ -ine $recipeRel) })
-                if ($otherDirt.Count -gt 0) {
-                    $remaining += $r
-                    $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'uncommitted changes in worktree' }
-                    continue
+                # Dirty worktree -> classify the dirt before deciding. We never close out
+                # over genuine user WIP, but the recipe's OWN close-out flip (state.md
+                # Status -> done, left uncommitted by a prior interrupted sweep) is NOT
+                # user work - it is exactly what we are here to commit. So keep the
+                # worktree only when something OTHER than the recipe's state.md is dirty;
+                # if the sole dirt is that one file, fall through and let the (idempotent)
+                # recipe commit it. This is what stops the "uncommitted state.md flip ->
+                # kept forever" loop.
+                $recipeRel = Get-RecipeStateRel $sp $RepoRoot
+                $dirtyPaths = Get-DirtyPaths $wt
+                if ($dirtyPaths.Count -gt 0) {
+                    $otherDirt = @($dirtyPaths | Where-Object { -not $recipeRel -or ($_ -ine $recipeRel) })
+                    if ($otherDirt.Count -gt 0) {
+                        $remaining += $r
+                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'uncommitted changes in worktree' }
+                        continue
+                    }
+                    # Only the recipe's own state.md is dirty - but is the change just the
+                    # close-out flip, or a deliberate manual edit (Status -> in-progress,
+                    # body notes)? Verify the CONTENT before committing + closing over it,
+                    # so we never clobber a status the user purposely set or lose real
+                    # edits. Anything that is not a pure close-out flip is kept as WIP.
+                    if (-not (Test-CloseoutOnlyChange $wt $recipeRel $ts)) {
+                        $remaining += $r
+                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'uncommitted manual edit to state.md (not a close-out flip)' }
+                        continue
+                    }
                 }
-                # Only the recipe's own state.md is dirty - but is the change just the
-                # close-out flip, or a deliberate manual edit (Status -> in-progress,
-                # body notes)? Verify the CONTENT before committing + closing over it,
-                # so we never clobber a status the user purposely set or lose real
-                # edits. Anything that is not a pure close-out flip is kept as WIP.
-                if (-not (Test-CloseoutOnlyChange $wt $recipeRel $ts)) {
-                    $remaining += $r
-                    $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'uncommitted manual edit to state.md (not a close-out flip)' }
-                    continue
+
+                # Clean (or recipe-state.md-only dirt) + cleanupable: flip Status IN THE
+                # WORKTREE + commit, then FF integrate (carries the flip and any commits
+                # queued from an earlier QUEUED_DIRTY). The primary tree is only ever
+                # updated by that merge. First clear any STALE index.lock so the recipe's
+                # commit and the integrate can actually write the worktree index.
+                Clear-StaleGitLock $wt | Out-Null
+                $statusUpdated = Set-StateStatusInWorktree $sp $ts $wt $RepoRoot
+
+                Invoke-Integrate $wt $branch $TargetBranch $RepoRoot
+                $merged = Get-MergedSet $RepoRoot $TargetBranch
+
+                $isMerged = $merged.ContainsKey($branch)
+                $dirtyAfter = (@(Invoke-GitOut $wt status --porcelain).Count -gt 0)
+
+                if ($isMerged -and -not $dirtyAfter) {
+                    # Last-ditch guard: NEVER remove the primary checkout itself. If a
+                    # poisoned $RepoRoot/record ever makes $wt the primary root again
+                    # (the incident this hardening exists for), removing it guts the
+                    # user's checkout - refuse and keep, whatever upstream says.
+                    if ((Get-CanonicalPath $wt) -eq (Get-CanonicalPath $RepoRoot)) {
+                        $remaining += $r
+                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'refusing to remove primary checkout' }
+                        continue
+                    }
+                    $removeOk = Invoke-Git $RepoRoot worktree remove $wt
+                    if ($removeOk) {
+                        # Tidy up the now-merged feature branch. Plain -d ONLY (never
+                        # -D): git refuses unless the branch is fully merged into HEAD,
+                        # so this cannot destroy work even if the merged-set check above
+                        # was somehow stale. Failure is non-fatal - the close-out stands.
+                        $branchDeleted = Invoke-Git $RepoRoot branch -d $branch
+                        $closed += [pscustomobject]@{ branch = $branch; worktree = $wt; branchDeleted = $branchDeleted; statusUpdated = $statusUpdated; summary = $sum; followups = $fu }
+                        # pruned by omission from $remaining
+                    } else {
+                        $remaining += $r
+                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'worktree remove failed' }
+                    }
                 }
-            }
-
-            # Clean (or recipe-state.md-only dirt) + cleanupable: flip Status IN THE
-            # WORKTREE + commit, then FF integrate (carries the flip and any commits
-            # queued from an earlier QUEUED_DIRTY). The primary tree is only ever
-            # updated by that merge. First clear any STALE index.lock so the recipe's
-            # commit and the integrate can actually write the worktree index.
-            Clear-StaleGitLock $wt | Out-Null
-            $statusUpdated = Set-StateStatusInWorktree $sp $ts $wt $RepoRoot
-
-            Invoke-Integrate $wt $branch $TargetBranch $RepoRoot
-            $merged = Get-MergedSet $RepoRoot $TargetBranch
-
-            $isMerged = $merged.ContainsKey($branch)
-            $dirtyAfter = [bool] (git -C $wt status --porcelain)
-
-            if ($isMerged -and -not $dirtyAfter) {
-                $removeOk = $false
-                try {
-                    git -C $RepoRoot worktree remove $wt 2>$null
-                    if ($LASTEXITCODE -eq 0) { $removeOk = $true }
-                } catch { }
-                if ($removeOk) {
-                    # Tidy up the now-merged feature branch. Plain -d ONLY (never
-                    # -D): git refuses unless the branch is fully merged into HEAD,
-                    # so this cannot destroy work even if the merged-set check above
-                    # was somehow stale. Failure is non-fatal - the close-out stands.
-                    $branchDeleted = $false
-                    try {
-                        git -C $RepoRoot branch -d $branch 2>$null | Out-Null
-                        if ($LASTEXITCODE -eq 0) { $branchDeleted = $true }
-                    } catch { }
-                    $closed += [pscustomobject]@{ branch = $branch; worktree = $wt; branchDeleted = $branchDeleted; statusUpdated = $statusUpdated; summary = $sum; followups = $fu }
-                    # pruned by omission from $remaining
-                } else {
+                else {
                     $remaining += $r
-                    $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'worktree remove failed' }
+                    $reason = if ($dirtyAfter) { 'uncommitted changes in worktree' } else { "not merged into $TargetBranch (queued - target dirty or conflict)" }
+                    $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = $reason }
                 }
-            }
-            else {
+            } catch {
                 $remaining += $r
-                $reason = if ($dirtyAfter) { 'uncommitted changes in worktree' } else { "not merged into $TargetBranch (queued - target dirty or conflict)" }
-                $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = $reason }
+                $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = "error: $_" }
             }
         }
 
         Write-Ledger $ledger $remaining
     } finally { Unlock-Ledger $lock }
 
-    git -C $RepoRoot worktree prune 2>$null | Out-Null
+    Invoke-Git $RepoRoot worktree prune | Out-Null
 
     [pscustomobject]@{ closed = $closed; kept = $kept; pruned = $pruned } | ConvertTo-Json -Compress -Depth 8
     exit 0
