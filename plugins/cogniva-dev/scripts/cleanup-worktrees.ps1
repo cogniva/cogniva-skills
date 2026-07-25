@@ -350,7 +350,9 @@ try {
                         # -D): git refuses unless the branch is fully merged into HEAD,
                         # so this cannot destroy work even if the merged-set check above
                         # was somehow stale. Failure is non-fatal - the close-out stands.
-                        $branchDeleted = Invoke-Git $RepoRoot branch -d $branch
+                        # '-d' must be QUOTED: bare -d prefix-binds to Invoke-Git's common
+                        # -Debug parameter (advanced function) and never reaches git.
+                        $branchDeleted = Invoke-Git $RepoRoot branch '-d' $branch
                         $closed += [pscustomobject]@{ branch = $branch; worktree = $wt; branchDeleted = $branchDeleted; statusUpdated = $statusUpdated; summary = $sum; followups = $fu }
                         # pruned by omission from $remaining
                     } else {
