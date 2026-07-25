@@ -43,7 +43,7 @@ A skill's unavoidable per-session context cost is its frontmatter description �
 **Files:**
 - Create: `plugins/cogniva-dev/skills/groom-backlog/SKILL.md`
 
-- [ ] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/groom-backlog/SKILL.md` with EXACTLY this content:
+- [x] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/groom-backlog/SKILL.md` with EXACTLY this content:
 
 ````markdown
 ---
@@ -126,16 +126,16 @@ know when they last ran one).
 - Keep it lean: no glossary work, no version bumps, no code changes.
 ````
 
-- [ ] **Step 2 (verify):** Read the file back; confirm the frontmatter has exactly `name` and `description` keys and the five `## Steps` items, `## Called by another skill`, and `## Rules` sections are present.
-- [ ] **Step 3 (validate):** `claude plugin validate .` (run at the worktree root) → expect `Validation passed`.
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/SKILL.md` then `git commit -m "feat(cogniva-dev): add groom-backlog skill flow"`.
+- [x] **Step 2 (verify):** Read the file back; confirm the frontmatter has exactly `name` and `description` keys and the five `## Steps` items, `## Called by another skill`, and `## Rules` sections are present.
+- [x] **Step 3 (validate):** `claude plugin validate .` (run at the worktree root) → expect `Validation passed`.
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/SKILL.md` then `git commit -m "feat(cogniva-dev): add groom-backlog skill flow"`.
 
 ## Task 2: Create the grooming criteria catalog (GROOMING-CRITERIA.md)
 
 **Files:**
 - Create: `plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md`
 
-- [ ] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md` with EXACTLY this content:
+- [x] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md` with EXACTLY this content:
 
 ````markdown
 # Grooming criteria
@@ -235,15 +235,15 @@ Low priority; batch these.
   `/cogniva-dev:backlog`, so its dedup and placement rules apply.
 ````
 
-- [ ] **Step 2 (verify):** Read the file back; confirm the six closure verdicts (complete, partially complete, obsolete, superseded, duplicate, conflicting pair), the three flags (actionable-now, cryptic, stale-refs), and the `## Edit mechanics` section are all present.
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md` then `git commit -m "feat(cogniva-dev): add grooming criteria catalog"`.
+- [x] **Step 2 (verify):** Read the file back; confirm the six closure verdicts (complete, partially complete, obsolete, superseded, duplicate, conflicting pair), the three flags (actionable-now, cryptic, stale-refs), and the `## Edit mechanics` section are all present.
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md` then `git commit -m "feat(cogniva-dev): add grooming criteria catalog"`.
 
 ## Task 3: Create the opt-in deep pass (DEEP-GROOM.md)
 
 **Files:**
 - Create: `plugins/cogniva-dev/skills/groom-backlog/DEEP-GROOM.md`
 
-- [ ] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/groom-backlog/DEEP-GROOM.md` with EXACTLY this content:
+- [x] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/groom-backlog/DEEP-GROOM.md` with EXACTLY this content:
 
 ````markdown
 # Deep groom (opt-in)
@@ -289,9 +289,9 @@ Report deep-groom results in the same two-table + flags format as the standard
 pass, and apply them through the same single confirmation gate.
 ````
 
-- [ ] **Step 2 (verify):** Read the file back; confirm the four numbered check sections exist and the file ends with the shared-gate sentence.
-- [ ] **Step 3 (validate):** `claude plugin validate .` (worktree root) → expect `Validation passed`.
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/DEEP-GROOM.md` then `git commit -m "feat(cogniva-dev): add opt-in deep-groom pass"`.
+- [x] **Step 2 (verify):** Read the file back; confirm the four numbered check sections exist and the file ends with the shared-gate sentence.
+- [x] **Step 3 (validate):** `claude plugin validate .` (worktree root) → expect `Validation passed`.
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/DEEP-GROOM.md` then `git commit -m "feat(cogniva-dev): add opt-in deep-groom pass"`.
 
 ## Task 4: Wire groom-backlog into the repo surfaces + write ADRs
 
@@ -304,13 +304,13 @@ pass, and apply them through the same single confirmation gate.
 - Modify: `docs/glossary/README.md`
 - Create: `docs/adr/NNNN-backlog-grooming-propose-with-receipts.md`, `docs/adr/NNNN-lazy-loaded-skill-companion-files.md`
 
-- [ ] **Step 1 (backlog SKILL.md — relax append-only):** In `plugins/cogniva-dev/skills/backlog/SKILL.md` replace the text `**append-only**: never delete or reorder existing items.` with `**append-by-default**: never delete or reorder existing items (grooming may close or reword them — see the groom-backlog skill).` Then replace the rule line beginning `- Append-only. Never delete or rewrite existing items here — promotion (ticking an` (the full bullet spans three lines, ending `work is actually picked up.`) with this bullet:
+- [x] **Step 1 (backlog SKILL.md — relax append-only):** In `plugins/cogniva-dev/skills/backlog/SKILL.md` replace the text `**append-only**: never delete or reorder existing items.` with `**append-by-default**: never delete or reorder existing items (grooming may close or reword them — see the groom-backlog skill).` Then replace the rule line beginning `- Append-only. Never delete or rewrite existing items here — promotion (ticking an` (the full bullet spans three lines, ending `work is actually picked up.`) with this bullet:
   `- Append-by-default. Never delete existing items here — promotion (ticking an item, flipping a stub's ` `` `Status` `` `) is done by ` `` `plan-feature` `` `/` `` `quick-fix` `` ` when the work is picked up; closure and confirmed in-place rewording are done by ` `` `groom-backlog` `` `.`
-- [ ] **Step 2 (BACKLOG-FORMAT.md — same relaxation):** In `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`, in the paragraph that reads `The status skills only distinguish open (` … `so\nevery verb counts as resolved. Append-only otherwise: never delete or reorder\nexisting lines.`, replace the final sentence (`Append-only otherwise: never delete or reorder existing lines.`) with: `Append-by-default otherwise: a confirmed grooming verdict may reword an open item in place (see the groom-backlog skill), but lines are never deleted or reordered.` Also replace the earlier line `Append-only otherwise: never delete or reorder existing lines.` if it appears a second time anywhere in the file (search to confirm; apply the same replacement).
-- [ ] **Step 3 (plugin.json description):** In `plugins/cogniva-dev/.claude-plugin/plugin.json`, replace `deferred work capture (backlog),` with `deferred work capture and grooming (backlog, groom-backlog),` in the `description` value. Do NOT change the `version` field — the bump is offered separately at integration.
-- [ ] **Step 4 (marketplace.json description):** In `.claude-plugin/marketplace.json`, in the `cogniva-dev` entry's `description`, replace `auto-doc, backlog, repo-init,` with `auto-doc, backlog, groom-backlog, repo-init,`.
-- [ ] **Step 5 (CLAUDE.md skill list):** In `CLAUDE.md`, in the `plugins/cogniva-dev/` bullet under `## Layout`, replace `` `auto-doc`, `backlog`, `` with `` `auto-doc`, `backlog`, `groom-backlog`, ``.
-- [ ] **Step 6 (glossary):** In `docs/glossary/README.md`, insert after the `## Backlog stub` entry (after its `_Avoid_` line) these two entries:
+- [x] **Step 2 (BACKLOG-FORMAT.md — same relaxation):** In `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`, in the paragraph that reads `The status skills only distinguish open (` … `so\nevery verb counts as resolved. Append-only otherwise: never delete or reorder\nexisting lines.`, replace the final sentence (`Append-only otherwise: never delete or reorder existing lines.`) with: `Append-by-default otherwise: a confirmed grooming verdict may reword an open item in place (see the groom-backlog skill), but lines are never deleted or reordered.` Also replace the earlier line `Append-only otherwise: never delete or reorder existing lines.` if it appears a second time anywhere in the file (search to confirm; apply the same replacement).
+- [x] **Step 3 (plugin.json description):** In `plugins/cogniva-dev/.claude-plugin/plugin.json`, replace `deferred work capture (backlog),` with `deferred work capture and grooming (backlog, groom-backlog),` in the `description` value. Do NOT change the `version` field — the bump is offered separately at integration.
+- [x] **Step 4 (marketplace.json description):** In `.claude-plugin/marketplace.json`, in the `cogniva-dev` entry's `description`, replace `auto-doc, backlog, repo-init,` with `auto-doc, backlog, groom-backlog, repo-init,`.
+- [x] **Step 5 (CLAUDE.md skill list):** In `CLAUDE.md`, in the `plugins/cogniva-dev/` bullet under `## Layout`, replace `` `auto-doc`, `backlog`, `` with `` `auto-doc`, `backlog`, `groom-backlog`, ``.
+- [x] **Step 6 (glossary):** In `docs/glossary/README.md`, insert after the `## Backlog stub` entry (after its `_Avoid_` line) these two entries:
 
 ````markdown
 ## Grooming
@@ -325,7 +325,7 @@ _Avoid_: resolution marker, status tag
 ````
 
   Then in the `## Status` entry, append this sentence to the end of its paragraph (before the `_Avoid_` line): `A deferred stub can also exit the lifecycle via [Grooming](#grooming): ` `` `deferred → obsolete | superseded | wont-do` `` `.`
-- [ ] **Step 7 (write ADR: Backlog grooming is propose-with-receipts, human-confirmed):** Scan `docs/adr/` for the next number and write the confirmed candidate ADR-C1 verbatim (see `## Candidate ADRs`) to `docs/adr/NNNN-backlog-grooming-propose-with-receipts.md` per auto-doc's ADR-FORMAT.
-- [ ] **Step 8 (write ADR: Heavy skill guidance ships in lazy-loaded companion files):** Same scan; write ADR-C2 verbatim to `docs/adr/NNNN-lazy-loaded-skill-companion-files.md` (number = the one after Step 7's).
-- [ ] **Step 9 (validate):** `claude plugin validate .` (worktree root) → expect `Validation passed`.
-- [ ] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md plugins/cogniva-dev/.claude-plugin/plugin.json .claude-plugin/marketplace.json CLAUDE.md docs/glossary/README.md docs/adr/` then `git commit -m "docs(cogniva-dev): wire groom-backlog into repo surfaces, add grooming ADRs"`.
+- [x] **Step 7 (write ADR: Backlog grooming is propose-with-receipts, human-confirmed):** Scan `docs/adr/` for the next number and write the confirmed candidate ADR-C1 verbatim (see `## Candidate ADRs`) to `docs/adr/NNNN-backlog-grooming-propose-with-receipts.md` per auto-doc's ADR-FORMAT.
+- [x] **Step 8 (write ADR: Heavy skill guidance ships in lazy-loaded companion files):** Same scan; write ADR-C2 verbatim to `docs/adr/NNNN-lazy-loaded-skill-companion-files.md` (number = the one after Step 7's).
+- [x] **Step 9 (validate):** `claude plugin validate .` (worktree root) → expect `Validation passed`.
+- [x] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md plugins/cogniva-dev/.claude-plugin/plugin.json .claude-plugin/marketplace.json CLAUDE.md docs/glossary/README.md docs/adr/` then `git commit -m "docs(cogniva-dev): wire groom-backlog into repo surfaces, add grooming ADRs"`.
