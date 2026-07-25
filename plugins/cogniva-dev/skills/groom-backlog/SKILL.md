@@ -45,6 +45,11 @@ it is deliberately lazy-loaded so ordinary sessions never pay for it.
    Then ask once: apply Table 1 as-is? Table 2 by number. Nothing is edited
    before this reply.
 
+   Deliver the tables + flags as the FINAL text of the turn — a plain chat
+   message with NO tool call after it, the confirmation question as plain text
+   at its end. Never ask the gate via a question/prompt tool call in the same
+   turn: text emitted before a tool call may not be shown to the user.
+
 4. **Apply — only what was confirmed.** Follow the edit mechanics in
    `GROOMING-CRITERIA.md`: tick-and-annotate loose lines, flip stub `state.md`
    statuses, reword items in place where that was the confirmed verdict, and
