@@ -60,7 +60,10 @@ table. This skill selects and dispatches; it never writes feature code itself.
 6. **Report.** One line per dispatched item — what it did and its integration
    status — then the close-out pointer: "validate, then
    `/cogniva-dev:cleanup-work`". Anything the dispatch surfaced but did not do
-   goes to `/cogniva-dev:backlog`, never into prose.
+   is a capture CANDIDATE, not a write: drop what is already covered by an open
+   item or a dispatched fix, then present the rest in the two tables from
+   `CAPTURE-BAR.md` (in the `backlog` skill's directory) and write only what the
+   user confirms, via `/cogniva-dev:backlog`. Nothing surviving → say nothing.
 
 ## Rules
 
