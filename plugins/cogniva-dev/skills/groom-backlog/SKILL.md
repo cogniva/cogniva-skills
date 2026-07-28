@@ -68,7 +68,7 @@ it is deliberately lazy-loaded so ordinary sessions never pay for it.
 
 ## Called by another skill
 
-A skill that wants a groomed backlog (e.g. a future easy-work scan) must OFFER
+A skill that wants a groomed backlog (`/cogniva-dev:easy-work-scan` does, at its Step 2) must OFFER
 the groom — "want me to groom the backlog first?" — and invoke
 `/cogniva-dev:groom-backlog [module=<Module>]` only on a yes. Never auto-groom
 as a silent pre-step: whether a groom is worth doing is the user's call (they
