@@ -45,7 +45,7 @@ $ErrorActionPreference = 'Stop'
 # when an autocrlf/.gitattributes repo stages a LF file. Under 'Stop', PowerShell
 # 5.1 turns that stderr line into a TERMINATING NativeCommandError (even with
 # 2>&1 | Out-Null), which a surrounding try/catch then mistakes for a git FAILURE.
-# exactly how the close-out commit was being silently dropped - the flip stayed
+# That is exactly how the close-out commit was being silently dropped - the flip stayed
 # uncommitted and the worktree was kept forever. So localize the preference to
 # 'Continue' for the native call and judge success by the exit code alone.
 # Returns $true iff git exited 0.
@@ -93,12 +93,23 @@ function Invoke-GitOut {
 # refusal. Reporting a bare 'worktree remove failed' threw all of that away and
 # made the failure un-self-diagnosable. Same $ErrorActionPreference dance as
 # Invoke-Git; merges stderr into stdout. Returns { ok, text }.
+#
+# Under 2>&1 PowerShell wraps each stderr line in an ErrorRecord, and "$_" on one
+# stringifies to the useless type name 'System.Management.Automation.RemoteException'
+# whenever the line is BLANK - which git emits between its "fatal:" line and the
+# explanation that follows, so the type name landed verbatim in the middle of the
+# reason shown to the user. Take the exception message even when it is empty and
+# let Format-GitError drop the blank; never fall back to ToString() on the record.
 function Invoke-GitCapture {
     param([string]$Worktree, [Parameter(ValueFromRemainingArguments = $true)][string[]]$GitArgs)
     $old = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $out = @(& git -C $Worktree @GitArgs 2>&1 | ForEach-Object { "$_" })
+        $out = @(& git -C $Worktree @GitArgs 2>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                if ($_.Exception) { [string]$_.Exception.Message } else { '' }
+            } else { "$_" }
+        })
         return [pscustomobject]@{ ok = ($LASTEXITCODE -eq 0); text = ($out -join "`n") }
     } finally { $ErrorActionPreference = $old }
 }
@@ -168,7 +179,9 @@ function Set-StateStatusInWorktree([string]$StatePath, [string]$TargetStatus, [s
         # is the normal no-op path, NOT an error.
         if (@(Invoke-GitOut $Worktree status --porcelain '--' $wtState).Count -eq 0) { return $result }
         $add = Invoke-GitCapture $Worktree add '--' $wtState
-        if (-not $add.ok) { $result.error = "close-out `git add` failed: $(Format-GitError $add.text)"; return $result }
+        # No backticks in this message: inside a double-quoted string PowerShell eats
+        # them as escape characters, so they never reach the user's report anyway.
+        if (-not $add.ok) { $result.error = "close-out 'git add' failed: $(Format-GitError $add.text)"; return $result }
         # Retry the commit ONCE. This commit has been observed to fail and then
         # succeed immediately afterwards (a transient the discarded error text made
         # un-diagnosable), and every failure costs the user a whole extra sweep. A
