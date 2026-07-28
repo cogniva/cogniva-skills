@@ -1,8 +1,15 @@
 # BacklogCaptureDiscipline — execution state
 
-Status: planned
-Target branch: (set by execute-feature at run time)
-Worktree: (set by execute-feature)
+Status: in-progress
+Target branch: main
+Worktree: C:\dev\cogniva-skills-backlog-capture-discipline
+Branch: feature/backlog-capture-discipline
 Integration: not started
 
 ## Log
+
+- Task 1 done (2024d6a): created `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` (124 lines, both `## Test 1/2 —` headings present) and `docs/adr/0017-backlog-capture-coverage-and-intent.md` (0016 was highest, so ADR-C1 landed as 0017). Docs-only task — verifications run in place of a TDD loop.
+- Task 2 done (79ff62e): rewrote `plugins/cogniva-dev/skills/backlog/SKILL.md` for the two invocation modes (direct writes immediately / skill-initiated proposes) and added `docs/adr/0018-skill-initiated-capture-is-propose-then-confirm.md` + `docs/adr/0019-capture-candidates-two-tables.md` (0017 was highest). Verifications: `CAPTURE-BAR.md` = 5 lines (≥5 ✓), `claude plugin validate .` exit 0; `Skill-initiated` matched 3 lines case-sensitively and 4 case-insensitively (the plan's own mandated byte-for-byte content contains 3 capitalised + 1 lower-case in the frontmatter description) — content left verbatim as instructed.
+- Task 3 done (4c9cc49): modified `plugins/cogniva-dev/skills/plan-feature/SKILL.md` — `## Capture deferrals` rewritten as propose-only (no `BACKLOG.md` writes during planning; coverage-then-intent tests deferred to `CAPTURE-BAR.md`), and the ADR handoff section renamed `## Confirm candidate ADRs and capture candidates (once, at handoff)` with the two-table capture block folded in so handoff stays one interruption. Verifications: `tier=loose src=` = 0, `Capture deferrals (propose, don.t write)` = 1, `claude plugin validate .` exit 0. Docs-only task — no TDD loop.
+- Task 4 done (b8e38b1): modified `plugins/cogniva-dev/templates/execute-feature.workflow.js` (TASK_RESULT gains a `followups` array of receipt-bearing candidates; prompt forbids BACKLOG.md writes; the workflow return flattens per-task followups tagged with task/subplan), `plugins/cogniva-dev/skills/execute-feature/SKILL.md` (BLOCKED bullet now defers to the new `## Capture gate — followups from the run` section, inserted before `## ADRs during execution`), and `plugins/cogniva-dev/skills/quick-fix/SKILL.md` (final rule bullet routes follow-ups through the same gate; closures still need no gate). Verifications: CR count 0 (LF preserved), `node --check` SYNTAX_OK, `grep -c followups` = 4/4/3, `claude plugin validate .` exit 0. Docs+template task — no TDD loop.
+- Task 5 done (430218a): modified `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` (Step 6 report now treats anything surfaced-but-not-done as a capture CANDIDATE routed through the `CAPTURE-BAR.md` two tables, writing only what the user confirms) and `plugins/cogniva-dev/skills/explore-idea/SKILL.md` (the **Park it:** bullet is now the ONLY point an exploration writes to the backlog; no mid-exploration side-idea capture). Verifications: `CAPTURE-BAR.md` = 1 in each file, silent-write grep = 0, `claude plugin validate .` exit 0. Docs-only task — no TDD loop.

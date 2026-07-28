@@ -67,7 +67,7 @@ Candidates are split by receipt strength — clear intent (scan-and-nod) versus 
 - Create: `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md`
 - Create: `docs/adr/NNNN-backlog-capture-coverage-and-intent.md` (number resolved in Step 4)
 
-- [ ] **Step 1 (create the companion):** Write `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` with EXACTLY this content:
+- [x] **Step 1 (create the companion):** Write `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` with EXACTLY this content:
 
 ````markdown
 # Capture bar
@@ -196,15 +196,15 @@ Rules for the gate:
   distinct, separately-answerable section.
 ````
 
-- [ ] **Step 2 (verify the file exists and is non-trivial):** run
+- [x] **Step 2 (verify the file exists and is non-trivial):** run
       `bash -c 'wc -l < plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md'`
       → a number greater than `100`.
 
-- [ ] **Step 3 (verify the two tests are named):** run
+- [x] **Step 3 (verify the two tests are named):** run
       `bash -c 'grep -c "^## Test [12] —" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md'`
       → `2`.
 
-- [ ] **Step 4 (write ADR):** scan `docs/adr/` for the highest existing number,
+- [x] **Step 4 (write ADR):** scan `docs/adr/` for the highest existing number,
       increment by one, and write the confirmed candidate ADR-C1 verbatim to
       `docs/adr/NNNN-backlog-capture-coverage-and-intent.md` per auto-doc's
       ADR-FORMAT — title as the `#` heading, then the `**Provenance:**` and
@@ -219,7 +219,7 @@ Rules for the gate:
 Capture must stay cheap at the moment of capture — a quality bar that makes a human stop and refine wording mid-task is counterproductive and suppresses real items. Two filters apply instead, both resolvable without asking the human anything: coverage (do not capture what in-flight work already covers — the plan being written, an open plan folder, the change being made, an active exploration, an existing open item) and intent (an out-of-scope idea qualifies only with a concrete receipt: something the user said, or an observed fact — never the agent's read of enthusiasm). No item is ever rejected for being vague, small, or unimportant.
 ```
 
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md docs/adr/` then
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md docs/adr/` then
       `git commit -m "feat(backlog): add the capture bar companion (coverage + intent tests)"`
 
 ## Task 2: Rewrite backlog/SKILL.md for two invocation modes
@@ -229,7 +229,7 @@ Capture must stay cheap at the moment of capture — a quality bar that makes a 
 - Create: `docs/adr/NNNN-skill-initiated-capture-is-propose-then-confirm.md` (number resolved in Step 5)
 - Create: `docs/adr/NNNN-capture-candidates-two-tables.md` (number resolved in Step 5)
 
-- [ ] **Step 1 (replace the whole file):** Overwrite
+- [x] **Step 1 (replace the whole file):** Overwrite
       `plugins/cogniva-dev/skills/backlog/SKILL.md` with EXACTLY this content:
 
 ````markdown
@@ -359,17 +359,17 @@ the candidate record. Where the gate happens depends on the caller's context:
   `/cogniva-dev:quick-fix`).
 ````
 
-- [ ] **Step 2 (verify both modes are documented):** run
+- [x] **Step 2 (verify both modes are documented):** run
       `bash -c 'grep -c "Skill-initiated" plugins/cogniva-dev/skills/backlog/SKILL.md'`
       → a number `4` or greater.
 
-- [ ] **Step 3 (verify the companion is referenced):** run
+- [x] **Step 3 (verify the companion is referenced):** run
       `bash -c 'grep -c "CAPTURE-BAR.md" plugins/cogniva-dev/skills/backlog/SKILL.md'`
       → a number `5` or greater.
 
-- [ ] **Step 4 (validate the plugin):** run `claude plugin validate .` → exits 0.
+- [x] **Step 4 (validate the plugin):** run `claude plugin validate .` → exits 0.
 
-- [ ] **Step 5 (write ADRs):** scan `docs/adr/` for the highest existing number.
+- [x] **Step 5 (write ADRs):** scan `docs/adr/` for the highest existing number.
       Write the next number to
       `docs/adr/NNNN-skill-initiated-capture-is-propose-then-confirm.md`:
 
@@ -392,7 +392,7 @@ A human typing `/cogniva-dev:backlog` has already consented, so it writes and re
 Candidates are split by receipt strength — clear intent (scan-and-nod) versus ambiguous (needs a decision) — each showing its receipt, behind one gate. This extends the grooming presentation contract to capture, so a user can skim the strong set and spend attention only on the weak one; ambiguous candidates are proposed rather than suppressed, because dropping one is a keystroke and losing one is silent.
 ```
 
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md docs/adr/` then
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md docs/adr/` then
       `git commit -m "feat(backlog): split direct and skill-initiated capture modes"`
 
 ## Task 3: Fold plan-feature deferrals into the ADR handoff pass
@@ -400,7 +400,7 @@ Candidates are split by receipt strength — clear intent (scan-and-nod) versus 
 **Files:**
 - Modify: `plugins/cogniva-dev/skills/plan-feature/SKILL.md`
 
-- [ ] **Step 1 (replace the deferral section):** In
+- [x] **Step 1 (replace the deferral section):** In
       `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, find the section that
       begins with the heading `## Capture deferrals (don't bury cut scope in prose)`
       and replace that heading and its whole body (up to but NOT including the next
@@ -435,7 +435,7 @@ Hold each survivor as a candidate record (`description`, `module`, `tier`, `size
 `src`, `receipt`, `strength`). They are presented at handoff, not now.
 ````
 
-- [ ] **Step 2 (extend the ADR handoff heading):** In the same file, find the
+- [x] **Step 2 (extend the ADR handoff heading):** In the same file, find the
       heading `## Confirm candidate ADRs (once, at handoff)` and replace that exact
       line with:
 
@@ -443,7 +443,7 @@ Hold each survivor as a candidate record (`description`, `module`, `tier`, `size
 ## Confirm candidate ADRs and capture candidates (once, at handoff)
 ```
 
-- [ ] **Step 3 (add the capture half to the handoff pass):** In the same file,
+- [x] **Step 3 (add the capture half to the handoff pass):** In the same file,
       inside that handoff section, find the bullet that begins
       `- If there are no candidate ADRs, skip this` and insert the following text
       immediately AFTER that bullet's line, as a new paragraph block:
@@ -464,17 +464,17 @@ do not print an empty table. Deliver the whole handoff pass (ADRs plus tables) a
 the final text of the turn, with no tool call after it.
 ````
 
-- [ ] **Step 4 (verify the old auto-write instruction is gone):** run
+- [x] **Step 4 (verify the old auto-write instruction is gone):** run
       `bash -c 'grep -c "tier=loose src=" plugins/cogniva-dev/skills/plan-feature/SKILL.md'`
       → `0`.
 
-- [ ] **Step 5 (verify the new section landed):** run
+- [x] **Step 5 (verify the new section landed):** run
       `bash -c 'grep -c "Capture deferrals (propose, don.t write)" plugins/cogniva-dev/skills/plan-feature/SKILL.md'`
       → `1`.
 
-- [ ] **Step 6 (validate the plugin):** run `claude plugin validate .` → exits 0.
+- [x] **Step 6 (validate the plugin):** run `claude plugin validate .` → exits 0.
 
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md` then
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md` then
       `git commit -m "feat(plan-feature): propose cut scope at handoff instead of writing it"`
 
 ## Task 4: Thread followups through the workflow and the two execution skills
@@ -486,7 +486,7 @@ the final text of the turn, with no tool call after it.
 
 This file is pinned to LF by `.gitattributes` — do not introduce CRLF line endings.
 
-- [ ] **Step 1 (extend the task-result schema):** In
+- [x] **Step 1 (extend the task-result schema):** In
       `plugins/cogniva-dev/templates/execute-feature.workflow.js`, replace the whole
       `const TASK_RESULT = { ... }` declaration (currently ending with the line
       `}` after the `note` property) with EXACTLY:
@@ -520,7 +520,7 @@ const TASK_RESULT = {
 }
 ```
 
-- [ ] **Step 2 (tell the task agent about it):** In the same file, in the
+- [x] **Step 2 (tell the task agent about it):** In the same file, in the
       `const prompt = [ ... ]` array, find the line ending
       `` `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`, ``
       and insert this line immediately after it:
@@ -529,7 +529,7 @@ const TASK_RESULT = {
     `NEVER write to any BACKLOG.md. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console gates it with the user. No receipt, no followup.`,
 ```
 
-- [ ] **Step 3 (collect followups in the return value):** In the same file, replace
+- [x] **Step 3 (collect followups in the return value):** In the same file, replace
       the final `return { results, done, ... }` line with EXACTLY these two lines:
 
 ```javascript
@@ -537,13 +537,13 @@ const followups = results.flatMap(r => (r.followups || []).map(f => ({ ...f, tas
 return { results, done, blocked: blocked ? blocked.n : null, gateHit, allDone: !blocked && done.length === tasks.filter(t => !t.done).length, followups }
 ```
 
-- [ ] **Step 4 (verify LF endings and syntax):** run
+- [x] **Step 4 (verify LF endings and syntax):** run
       `bash -c "tr -cd '\r' < plugins/cogniva-dev/templates/execute-feature.workflow.js | wc -c"`
       → `0`, then run
       `bash -c 'node --check plugins/cogniva-dev/templates/execute-feature.workflow.js && echo SYNTAX_OK'`
       → `SYNTAX_OK`.
 
-- [ ] **Step 5 (update execute-feature's BLOCKED handling):** In
+- [x] **Step 5 (update execute-feature's BLOCKED handling):** In
       `plugins/cogniva-dev/skills/execute-feature/SKILL.md`, find this text inside
       the Step 3 "Blocked / gate hit" bullet:
 
@@ -560,7 +560,7 @@ If the workflow returned any
   `followups`, run the capture gate below before stopping.
 ```
 
-- [ ] **Step 6 (add the capture gate section):** In the same file, insert a new
+- [x] **Step 6 (add the capture gate section):** In the same file, insert a new
       section immediately BEFORE the line `## ADRs during execution`, containing
       EXACTLY:
 
@@ -588,7 +588,7 @@ surviving the coverage check, means say nothing at all — do not print an empty
 table and do not invent candidates to fill one.
 ````
 
-- [ ] **Step 7 (update quick-fix):** In
+- [x] **Step 7 (update quick-fix):** In
       `plugins/cogniva-dev/skills/quick-fix/SKILL.md`, find the final rule bullet:
 
 ```
@@ -611,13 +611,13 @@ table and do not invent candidates to fill one.
   and append `→ done` — that is a closure, not a capture, and needs no gate.
 ```
 
-- [ ] **Step 8 (verify all three edits):** run
+- [x] **Step 8 (verify all three edits):** run
       `bash -c 'grep -c "followups" plugins/cogniva-dev/templates/execute-feature.workflow.js plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/quick-fix/SKILL.md'`
       → three lines, each with a count of `1` or greater.
 
-- [ ] **Step 9 (validate the plugin):** run `claude plugin validate .` → exits 0.
+- [x] **Step 9 (validate the plugin):** run `claude plugin validate .` → exits 0.
 
-- [ ] **Step 10 (commit):** `git add plugins/cogniva-dev/templates/execute-feature.workflow.js plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/quick-fix/SKILL.md` then
+- [x] **Step 10 (commit):** `git add plugins/cogniva-dev/templates/execute-feature.workflow.js plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/quick-fix/SKILL.md` then
       `git commit -m "feat(execute-feature): return backlog candidates as followups instead of writing them"`
 
 ## Task 5: Update easy-work-scan and explore-idea
@@ -626,7 +626,7 @@ table and do not invent candidates to fill one.
 - Modify: `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`
 - Modify: `plugins/cogniva-dev/skills/explore-idea/SKILL.md`
 
-- [ ] **Step 1 (easy-work-scan Step 6):** In
+- [x] **Step 1 (easy-work-scan Step 6):** In
       `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`, find this text at the
       end of the Step 6 bullet:
 
@@ -645,7 +645,7 @@ Anything the dispatch surfaced but did not do
    user confirms, via `/cogniva-dev:backlog`. Nothing surviving → say nothing.
 ```
 
-- [ ] **Step 2 (explore-idea parking):** In
+- [x] **Step 2 (explore-idea parking):** In
       `plugins/cogniva-dev/skills/explore-idea/SKILL.md`, find this bullet:
 
 ```
@@ -663,15 +663,15 @@ Anything the dispatch surfaced but did not do
   not deferred work — it is just a thing you said.
 ```
 
-- [ ] **Step 3 (verify both edits):** run
+- [x] **Step 3 (verify both edits):** run
       `bash -c 'grep -c "CAPTURE-BAR.md" plugins/cogniva-dev/skills/easy-work-scan/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md'`
       → two lines, each with a count of `1` or greater.
 
-- [ ] **Step 4 (verify no skill still writes silently):** run
+- [x] **Step 4 (verify no skill still writes silently):** run
       `bash -c 'grep -rn "goes to .\`*/cogniva-dev:backlog" plugins/cogniva-dev/skills/ | wc -l'`
       → `0`.
 
-- [ ] **Step 5 (validate the plugin):** run `claude plugin validate .` → exits 0.
+- [x] **Step 5 (validate the plugin):** run `claude plugin validate .` → exits 0.
 
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/easy-work-scan/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md` then
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/easy-work-scan/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md` then
       `git commit -m "feat(backlog): make easy-work-scan and explore-idea propose rather than write"`
