@@ -44,11 +44,21 @@ $ErrorActionPreference = 'Stop'
 # benign warnings to stderr - most commonly "warning: LF will be replaced by CRLF"
 # when an autocrlf/.gitattributes repo stages a LF file. Under 'Stop', PowerShell
 # 5.1 turns that stderr line into a TERMINATING NativeCommandError (even with
-# 2>$null), which a surrounding try/catch then mistakes for a git FAILURE. That is
+# 2>&1 | Out-Null), which a surrounding try/catch then mistakes for a git FAILURE.
 # exactly how the close-out commit was being silently dropped - the flip stayed
 # uncommitted and the worktree was kept forever. So localize the preference to
 # 'Continue' for the native call and judge success by the exit code alone.
 # Returns $true iff git exited 0.
+#
+# ALWAYS go through these wrappers - a bare `& git` under the script's top-level
+# 'Stop' is the landmine they exist to defuse, and inside a try/catch that returns
+# a bare $false it fails INVISIBLY.
+#
+# Two PowerShell parser traps when calling them (both are advanced functions, so
+# PowerShell binds arguments before git ever sees them):
+#   * a bare `--` is the end-of-parameters token and is SWALLOWED - it never
+#     reaches git, so pathspecs arrive unseparated from revisions. Quote it: '--'.
+#   * a bare `-d` prefix-binds to the common -Debug parameter. Quote it: '-d'.
 function Invoke-Git {
     param([string]$Worktree, [Parameter(ValueFromRemainingArguments = $true)][string[]]$GitArgs)
     $old = $ErrorActionPreference
@@ -107,20 +117,33 @@ function Format-GitError([string]$Text, [int]$Max = 300) {
 # Flip the Status line IN THE WORKTREE copy of state.md and commit it on the
 # feature branch. $StatePath is the recipe's reference path (rooted in the PRIMARY
 # checkout); we map it into $Worktree and only ever edit/commit THERE. Returns
-# $true only if a commit was actually made. Never writes the primary tree.
+# a result object { committed; error } - `committed` $true only if a commit was
+# actually made, `error` carrying git's own words when one was attempted and
+# failed. The caller reports `error` verbatim: a close-out commit that dies
+# silently is indistinguishable from user WIP, which is the bug this shape fixes.
+# Never writes the primary tree.
 function Set-StateStatusInWorktree([string]$StatePath, [string]$TargetStatus, [string]$Worktree, [string]$RepoRoot) {
-    if (-not $StatePath -or -not $TargetStatus -or -not $Worktree) { return $false }
+    $result = [pscustomobject]@{ committed = $false; error = $null }
+    if (-not $StatePath -or -not $TargetStatus -or -not $Worktree) {
+        $result.error = 'close-out recipe incomplete (missing statePath / targetStatus / worktree)'; return $result
+    }
     # Defense-in-depth against a legacy/bad ledger record: the flip+append is only
     # ever valid on a plan state.md. Refuse any other target (e.g. a .cs source) so
     # a stale recipe can never corrupt and FF a broken source file onto the branch.
-    if ((Split-Path $StatePath -Leaf) -ine 'state.md') { return $false }
+    if ((Split-Path $StatePath -Leaf) -ine 'state.md') {
+        $result.error = "close-out recipe statePath is not a state.md: $StatePath"; return $result
+    }
     try {
         $root = ($RepoRoot -replace '/','\').TrimEnd('\')
         $sp   = ($StatePath -replace '/','\')
-        if (-not $sp.ToLowerInvariant().StartsWith($root.ToLowerInvariant() + '\')) { return $false }
+        if (-not $sp.ToLowerInvariant().StartsWith($root.ToLowerInvariant() + '\')) {
+            $result.error = "close-out recipe statePath is outside the repo: $StatePath"; return $result
+        }
         $rel = $sp.Substring($root.Length).TrimStart('\')
         $wtState = Join-Path $Worktree $rel
-        if (-not (Test-Path -LiteralPath $wtState)) { return $false }
+        if (-not (Test-Path -LiteralPath $wtState)) {
+            $result.error = "close-out state.md not found in worktree: $wtState"; return $result
+        }
         $text = Get-Content -Raw -LiteralPath $wtState
         # Idempotent: only rewrite when something actually changes. A re-run over an
         # already-closed-out worktree must leave the tree CLEAN - otherwise the
@@ -141,12 +164,29 @@ function Set-StateStatusInWorktree([string]$StatePath, [string]$TargetStatus, [s
         # commit was interrupted - the content can be fully at target ($new -eq $text)
         # yet the tree is dirty. Early-returning here would leave that flip
         # uncommitted, the dirty-check would keep the worktree forever. So decide on
-        # git's view of the file, not on whether THIS call rewrote it.
-        if (-not [bool] (git -C $Worktree status --porcelain -- "$wtState" 2>$null)) { return $false }
-        if (-not (Invoke-Git $Worktree add -- "$wtState")) { return $false }
-        if (-not (Invoke-Git $Worktree commit -m "chore: close out feature (Status: $TargetStatus)" -- "$wtState")) { return $false }
-        return $true
-    } catch { return $false }
+        # git's view of the file, not on whether THIS call rewrote it. Nothing dirty
+        # is the normal no-op path, NOT an error.
+        if (@(Invoke-GitOut $Worktree status --porcelain '--' $wtState).Count -eq 0) { return $result }
+        $add = Invoke-GitCapture $Worktree add '--' $wtState
+        if (-not $add.ok) { $result.error = "close-out `git add` failed: $(Format-GitError $add.text)"; return $result }
+        # Retry the commit ONCE. This commit has been observed to fail and then
+        # succeed immediately afterwards (a transient the discarded error text made
+        # un-diagnosable), and every failure costs the user a whole extra sweep. A
+        # second attempt is free when the first worked and is the whole fix when it
+        # did not. Between attempts, re-check dirt: if the file is already clean the
+        # commit DID land and only its reporting failed - treat that as success.
+        $msg = "chore: close out feature (Status: $TargetStatus)"
+        for ($attempt = 1; $attempt -le 2; $attempt++) {
+            $c = Invoke-GitCapture $Worktree commit -m $msg '--' $wtState
+            if ($c.ok) { $result.committed = $true; $result.error = $null; return $result }
+            if (@(Invoke-GitOut $Worktree status --porcelain '--' $wtState).Count -eq 0) {
+                $result.committed = $true; $result.error = $null; return $result
+            }
+            $result.error = "close-out commit failed: $(Format-GitError $c.text)"
+            if ($attempt -lt 2) { Start-Sleep -Milliseconds 400 }
+        }
+        return $result
+    } catch { $result.error = "close-out flip threw: $_"; return $result }
 }
 
 # Map the recipe's statePath (rooted in the PRIMARY checkout) to a repo-relative,
@@ -200,10 +240,13 @@ function Get-StateCanonical([string]$Text) {
 function Test-CloseoutOnlyChange([string]$Worktree, [string]$RecipeRel, [string]$TargetStatus) {
     try {
         if (-not $RecipeRel) { return $false }
-        $old = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-        try { $headText = (& git -C $Worktree show "HEAD:$RecipeRel" 2>$null | Out-String) }
-        finally { $ErrorActionPreference = $old }
-        if ($LASTEXITCODE -ne 0) { return $false }
+        # Via the wrapper, never a bare `& git` (see Invoke-Git). Invoke-GitOut is
+        # stdout-only, so no stderr warning can pollute the canonical comparison and
+        # misreport a clean close-out flip as a manual edit. Empty output means the
+        # file is missing or unreadable at HEAD - fail closed and keep the worktree.
+        $headLines = @(Invoke-GitOut $Worktree show "HEAD:$RecipeRel")
+        if ($headLines.Count -eq 0) { return $false }
+        $headText = ($headLines -join "`n")
         $wtPath = Join-Path $Worktree ($RecipeRel -replace '/','\')
         if (-not (Test-Path -LiteralPath $wtPath)) { return $false }
         $wtText = Get-Content -Raw -LiteralPath $wtPath
@@ -445,7 +488,8 @@ try {
                 # updated by that merge. First clear any STALE index.lock so the recipe's
                 # commit and the integrate can actually write the worktree index.
                 Clear-StaleGitLock $wt | Out-Null
-                $statusUpdated = Set-StateStatusInWorktree $sp $ts $wt $RepoRoot
+                $flip = Set-StateStatusInWorktree $sp $ts $wt $RepoRoot
+                $statusUpdated = $flip.committed
 
                 Invoke-Integrate $wt $branch $TargetBranch $RepoRoot
                 $merged = Get-MergedSet $RepoRoot $TargetBranch
@@ -491,7 +535,13 @@ try {
                 }
                 else {
                     $remaining += $r
-                    $reason = if ($dirtyAfter) { 'uncommitted changes in worktree' } else { "not merged into $TargetBranch (queued - target dirty or conflict)" }
+                    # A still-dirty worktree here is NOT automatically user WIP: the
+                    # close-out commit itself may have failed, and reporting that as
+                    # 'uncommitted changes' sent the user hunting for WIP that was
+                    # never there. Prefer the flip's own error - it carries git's words.
+                    $reason = if ($dirtyAfter) {
+                        if ($flip -and $flip.error) { $flip.error } else { 'uncommitted changes in worktree' }
+                    } else { "not merged into $TargetBranch (queued - target dirty or conflict)" }
                     $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = $reason }
                 }
             } catch {
