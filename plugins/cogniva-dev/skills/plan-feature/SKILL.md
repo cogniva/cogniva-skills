@@ -52,7 +52,7 @@ block, follow it before designing. Absent → nothing to do.
    *Suggested by agent* only once the human explicitly approves your idea; err
    toward *Suggested by human*; ask before *Required by human*.
 
-## Confirm candidate ADRs (once, at handoff)
+## Confirm candidate ADRs and capture candidates (once, at handoff)
 
 When the design is essentially settled and you're ready to hand off to
 execute-feature — **not before** — present the full candidate-ADR list to the user
@@ -67,6 +67,20 @@ differs from the provenance default). The user confirms, amends, or drops each.
   here; execute-feature materializes the concrete ADR when it finishes the task the
   candidate is attached to.
 - If there are no candidate ADRs, skip this — don't invent decisions to record.
+
+**Capture candidates go in the same pass**, as a distinct, separately-answerable
+section below the ADRs — one interruption, not two. Present them in the two tables
+defined in `CAPTURE-BAR.md`:
+
+- **Table 1 — clear intent:** numbered; the item and its receipt. Scan and nod.
+- **Table 2 — needs a decision:** numbering continues; the item, its receipt, and
+  one line on why it is ambiguous.
+
+Then ask once: capture Table 1 as-is? Table 2 by number (or none). Write only
+confirmed candidates, via `/cogniva-dev:backlog`, onto the worktree so they ride
+the plan commit. If there are no capture candidates, omit the section entirely —
+do not print an empty table. Deliver the whole handoff pass (ADRs plus tables) as
+the final text of the turn, with no tool call after it.
 
 ## Emit the plan
 
@@ -145,14 +159,31 @@ in `PLAN-FORMAT.md`):
 - Seed the multi-plan `state.md` variant (per-sub-plan checklist), not the plain
   one.
 
-## Capture deferrals (don't bury cut scope in prose)
+## Capture deferrals (propose, don't write)
 
-A focused design always cuts scope. Do NOT leave it as a "Deferred / future work"
-paragraph — record each cut item with `/backlog` so it survives:
-- A small follow-up → a loose line:
-  `/backlog module=<Module> tier=loose src=<Feature> — <description>`
-- A feature-sized chunk → a stub:
-  `/backlog module=<Module> tier=stub src=<Feature> — <description>`
+A focused design always cuts scope — but most cut scope is not backlog material.
+Do NOT write anything to a `BACKLOG.md` from this session. Hold cut items as
+**capture candidates** and confirm them at handoff, in the same pass as the
+candidate ADRs (below).
+
+Read `CAPTURE-BAR.md` in the `backlog` skill's directory for the full tests. In
+short:
+
+- **Coverage first.** If the plan you just wrote actually delivers it — its Goal,
+  a task, a sub-plan — it is not deferred scope. Neither is anything already
+  covered by an open plan folder (`state.md` `Status:` `planned` /
+  `in-progress` / `blocked`), an active `.explore/` thread, or an existing open
+  backlog item. This is the single biggest source of backlog churn: items written
+  during planning and closed during execution, having never been deferred at all.
+- **Then intent.** Scope the user declined ("no", "wrong approach") is gone —
+  never a candidate. Scope with a receipt — their words ("let's do that soon but
+  not today", "next one"), or substantive engagement — is a `clear` candidate.
+  Scope you floated that they did not engage with is nothing: silence is not
+  deferral. Anything in between is `ambiguous`; when you cannot tell, use
+  `ambiguous` rather than dropping it.
+
+Hold each survivor as a candidate record (`description`, `module`, `tier`, `size`,
+`src`, `receipt`, `strength`). They are presented at handoff, not now.
 
 ## Promotion (when this plan fulfills an existing backlog item)
 
