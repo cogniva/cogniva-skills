@@ -1,6 +1,6 @@
 # BacklogCaptureDiscipline — execution state
 
-Status: integrated
+Status: done
 Target branch: main
 Worktree: C:\dev\cogniva-skills-backlog-capture-discipline
 Branch: feature/backlog-capture-discipline
@@ -13,3 +13,5 @@ Integration: not started
 - Task 3 done (4c9cc49): modified `plugins/cogniva-dev/skills/plan-feature/SKILL.md` — `## Capture deferrals` rewritten as propose-only (no `BACKLOG.md` writes during planning; coverage-then-intent tests deferred to `CAPTURE-BAR.md`), and the ADR handoff section renamed `## Confirm candidate ADRs and capture candidates (once, at handoff)` with the two-table capture block folded in so handoff stays one interruption. Verifications: `tier=loose src=` = 0, `Capture deferrals (propose, don.t write)` = 1, `claude plugin validate .` exit 0. Docs-only task — no TDD loop.
 - Task 4 done (b8e38b1): modified `plugins/cogniva-dev/templates/execute-feature.workflow.js` (TASK_RESULT gains a `followups` array of receipt-bearing candidates; prompt forbids BACKLOG.md writes; the workflow return flattens per-task followups tagged with task/subplan), `plugins/cogniva-dev/skills/execute-feature/SKILL.md` (BLOCKED bullet now defers to the new `## Capture gate — followups from the run` section, inserted before `## ADRs during execution`), and `plugins/cogniva-dev/skills/quick-fix/SKILL.md` (final rule bullet routes follow-ups through the same gate; closures still need no gate). Verifications: CR count 0 (LF preserved), `node --check` SYNTAX_OK, `grep -c followups` = 4/4/3, `claude plugin validate .` exit 0. Docs+template task — no TDD loop.
 - Task 5 done (430218a): modified `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` (Step 6 report now treats anything surfaced-but-not-done as a capture CANDIDATE routed through the `CAPTURE-BAR.md` two tables, writing only what the user confirms) and `plugins/cogniva-dev/skills/explore-idea/SKILL.md` (the **Park it:** bullet is now the ONLY point an exploration writes to the backlog; no mid-exploration side-idea capture). Verifications: `CAPTURE-BAR.md` = 1 in each file, silent-write grep = 0, `claude plugin validate .` exit 0. Docs-only task — no TDD loop.
+- Closed out (2026-07-28): validated, worktree removed.
+
