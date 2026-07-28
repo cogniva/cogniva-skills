@@ -1,6 +1,6 @@
 # BacklogCaptureDiscipline — execution state
 
-Status: in-progress
+Status: integrated
 Target branch: main
 Worktree: C:\dev\cogniva-skills-backlog-capture-discipline
 Branch: feature/backlog-capture-discipline
