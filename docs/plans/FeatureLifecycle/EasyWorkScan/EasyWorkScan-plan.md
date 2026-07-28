@@ -42,7 +42,7 @@ An item qualifies as low-involvement only if ALL of: no pending design decision,
 **Files:**
 - Create: `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`
 
-- [ ] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` with EXACTLY this content:
+- [x] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` with EXACTLY this content:
 
 ````markdown
 ---
@@ -122,16 +122,16 @@ table. This skill selects and dispatches; it never writes feature code itself.
   relax a criterion to produce candidates.
 ````
 
-- [ ] **Step 2 (verify):** Read the file back; confirm the frontmatter has exactly `name` and `description` keys, the description is at most two sentences, and the six `## Steps` items plus the `## Rules` section are all present.
-- [ ] **Step 3 (validate):** `claude plugin validate .` (run at the worktree root) → expect `Validation passed`.
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` then `git commit -m "feat(cogniva-dev): add easy-work-scan skill flow"`.
+- [x] **Step 2 (verify):** Read the file back; confirm the frontmatter has exactly `name` and `description` keys, the description is at most two sentences, and the six `## Steps` items plus the `## Rules` section are all present.
+- [x] **Step 3 (validate):** `claude plugin validate .` (run at the worktree root) → expect `Validation passed`.
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` then `git commit -m "feat(cogniva-dev): add easy-work-scan skill flow"`.
 
 ## Task 2: Create the qualification criteria companion (EASY-WORK-CRITERIA.md)
 
 **Files:**
 - Create: `plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md`
 
-- [ ] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md` with EXACTLY this content:
+- [x] **Step 1 (create file):** Create `plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md` with EXACTLY this content:
 
 ````markdown
 # Easy-work criteria
@@ -231,8 +231,8 @@ already landed on the user's branch.
 - An empty shortlist is a real result. Report it plainly and stop.
 ````
 
-- [ ] **Step 2 (verify):** Read the file back; confirm the five numbered criteria each carry a **Fails when:** and a **Reason string:** line, and that the `## Tags are evidence, not gates`, `## Routing table`, `## Dispatch order`, and `## Reporting` sections are all present.
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md` then `git commit -m "feat(cogniva-dev): add easy-work qualification criteria"`.
+- [x] **Step 2 (verify):** Read the file back; confirm the five numbered criteria each carry a **Fails when:** and a **Reason string:** line, and that the `## Tags are evidence, not gates`, `## Routing table`, `## Dispatch order`, and `## Reporting` sections are all present.
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md` then `git commit -m "feat(cogniva-dev): add easy-work qualification criteria"`.
 
 ## Task 3: Wire easy-work-scan into the repo surfaces + write ADRs
 
@@ -244,11 +244,11 @@ already landed on the user's branch.
 - Modify: `docs/glossary/README.md`
 - Create: `docs/adr/NNNN-easy-work-scan-qualify-approve-dispatch.md`, `docs/adr/NNNN-low-involvement-five-part-test.md`
 
-- [ ] **Step 1 (groom-backlog — name the real caller):** In `plugins/cogniva-dev/skills/groom-backlog/SKILL.md`, under `## Called by another skill`, replace the exact substring `(e.g. a future easy-work scan)` with `` (`/cogniva-dev:easy-work-scan` does, at its Step 2) ``. Change nothing else in that file.
-- [ ] **Step 2 (plugin.json description):** In `plugins/cogniva-dev/.claude-plugin/plugin.json`, in the `description` value, replace the exact substring `deferred work capture and grooming (backlog, groom-backlog),` with `deferred work capture and grooming (backlog, groom-backlog), low-involvement work selection (easy-work-scan),`. Do NOT change the `version` field — the bump is offered separately at integration.
-- [ ] **Step 3 (marketplace.json description):** In `.claude-plugin/marketplace.json`, in the `cogniva-dev` entry's `description`, replace the exact substring `auto-doc, backlog, groom-backlog, repo-init,` with `auto-doc, backlog, groom-backlog, easy-work-scan, repo-init,`. Do NOT change the `version` field.
-- [ ] **Step 4 (CLAUDE.md skill list):** In `CLAUDE.md`, in the `plugins/cogniva-dev/` bullet under `## Layout`, replace the exact substring `` `groom-backlog`, `repo-init`, `` with `` `groom-backlog`, `easy-work-scan`, `repo-init`, ``.
-- [ ] **Step 5 (glossary):** In `docs/glossary/README.md`, insert the following entry immediately after the `## Exit verb` entry (i.e. after its `_Avoid_: resolution marker, status tag` line) and immediately before the `## Status` heading, separated by a blank line on each side:
+- [x] **Step 1 (groom-backlog — name the real caller):** In `plugins/cogniva-dev/skills/groom-backlog/SKILL.md`, under `## Called by another skill`, replace the exact substring `(e.g. a future easy-work scan)` with `` (`/cogniva-dev:easy-work-scan` does, at its Step 2) ``. Change nothing else in that file.
+- [x] **Step 2 (plugin.json description):** In `plugins/cogniva-dev/.claude-plugin/plugin.json`, in the `description` value, replace the exact substring `deferred work capture and grooming (backlog, groom-backlog),` with `deferred work capture and grooming (backlog, groom-backlog), low-involvement work selection (easy-work-scan),`. Do NOT change the `version` field — the bump is offered separately at integration.
+- [x] **Step 3 (marketplace.json description):** In `.claude-plugin/marketplace.json`, in the `cogniva-dev` entry's `description`, replace the exact substring `auto-doc, backlog, groom-backlog, repo-init,` with `auto-doc, backlog, groom-backlog, easy-work-scan, repo-init,`. Do NOT change the `version` field.
+- [x] **Step 4 (CLAUDE.md skill list):** In `CLAUDE.md`, in the `plugins/cogniva-dev/` bullet under `## Layout`, replace the exact substring `` `groom-backlog`, `repo-init`, `` with `` `groom-backlog`, `easy-work-scan`, `repo-init`, ``.
+- [x] **Step 5 (glossary):** In `docs/glossary/README.md`, insert the following entry immediately after the `## Exit verb` entry (i.e. after its `_Avoid_: resolution marker, status tag` line) and immediately before the `## Status` heading, separated by a blank line on each side:
 
 ````markdown
 ## Low-involvement work
@@ -257,7 +257,7 @@ A [Backlog](#backlog) item the `easy-work-scan` skill judges safe to hand off wi
 _Avoid_: easy work, low-hanging fruit, quick win
 ````
 
-- [ ] **Step 6 (write ADR: Easy-work scanning is qualify-with-reasons, approval-gated, dispatch-sequential):** Scan `docs/adr/` for the highest existing number, increment by one, and write ADR-C1 (see `## Candidate ADRs` above) verbatim to `docs/adr/NNNN-easy-work-scan-qualify-approve-dispatch.md` per auto-doc's ADR-FORMAT — title as the `#` heading, the `**Provenance:**` line, then the body paragraph. ADR-C1 has NO relitigation line; do not add one.
-- [ ] **Step 7 (write ADR: "Low-involvement" is a five-part conjunctive test with mechanical verifiability):** Same scan (number = the one after Step 6's); write ADR-C2 verbatim to `docs/adr/NNNN-low-involvement-five-part-test.md`, including BOTH its `**Provenance:** Suggested by human` and `**Relitigation:** Open to discussion` lines.
-- [ ] **Step 8 (validate):** `claude plugin validate .` (run at the worktree root) → expect `Validation passed`.
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/SKILL.md plugins/cogniva-dev/.claude-plugin/plugin.json .claude-plugin/marketplace.json CLAUDE.md docs/glossary/README.md docs/adr/` then `git commit -m "docs(cogniva-dev): wire easy-work-scan into repo surfaces, add selection ADRs"`.
+- [x] **Step 6 (write ADR: Easy-work scanning is qualify-with-reasons, approval-gated, dispatch-sequential):** Scan `docs/adr/` for the highest existing number, increment by one, and write ADR-C1 (see `## Candidate ADRs` above) verbatim to `docs/adr/NNNN-easy-work-scan-qualify-approve-dispatch.md` per auto-doc's ADR-FORMAT — title as the `#` heading, the `**Provenance:**` line, then the body paragraph. ADR-C1 has NO relitigation line; do not add one.
+- [x] **Step 7 (write ADR: "Low-involvement" is a five-part conjunctive test with mechanical verifiability):** Same scan (number = the one after Step 6's); write ADR-C2 verbatim to `docs/adr/NNNN-low-involvement-five-part-test.md`, including BOTH its `**Provenance:** Suggested by human` and `**Relitigation:** Open to discussion` lines.
+- [x] **Step 8 (validate):** `claude plugin validate .` (run at the worktree root) → expect `Validation passed`.
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog/SKILL.md plugins/cogniva-dev/.claude-plugin/plugin.json .claude-plugin/marketplace.json CLAUDE.md docs/glossary/README.md docs/adr/` then `git commit -m "docs(cogniva-dev): wire easy-work-scan into repo surfaces, add selection ADRs"`.
