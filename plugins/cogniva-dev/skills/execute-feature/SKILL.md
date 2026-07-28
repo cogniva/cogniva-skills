@@ -100,9 +100,8 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
   this skill — Step 1 marks finished tasks `done`, sets `Status: in-progress`
   again, and the workflow resumes (or use the Workflow `resumeFromRunId`). After
   the gate the workflow continues toward auto-merge; the gate is NOT a signal that
-  the user should validate the whole feature. If a BLOCKED task surfaced leftover
-  scope that won't be done here, capture it:
-  `/backlog module=<Module> tier=loose src=<Feature> — <description>`.
+  the user should validate the whole feature. If the workflow returned any
+  `followups`, run the capture gate below before stopping.
 - **All tasks done — GREEN GATE (mandatory, no shortcuts):**
   1. **Commit everything first.** `git -C "<worktree>" status --porcelain` MUST be
      empty before the gate runs. The per-task agents commit their own files, but tick
@@ -183,6 +182,28 @@ remote). Interpret the JSON `status`:
   the worktree path for resolution (human or a one-shot resolve agent); do not
   force anything.
 - `ERROR` — surface the detail; do not retry blindly.
+
+## Capture gate — followups from the run
+
+Task agents never write to a `BACKLOG.md`; they return candidates in the workflow
+result's `followups` array. Whenever the workflow returns a non-empty `followups`
+— on a BLOCKED stop, a gate stop, or after a successful integration — run the gate
+in your report, as the last thing you say.
+
+Read `CAPTURE-BAR.md` in the `backlog` skill's directory. Drop any candidate that
+Test 1 covers (a task still remaining in this run, an open plan folder, an existing
+open item), then present the survivors in two tables:
+
+- **Table 1 — clear intent:** numbered; the item and its receipt (which task, and
+  the located fact).
+- **Table 2 — needs a decision:** numbering continues; the item, its receipt, and
+  one line on why it is ambiguous.
+
+Then ask once: capture Table 1 as-is? Table 2 by number (or none). Write only
+confirmed candidates, via `/cogniva-dev:backlog`. Deliver the tables as the final
+text of the turn, with no tool call after it. Empty `followups`, or nothing
+surviving the coverage check, means say nothing at all — do not print an empty
+table and do not invent candidates to fill one.
 
 ## ADRs during execution
 

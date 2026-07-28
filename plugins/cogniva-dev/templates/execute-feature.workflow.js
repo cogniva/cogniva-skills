@@ -28,6 +28,21 @@ const TASK_RESULT = {
     summary: { type: 'string', description: 'One or two lines: what changed.' },
     commitSha: { type: 'string', description: 'Short SHA of the task commit, if committed.' },
     note: { type: 'string', description: 'If BLOCKED: exactly what is missing or needed.' },
+    followups: {
+      type: 'array',
+      description: 'Backlog CANDIDATES only — never written to any BACKLOG.md by this agent. Omit or leave empty unless the task surfaced work that is genuinely not covered by this plan or an open plan folder, AND you can point at a concrete observed fact for it. Speculation and "it would be nice if" do not qualify.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['description', 'receipt', 'strength'],
+        properties: {
+          description: { type: 'string', description: 'One line, as it would appear in BACKLOG.md.' },
+          receipt: { type: 'string', description: 'The concrete observed fact, with a location: "same off-by-one at handler.ts:88", "blocked needing IExportPort, which the plan never defines".' },
+          strength: { type: 'string', enum: ['clear', 'ambiguous'], description: 'clear = the fact is unambiguous; ambiguous = a passing observation. When unsure, use ambiguous.' },
+          size: { type: 'string', enum: ['S', 'M', 'L'] },
+        },
+      },
+    },
   },
 }
 
@@ -56,6 +71,7 @@ for (let i = 0; i < tasks.length; i++) {
     `then edit ${taskPlanPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]",`,
     `and append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.`,
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,
+    `NEVER write to any BACKLOG.md. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console gates it with the user. No receipt, no followup.`,
     ``,
     `=== TASK ${t.n}: ${t.title} ===`,
     t.body,
@@ -73,4 +89,5 @@ for (let i = 0; i < tasks.length; i++) {
 const done = results.filter(r => r.status === 'DONE').map(r => r.n)
 const blocked = results.find(r => r.status === 'BLOCKED')
 const gateHit = (() => { const last = results[results.length - 1]; const t = tasks.find(x => x.n === last?.n); return !!(t && t.isGate && last.status === 'DONE') })()
-return { results, done, blocked: blocked ? blocked.n : null, gateHit, allDone: !blocked && done.length === tasks.filter(t => !t.done).length }
+const followups = results.flatMap(r => (r.followups || []).map(f => ({ ...f, task: r.n, subplan: r.subplan })))
+return { results, done, blocked: blocked ? blocked.n : null, gateHit, allDone: !blocked && done.length === tasks.filter(t => !t.done).length, followups }

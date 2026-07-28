@@ -101,6 +101,12 @@ Handle the JSON `status` exactly as execute-feature Step 4 does:
   `/auto-doc`); surface a needed change to the user rather than working around it.
 - Keep it small — if the change grows into a real feature, stop and suggest
   `/cogniva-dev:plan-feature` instead.
-- If the fix surfaces a follow-up you are NOT doing now, don't drop it — capture
-  it: `/cogniva-dev:backlog module=<Module> tier=loose — <description>`. If this
-  fix resolved a loose `BACKLOG.md` item, tick it and append `→ done`.
+- If the fix surfaces a follow-up you are NOT doing now, don't drop it and don't
+  silently write it — the task agent returns it in the workflow result's
+  `followups` array, and you run the capture gate in your report (see
+  execute-feature's "Capture gate — followups from the run", and `CAPTURE-BAR.md`
+  in the `backlog` skill's directory). Drop anything already covered by this fix
+  or an open item; present the rest in the two tables; write only what the user
+  confirms, via `/cogniva-dev:backlog`. No followups, or nothing surviving
+  coverage → say nothing. If this fix resolved a loose `BACKLOG.md` item, tick it
+  and append `→ done` — that is a closure, not a capture, and needs no gate.
