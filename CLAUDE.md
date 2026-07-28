@@ -24,6 +24,13 @@ This repo is **cogniva** — Cogniva's local Claude Code plugin marketplace. It 
   - **Minor** (`0.3.0 → 0.4.0`) — changes *what* the toolkit does: a significant new skill, removing one, reworking an existing skill's intent, or a workflow change.
   - **Major** (`0.3.0 → 1.0.0`) — leave the call to the user.
   - When a change sits on the patch/minor line, offer the smaller bump and say why.
+  - **A bump is TWO files, always.** The version lives in both the plugin's
+    `plugins/<plugin>/.claude-plugin/plugin.json` **and** its entry in the
+    top-level `.claude-plugin/marketplace.json` — they must match. Editing only
+    `plugin.json` ships a marketplace that advertises the old version, and
+    `claude plugin validate .` does NOT catch the mismatch, so nothing downstream
+    will tell you. Update both in the same commit, then confirm with:
+    `grep -n '"version"' plugins/<plugin>/.claude-plugin/plugin.json .claude-plugin/marketplace.json`
 
 ## Cogniva-dev workflow instructions
 
