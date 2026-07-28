@@ -22,6 +22,11 @@
 #   3. If the worktree is dirty, or it still will not merge -> keep it (branch
 #      included), with a reason. Never --force, never push to a remote, never
 #      touch the primary working tree.
+#   4. If the worktree directory exists but is GUTTED (contents + .git file gone -
+#      the leftover of a `worktree remove` that deleted the contents and then
+#      failed on the directory), FINISH the job: prune the metadata, delete the
+#      merged branch (-d), remove the empty directory, and only then drop the
+#      record. See the gutted block below for why pruning it outright was wrong.
 #
 # Stale records (worktree path missing) are pruned regardless of state.
 #
@@ -69,6 +74,34 @@ function Invoke-GitOut {
         if ($LASTEXITCODE -ne 0) { return @() }
         return $out
     } finally { $ErrorActionPreference = $old }
+}
+
+# stderr-CAPTURING sibling of Invoke-Git, for the calls whose failure MESSAGE is
+# the diagnosis. `worktree remove` failing on Windows says exactly which path it
+# could not delete and why ("Permission denied" / "The process cannot access the
+# file because it is being used by another process"); `branch -d` explains its
+# refusal. Reporting a bare 'worktree remove failed' threw all of that away and
+# made the failure un-self-diagnosable. Same $ErrorActionPreference dance as
+# Invoke-Git; merges stderr into stdout. Returns { ok, text }.
+function Invoke-GitCapture {
+    param([string]$Worktree, [Parameter(ValueFromRemainingArguments = $true)][string[]]$GitArgs)
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $out = @(& git -C $Worktree @GitArgs 2>&1 | ForEach-Object { "$_" })
+        return [pscustomobject]@{ ok = ($LASTEXITCODE -eq 0); text = ($out -join "`n") }
+    } finally { $ErrorActionPreference = $old }
+}
+
+# Condense a (possibly multi-line) git message into ONE short line fit for a
+# `kept` reason, which the skills echo verbatim to the user.
+function Format-GitError([string]$Text, [int]$Max = 300) {
+    if (-not $Text) { return '(no output)' }
+    $lines = @(($Text -split "`r?`n") | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($lines.Count -eq 0) { return '(no output)' }
+    $msg = ($lines -join '; ')
+    if ($msg.Length -gt $Max) { $msg = $msg.Substring(0, $Max - 3) + '...' }
+    return $msg
 }
 
 # Flip the Status line IN THE WORKTREE copy of state.md and commit it on the
@@ -234,6 +267,17 @@ try {
         if (-not $commonGitDir) { throw 'not inside a git repository (cannot locate the primary checkout)' }
         $RepoRoot = Split-Path -Parent $commonGitDir
     }
+    # Stand in the PRIMARY checkout, never in a worktree we are about to remove.
+    # This process inherits its cwd from the calling shell, and the green gate runs
+    # with the worktree root as cwd - so cleanup is routinely launched from inside
+    # the very directory it must delete. Windows refuses to remove a directory that
+    # is a live process's cwd: git deletes the CONTENTS, fails on the directory
+    # itself, and leaves a gutted husk behind. Moving out takes this process (and
+    # the integrate-feature child that inherits from it) out of that equation.
+    # A *parent* shell parked in the worktree still locks it - which is why the
+    # cleanup skills tell the agent to cd out first, and why the gutted-worktree
+    # recovery below exists as the backstop when both of those fail.
+    try { Set-Location -LiteralPath $RepoRoot } catch {}
     if (-not $TargetBranch) { $TargetBranch = (@(Invoke-GitOut $RepoRoot branch --show-current) -join '').Trim() }
     . (Join-Path $PSScriptRoot 'ledger-lib.ps1')
     $commonDir = Get-CommonDir $RepoRoot
@@ -277,19 +321,94 @@ try {
 
                 # Stale: worktree gone -> prune regardless of state.
                 if (-not $wt -or -not (Test-Path $wt)) { $pruned += $wt; continue }
-                # A present-but-gutted worktree (empty dir, dead .git file) passes the
-                # Test-Path check above but every git call inside it dies with "not a
-                # git repository" - it must take the prune path here, not fall into the
-                # git calls below and throw. The `git worktree prune` near the end
-                # cleans up the metadata.
-                if (-not (Invoke-Git $wt rev-parse --is-inside-work-tree)) { $pruned += $wt; continue }
 
                 $inScope = ($Scope -eq 'all') -or $wanted.ContainsKey($key)
-                # Never touch in-progress, and skip anything out of scope.
-                if ($r.state -ne 'cleanupable' -or -not $inScope) { $remaining += $r; continue }
-
                 $sp = $null; $ts = $null; $sum = $null; $fu = $null
                 if ($r.recipe) { $sp = $r.recipe.statePath; $ts = $r.recipe.targetStatus; $sum = $r.recipe.summary; $fu = $r.recipe.followups }
+
+                # GUTTED worktree: the directory survives but its contents and .git
+                # file are gone, so every git call inside it dies with "not a git
+                # repository". It must be handled HERE, before the git calls below.
+                #
+                # This is the signature of a FAILED `git worktree remove`: git deletes
+                # the contents bottom-up, then cannot rmdir the root because a live
+                # process has it as its cwd (Windows locks it). What is left behind is
+                # NOT a cleaned-up worktree - the merged feature branch is still
+                # undeleted and the empty directory is still there, and this ledger
+                # record is the only thing that still knows about either. Pruning it
+                # (the old behaviour) reported success and orphaned both. So finish
+                # the job instead: prune metadata, delete the merged branch, remove
+                # the husk - and if any of that cannot be done, KEEP the record with a
+                # reason rather than dropping it.
+                if (-not (Invoke-Git $wt rev-parse --is-inside-work-tree)) {
+                    if ($r.state -ne 'cleanupable' -or -not $inScope) {
+                        # Not ours to finish. A gutted 'in-progress' worktree means work
+                        # may have been lost, and its branch is probably unmerged - keep
+                        # the record (and the branch) visible for a human either way.
+                        $remaining += $r
+                        if ($inScope) {
+                            $kept += [pscustomobject]@{ branch = $branch; worktree = $wt
+                                reason = "worktree directory exists but is not a git worktree, and the record is '$($r.state)' - left for inspection" }
+                        }
+                        continue
+                    }
+                    # Only an empty HUSK may be finished automatically. If any file
+                    # survives under it this is not the leftover of a failed remove -
+                    # keep it untouched; deleting real content is never this script's call.
+                    $leftover = @()
+                    try { $leftover = @(Get-ChildItem -LiteralPath $wt -Recurse -Force -File -ErrorAction SilentlyContinue) } catch {}
+                    if ($leftover.Count -gt 0) {
+                        $remaining += $r
+                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt
+                            reason = "worktree is not a git worktree but still holds $($leftover.Count) file(s) - left for inspection" }
+                        continue
+                    }
+                    # Drop the stale worktree metadata FIRST: while git still believes
+                    # the branch is checked out in a worktree, `branch -d` refuses it.
+                    Invoke-Git $RepoRoot worktree prune | Out-Null
+                    $branchDeleted = $false
+                    if (Invoke-Git $RepoRoot rev-parse --verify --quiet "refs/heads/$branch") {
+                        $merged = Get-MergedSet $RepoRoot $TargetBranch
+                        if (-not $merged.ContainsKey($branch)) {
+                            # Unmerged commits behind a vanished worktree. -d would refuse
+                            # anyway and -D is forbidden - so keep the branch AND the
+                            # record, loudly. This is the one case that must never be
+                            # tidied away silently.
+                            $remaining += $r
+                            $kept += [pscustomobject]@{ branch = $branch; worktree = $wt
+                                reason = "worktree gutted (contents gone - likely a failed remove) and '$branch' is NOT merged into $TargetBranch; branch and record kept for inspection" }
+                            continue
+                        }
+                        $del = Invoke-GitCapture $RepoRoot branch '-d' $branch
+                        $branchDeleted = $del.ok
+                        if (-not $branchDeleted) {
+                            $remaining += $r
+                            $kept += [pscustomobject]@{ branch = $branch; worktree = $wt
+                                reason = "worktree gutted; deleting merged branch '$branch' failed: $(Format-GitError $del.text)" }
+                            continue
+                        }
+                    }
+                    # Remove the husk. -Recurse only ever walks EMPTY directories here
+                    # (verified above), so this is a plain rmdir, not a force-remove.
+                    $dirErr = ''
+                    try { Remove-Item -LiteralPath $wt -Recurse -Force -ErrorAction Stop } catch { $dirErr = "$_" }
+                    if ($dirErr -or (Test-Path -LiteralPath $wt)) {
+                        # Still locked - most likely a shell still cd'd into it. Keep the
+                        # record so a later sweep finishes it; the branch is already gone,
+                        # so a re-run only retries this one rmdir. Converges.
+                        $remaining += $r
+                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt
+                            reason = "worktree gutted; branch handled, but the leftover empty directory could not be removed (a shell may still be cd'd into it): $(if ($dirErr) { $dirErr } else { 'directory still present' })" }
+                        continue
+                    }
+                    $closed += [pscustomobject]@{ branch = $branch; worktree = $wt; branchDeleted = $branchDeleted
+                        statusUpdated = $false; summary = $sum; followups = $fu
+                        note = "recovered a worktree gutted by an earlier failed remove; the state.md flip could not be re-checked (no worktree left to check)" }
+                    continue
+                }
+
+                # Never touch in-progress, and skip anything out of scope.
+                if ($r.state -ne 'cleanupable' -or -not $inScope) { $remaining += $r; continue }
 
                 # Dirty worktree -> classify the dirt before deciding. We never close out
                 # over genuine user WIP, but the recipe's OWN close-out flip (state.md
@@ -344,8 +463,8 @@ try {
                         $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'refusing to remove primary checkout' }
                         continue
                     }
-                    $removeOk = Invoke-Git $RepoRoot worktree remove $wt
-                    if ($removeOk) {
+                    $rm = Invoke-GitCapture $RepoRoot worktree remove $wt
+                    if ($rm.ok) {
                         # Tidy up the now-merged feature branch. Plain -d ONLY (never
                         # -D): git refuses unless the branch is fully merged into HEAD,
                         # so this cannot destroy work even if the merged-set check above
@@ -356,8 +475,18 @@ try {
                         $closed += [pscustomobject]@{ branch = $branch; worktree = $wt; branchDeleted = $branchDeleted; statusUpdated = $statusUpdated; summary = $sum; followups = $fu }
                         # pruned by omission from $remaining
                     } else {
+                        # Surface git's own words - on Windows they name the locked path
+                        # and the offending process, which is the whole diagnosis. Also
+                        # say so when the failed remove already gutted the worktree, so
+                        # the leftover state is expected rather than alarming.
                         $remaining += $r
-                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt; reason = 'worktree remove failed' }
+                        $gutted = (Test-Path -LiteralPath $wt) -and
+                                  -not (Invoke-Git $wt rev-parse --is-inside-work-tree)
+                        $hint = if ($gutted) {
+                            " -- the worktree is now GUTTED (its contents were deleted before the failure); the branch and the empty directory are still there. Make sure no shell is cd'd into it, then re-run cleanup and it will finish both."
+                        } else { '' }
+                        $kept += [pscustomobject]@{ branch = $branch; worktree = $wt
+                            reason = "worktree remove failed: $(Format-GitError $rm.text)$hint" }
                     }
                 }
                 else {

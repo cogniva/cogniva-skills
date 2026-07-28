@@ -67,6 +67,13 @@ must exit 0). If the file is ABSENT, skip the gate with the same one-line note (
 a present-but-empty `commands: []` is an intentional no-gate. Commit any lingering
 worktree changes first — a gate over a dirty tree is a lie.
 
+The gate runs with `<worktree>` as its cwd, but **do not leave your shell parked
+there** — bracket it with `Push-Location`/`Pop-Location` in the same call (or
+`Set-Location` inside each per-command invocation) and end back in the primary
+checkout. Shell cwd persists across tool calls, and a process sitting in the
+worktree is exactly what makes Windows refuse to delete it at close-out. See
+execute-feature Step 3 for the full reasoning.
+
 **Repo obligations (`before-integrate`).** Before integrating, check the target
 repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
 block; honor it on the worktree now (commit anything it produces on the feature

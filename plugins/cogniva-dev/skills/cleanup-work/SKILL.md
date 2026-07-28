@@ -13,6 +13,21 @@ Invoke: `/cleanup-work`
 
 `<plugin>` = this plugin's root (the parent of this `skills/` dir).
 
+## Step 0 - get out of the worktrees first
+
+**Before anything else, move your shell to the primary checkout root** (`cd
+"<repo root>"` / `Set-Location`). Both shells persist their working directory
+across tool calls, and the green gate runs with the *worktree* root as its cwd -
+so by the time you reach close-out the shell is often still parked inside the
+very directory that has to be deleted. Windows will not delete a directory that
+is a live process's cwd: `git worktree remove` deletes the CONTENTS, then fails
+on the directory, leaving a gutted husk behind. The script moves its own process
+out, but it cannot move yours.
+
+(If it happens anyway, nothing is lost - the sweep reports the worktree as
+`kept` with git's actual error, and a later run finishes the branch and the
+leftover directory. It is just a wasted round trip.)
+
 ## Step 1 - gather this session's worktrees
 
 Collect the absolute worktree paths created during this session (from the
@@ -50,10 +65,20 @@ Parse the last JSON line: `{ closed, kept, pruned }`.
 
 - **closed**: worktrees finished and removed. For each, surface its recipe
   `followups` if present (backlog/manual items the work deferred) so they are not
-  lost - capture any with `/backlog` if still open.
-- **kept**: not closed, with a reason (`uncommitted changes in worktree` =
-  unexpected WIP there; `not merged` = target was dirty/conflicting - commit or
-  stash in your checkout, then re-run).
+  lost - capture any with `/backlog` if still open. A `note` field means the entry
+  was a *recovery* (a worktree an earlier run gutted) - pass it along.
+- **kept**: not closed, with a reason. Quote the reason VERBATIM - it carries
+  git's own error text, which is usually the whole diagnosis. Common ones:
+  - `uncommitted changes in worktree` - unexpected WIP there.
+  - `not merged` - target was dirty/conflicting; commit or stash in your
+    checkout, then re-run.
+  - `worktree remove failed: ...` - something is holding the directory. On
+    Windows this is nearly always a shell still cd'd into it (see Step 0). If the
+    reason also says the worktree is now GUTTED, that is expected: cd out and
+    re-run, and the next sweep deletes the branch and the empty directory.
+  - `worktree gutted ... NOT merged` / `still holds N file(s)` - a husk that is
+    NOT safe to finish automatically. Report it and leave it to the user; do not
+    delete anything by hand.
 - **pruned**: stale records cleaned up (worktree was already gone).
 
 ## Rules

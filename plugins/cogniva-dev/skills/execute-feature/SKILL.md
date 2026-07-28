@@ -117,6 +117,15 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      IN ORDER, in the worktree. Each must exit 0. The FIRST non-zero exit fails the
      gate: report the failing command (its `label` if present) and its output, and
      STOP — do not integrate.
+
+     **The gate's cwd is the worktree root, but do NOT leave your shell parked
+     there.** Shell cwd persists across tool calls, and a live process sitting in
+     the worktree is what makes Windows refuse to delete it at close-out — `git
+     worktree remove` deletes the CONTENTS, fails on the directory, and leaves a
+     gutted husk. So scope the cwd to the gate: `Push-Location "<worktree>"` … run
+     the commands … `Pop-Location` **in the same call**, or run each command as
+     `powershell -NoProfile -Command "Set-Location '<worktree>'; <run>"`. Either
+     way the shell must be back in the primary checkout before Step 4.
   3. **No gate file → skip, don't block.** If `green-gate.json` is ABSENT, skip the
      gate and proceed to Step 4 after emitting exactly ONE line: "No
      `.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test

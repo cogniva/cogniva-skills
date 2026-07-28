@@ -25,6 +25,17 @@ marked `cleanupable` (work committed + integrated + green, awaiting validation).
 nothing committed is lost. If you only want to close out *this* session's work,
 use `/cleanup-work` instead.
 
+## Step 0 - get out of the worktrees first
+
+**Move your shell to the primary checkout root before running the sweep** (`cd
+"<repo root>"` / `Set-Location`). Shell cwd persists across tool calls and the
+green gate runs with a *worktree* root as its cwd, so the shell is easily still
+parked inside a directory this sweep must delete. Windows will not delete a
+directory that is a live process's cwd: `git worktree remove` deletes the
+CONTENTS, then fails on the directory, leaving a gutted husk. The script moves
+its own process out; it cannot move yours. (If it happens anyway nothing is lost -
+the worktree is reported `kept` with git's error, and a later run finishes it.)
+
 ## Step 1 - run the sweep
 
 ```
@@ -45,10 +56,17 @@ Parse the last JSON line: `{ closed, kept, pruned }`.
 
 - **closed**: worktrees finished and removed. Surface each recipe `followups`
   (deferred backlog/manual items) so they survive - capture still-open ones with
-  `/backlog`.
-- **kept**: left alone, with a reason (`uncommitted changes in worktree`, or
-  `not merged` = target dirty/conflict - resolve in your checkout, then re-run).
-- **pruned**: stale ledger entries removed.
+  `/backlog`. A `note` field means the entry was a *recovery* (a worktree an
+  earlier run gutted) - pass it along.
+- **kept**: left alone, with a reason. Quote it VERBATIM - it carries git's own
+  error text. `uncommitted changes in worktree`; `not merged` = target
+  dirty/conflict, resolve in your checkout then re-run; `worktree remove failed:
+  ...` = something holds the directory, on Windows almost always a shell cd'd
+  into it (Step 0) - if it also says GUTTED, cd out and re-run and the next sweep
+  finishes the branch and the empty directory; `worktree gutted ... NOT merged`
+  or `still holds N file(s)` = a husk that is NOT safe to finish automatically,
+  report it and leave it to the user.
+- **pruned**: stale ledger entries removed (the worktree path was already gone).
 
 If the ledger is empty/missing this is a no-op - report that.
 
