@@ -135,8 +135,23 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      whole-solution `dotnet build <RepoName>.slnx` — which catches cross-module test
      consumers that scoped per-project builds miss — then `dotnet test <RepoName>.slnx`
      with the suspended UI tests excluded; see the opt-in README for the worked example.)
-  4. Only if the gate is GREEN (or skipped/empty), integrate (Step 4). If red, report
-     the exact failing command and its output, and STOP.
+  4. **ADR check (mandatory, after the gate, before Step 4).** Task agents write
+     concrete ADRs during execution without seeing each other or the target branch,
+     so two things go wrong silently: two parallel worktrees pick the same free
+     number, and a plan's candidate label (`ADR-C4`) gets copied into shipped code
+     or into the ADR's own heading instead of the number it was assigned — and
+     `ADR-C4` means a different decision in every feature. Run:
+     `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Worktree "<worktree>" -TargetBranch "<target>"`
+     It exits 0 clean, 1 with problems listed, 2 on a usage error. On exit 1: fix
+     the named files IN THE WORKTREE, commit on the feature branch, re-run it, and
+     only then integrate. Renumber the ADR (file, heading, and any reference to it)
+     when the number is taken; dereference the candidate label to the assigned
+     number when a heading or a shipped line still cites one. It reports only what
+     THIS branch introduced — pre-existing labels elsewhere in the repo are not
+     this integration's problem and are deliberately not raised.
+  5. Only if the gate is GREEN (or skipped/empty) AND the ADR check is clean,
+     integrate (Step 4). If either is red, report the exact failing command and its
+     output, and STOP.
 
   For a multi-plan feature this fires only after EVERY sub-plan's tasks are done —
   there is no per-sub-plan integration. Tick the `## Sub-plans` checklist in the
@@ -216,8 +231,14 @@ Relitigation + body, and commit it with that task's files.
 
 - The ADRs were already human-confirmed during planning. Do NOT invent new ones,
   reword them, or add ADRs the plan didn't list — just materialize what's there.
-- Rare number collisions (parallel worktrees) surface as a merge conflict at
-  integration; resolve by renumbering. Don't pre-reserve.
+- Rare number collisions (parallel worktrees) are caught by the Step 3.4 ADR check
+  BEFORE the merge — git itself only notices when the two filenames happen to
+  match, so different slugs would otherwise merge cleanly into two ADRs claiming
+  one number. Resolve by renumbering. Don't pre-reserve.
+- The candidate labels (`ADR-C4`) belong to the plan, not the code. When a task
+  materializes one, dereference every reference it writes — the ADR's own heading
+  and any code comment or skill line citing it — to the assigned number. The same
+  Step 3.4 check fails the integration if one survives.
 - Treat the plan's decisions and any existing ADRs as **settled**. If a task truly
   can't proceed without reopening a documented decision, BLOCK and surface it to the
   human with the reason — honour the ADR's relitigation weight; never silently change

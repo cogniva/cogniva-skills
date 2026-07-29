@@ -75,9 +75,17 @@ Levels, from most to least open:
 
 Scan `docs/adr/` for the highest existing number and increment by one, at the
 moment you write the file. Because ADRs may be written inside isolated worktrees
-running in parallel, two features can occasionally pick the same number; that
-surfaces as an ordinary merge conflict and is resolved by renumbering one of them.
-Don't pre-reserve numbers.
+running in parallel, two features can occasionally pick the same number. Don't
+pre-reserve numbers — `scripts/check-adrs.ps1` catches the collision before the
+merge (execute-feature Step 3.4, quick-fix Step 2), and it is resolved by
+renumbering one of them. Note that git alone would NOT catch it: two ADRs with the
+same number but different slugs merge cleanly.
+
+If the heading carries the number as well as the filename, the two must agree —
+renumbering means editing both, plus any reference elsewhere. A planning
+**candidate label** (`ADR-C4`) must never survive into the shipped file: it means a
+different decision in every feature, so a reader following one lands on the wrong
+ADR. The same check fails the integration if one does.
 
 ## When to offer an ADR
 

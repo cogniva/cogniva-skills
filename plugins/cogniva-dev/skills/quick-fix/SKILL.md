@@ -74,12 +74,21 @@ checkout. Shell cwd persists across tool calls, and a process sitting in the
 worktree is exactly what makes Windows refuse to delete it at close-out. See
 execute-feature Step 3 for the full reasoning.
 
+**ADR check.** After the gate, before integrating, run the same mandatory check
+execute-feature Step 3.4 defines:
+`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Worktree "<worktree>" -TargetBranch "<target>"`
+It catches an ADR number this branch added that the target already uses, and any
+candidate `ADR-Cn` label this branch introduced into shipped code or an ADR
+heading. Exit 1 → fix in the worktree, commit on the feature branch, re-run, and
+only then integrate. A quick-fix that wrote no ADR still runs it — the label can
+arrive in a code comment without any ADR file being touched.
+
 **Repo obligations (`before-integrate`).** Before integrating, check the target
 repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
 block; honor it on the worktree now (commit anything it produces on the feature
 branch so it rides the merge). Absent → nothing to do.
 
-If the gate is green (or skipped):
+If the gate is green (or skipped) and the ADR check is clean:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
 Handle the JSON `status` exactly as execute-feature Step 4 does:
 - `INTEGRATED` — the fix is live on the user's branch. Mark the worktree
