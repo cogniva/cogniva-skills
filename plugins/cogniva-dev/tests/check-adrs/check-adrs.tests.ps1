@@ -1,5 +1,7 @@
 # Dependency-free regression test for check-adrs.ps1 (no Pester).
 # Builds throwaway git repos in TEMP so the checks run against real history.
+#
+# check-adrs-ignore-file - the fixtures below contain deliberate ADR-C labels.
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
@@ -116,6 +118,21 @@ try {
     Commit-All $r6 'add plan'
     $res = Run-Check $r6 @()
     Check 'exit 0 - a candidate label in docs/plans/ is legitimate' ($res.code -eq 0)
+
+    # ---------------------- C: a file may opt out of the label check explicitly
+    $r5b = Join-Path $tmp 'opt-out'
+    New-Repo $r5b
+    Add-Adr $r5b '0001-first.md' '# First'
+    Commit-All $r5b 'base'
+    & git -C $r5b checkout -q -b feature/x 2>$null | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $r5b 'src') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $r5b 'src\doc.md') -Encoding UTF8 -Value @(
+        '<!-- check-adrs-ignore-file: explains the convention -->',
+        'A candidate label looks like ADR-C8.')
+    Commit-All $r5b 'add doc that explains the convention'
+    $res = Run-Check $r5b @()
+    Check 'exit 0 - a file declaring the ignore marker is skipped' ($res.code -eq 0)
+    Check 'the skipped file is named, never silent' (($res.text -match 'SKIPPED') -and ($res.text -match 'src/doc.md'))
 
     # -------------------------- C: pre-existing labels do NOT fail integration
     $r7 = Join-Path $tmp 'preexisting-label'

@@ -26,6 +26,9 @@
 #
 # Exit: 0 = clean (or nothing to check), 1 = problems found, 2 = usage or
 # environment error. Every path prints why before it exits.
+#
+# check-adrs-ignore-file - this script cites ADR-C4 as an EXAMPLE throughout, so
+# it must exempt itself from its own check C or it can never be integrated.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Worktree,
@@ -139,7 +142,29 @@ if ($mb.Code -ne 0 -or -not $mergeBase) {
     if ($d.Code -ne 0) { Fail "git diff failed against '$TargetBranch' in $Worktree" }
     $diff = $d.Lines
 
+    # A file that legitimately DISCUSSES candidate labels - this script, its
+    # tests, the ADR-FORMAT guidance, a glossary entry - would otherwise trip
+    # check C on its own examples. Such a file declares itself once with the
+    # marker below and is skipped wholesale. Rare by construction, and greppable,
+    # so the opt-out can never quietly spread.
+    $optOutMarker = 'check-adrs-ignore-file'
+    $optOut = @{}
+    function Test-OptOut($relPath) {
+        if ($optOut.ContainsKey($relPath)) { return $optOut[$relPath] }
+        $full = Join-Path $Worktree $relPath
+        $val = $false
+        if (Test-Path -LiteralPath $full -PathType Leaf) {
+            try {
+                $content = [System.IO.File]::ReadAllText($full)
+                $val = $content.Contains($optOutMarker)
+            } catch { $val = $false }
+        }
+        $optOut[$relPath] = $val
+        return $val
+    }
+
     $currentFile = ''
+    $skippedFiles = @()
     foreach ($line in $diff) {
         if ($line -match '^\+\+\+ b/(.+)$') { $currentFile = $Matches[1]; continue }
         if ($line -like '+++ /dev/null*')   { $currentFile = ''; continue }
@@ -153,6 +178,11 @@ if ($mb.Code -ne 0 -or -not $mergeBase) {
         }
         if ($skip) { continue }
 
+        if (Test-OptOut $currentFile) {
+            if ($skippedFiles -notcontains $currentFile) { $skippedFiles += $currentFile }
+            continue
+        }
+
         $labels = [regex]::Matches($line, 'ADR-C\d+')
         if ($labels.Count -gt 0) {
             $seen = @()
@@ -163,6 +193,10 @@ if ($mb.Code -ne 0 -or -not $mergeBase) {
         }
     }
     $checked += "C: added lines scanned for candidate ADR-C labels (excluding: $($ExcludePath -join ', '))"
+    # Never let an opt-out be silent - a skipped file must be visible in the report.
+    foreach ($sf in $skippedFiles) {
+        $checked += "C: SKIPPED $sf - declares the '$optOutMarker' marker"
+    }
 
     # --- Check D: numbers this branch adds that the target already uses.
     # --- Check D: numbers this branch adds that the target already uses.

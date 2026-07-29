@@ -1,3 +1,5 @@
+<!-- check-adrs-ignore-file: this guidance cites ADR-C4 as an example. -->
+
 # ADR Format
 
 ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`,

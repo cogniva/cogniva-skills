@@ -3,6 +3,9 @@ name: execute-feature
 description: Use to execute a feature plan produced by plan-feature, from a single prompt, with a small model. Runs each task in a fresh subagent (lean context, no manual /clear, no reviewer fan-out) inside an isolated git worktree, then auto-integrates the result into the branch you have checked out. Resumable; stops at manual-validation (⛔) gates. Run several at once — each is isolated.
 ---
 
+<!-- check-adrs-ignore-file: Step 3.4 cites ADR-C4 as an example. -->
+
+
 # Execute Feature
 
 Execute `docs/plans/<Module>/<Feature>/<Feature>-plan.md` task-by-task. The heavy
@@ -148,7 +151,11 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      when the number is taken; dereference the candidate label to the assigned
      number when a heading or a shipped line still cites one. It reports only what
      THIS branch introduced — pre-existing labels elsewhere in the repo are not
-     this integration's problem and are deliberately not raised.
+     this integration's problem and are deliberately not raised. A file that
+     legitimately *discusses* candidate labels (guidance, a glossary entry, a test
+     fixture) exempts itself by containing the literal `check-adrs-ignore-file`;
+     skipped files are named in the report, so the opt-out is never silent. Reach
+     for it only when the label is an example, never to quiet a real citation.
   5. Only if the gate is GREEN (or skipped/empty) AND the ADR check is clean,
      integrate (Step 4). If either is red, report the exact failing command and its
      output, and STOP.
