@@ -67,15 +67,17 @@ for (let i = 0; i < tasks.length; i++) {
     `You are already checked out on ${featureBranch}. NEVER run git switch / checkout / branch — work where you are.`,
     `Use absolute paths under the worktree. Follow the task's steps verbatim, TDD-style:`,
     `write the failing test → run it (confirm it fails) → minimal implementation → run until green → run the task's full verification.`,
-    `On success: stage ONLY the files you changed, commit with the task's commit message (keep the repo's commit conventions),`,
-    `then edit ${taskPlanPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]",`,
-    `and append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.`,
+    `On success: stage ONLY the files you changed, commit with the task's commit message (keep the repo's commit conventions).`,
+    // Planless runs (quick-fix) pass no planPath/statePath — omit these two instructions
+    // entirely rather than interpolating the string "undefined" into the prompt.
+    taskPlanPath ? `Then edit ${taskPlanPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]".` : null,
+    statePath ? `Append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.` : null,
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,
     `NEVER write to any BACKLOG.md. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console gates it with the user. No receipt, no followup.`,
     ``,
     `=== TASK ${t.n}: ${t.title} ===`,
     t.body,
-  ].join('\n')
+  ].filter(l => l !== null).join('\n')
 
   const r = await agent(prompt, { label: tag, phase: 'Execute', schema: TASK_RESULT })
   const res = r || { status: 'BLOCKED', summary: '', note: 'agent returned null (skipped or terminal error)' }
