@@ -1,6 +1,6 @@
 # RideAlongCandidates — execution state
 
-Status: integrated
+Status: done
 Target branch: main
 Worktree: C:\dev\cogniva-skills-ride-along-candidates
 Branch: feature/ride-along-candidates
@@ -14,3 +14,5 @@ Integration: not started
 - Task 4 done (e24cd95): modified `plugins/cogniva-dev/skills/execute-feature/SKILL.md` (new order `tasks done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate`, Steps 1a/1b/1c/2/2a/3 renumbered, `before-integrate` moved out of Step 4, capture gate renamed `## Backlog gate`) and `docs/strategy.md` (phase vocabulary now says the block runs before the gate); created `docs/adr/0022-ride-along-gate-on-the-open-worktree.md`, `docs/adr/0023-failing-ride-along-is-reverted.md`, `docs/adr/0024-green-gate-is-last-before-integration.md` (highest existing was 0021; no ADR-C labels in any heading). All nine steps were exact-string replacements. Step 8 verifications: 1 / 1 / 0 / 1 / 24 files (= 19 + 5) as stated; the `before the green gate, not immediately` grep matches only case-insensitively because the plan's own Step 6 replacement text writes `BEFORE` in caps — the verbatim edit was kept and the plan's lowercase grep string is the inconsistency.
 - Task 5 done (d980d5a): modified `plugins/cogniva-dev/skills/quick-fix/SKILL.md` only — Step 2 renamed “finish everything, gate last, then auto-integrate” with the order block `fix done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate`, a depth-1 ride-along gate, the ADR check moved ahead of the gate (Step 3.1c, no more Step 3.4), `before-integrate` moved ahead of the gate with the red-gate revert rule, and the followups rule renamed to the `## Backlog candidates` / “Backlog gate” wording. All four replacements were exact-string, applied LF-normalized and written back as CRLF (`core.autocrlf=true`), so the diff is 41/13 lines, not a whole-file rewrite. Step 4 greps returned 1 / 0 / 1 / 1 as stated.
 - Task 6 done (5aa97e0): modified `plugins/cogniva-dev/templates/execute-feature.workflow.js` only — the plan/state prompt lines are now conditional (`taskPlanPath ? … : null`, `statePath ? … : null`, with the two explaining comment lines) and the array is `.filter(l => l !== null)` before `.join('\n')`, so a planless quick-fix run no longer tells its agent to edit the literal string `undefined`. Both replacements were exact-string; the file is LF-only in the working tree (unlike the CRLF `.md` files) and stayed LF — Step 3 verifications returned exit 0 / 1 / 1 / 0 as stated.
+- Closed out (2026-07-30): validated, worktree removed.
+
