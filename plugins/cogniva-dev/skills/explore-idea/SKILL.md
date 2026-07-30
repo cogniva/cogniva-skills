@@ -89,7 +89,8 @@ when - they ask, you can:
   the user asked for it. Never capture side-ideas mid-exploration: an active
   `.explore/<slug>/` thread covers everything raised inside it (Test 1 in
   `CAPTURE-BAR.md`), and an idea you floated that the user did not engage with is
-  not deferred work — it is just a thing you said.
+  not deferred work — it is just a thing you said. Exploration has no ride-along
+  tier either: an idea worth acting on simply becomes part of the exploration.
 - **Persist it:** move/copy the doc into a tracked location (e.g. `docs/specs/` or
   `docs/plans/<Module>/<Idea>/`) so it becomes committed repo content.
 - **Drop it:** delete `.explore/<slug>/`, or just leave it - it is gitignored and

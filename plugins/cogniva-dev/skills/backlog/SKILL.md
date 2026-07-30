@@ -30,8 +30,8 @@ tier-2 stub: confirm the tier before creating a folder.
 **Skill-initiated** — you surfaced the work yourself while doing something else.
 **Propose; do not write.** Read `CAPTURE-BAR.md` (lazy-loaded — do not read it
 for a direct invocation of an already-covered item), qualify each candidate
-against both tests, hold them as candidate records, and present them in the
-two-table gate. Only what the user confirms is written.
+against all three tests, hold them as candidate records, and present them in the
+three-section gate. Only what the user confirms is written or done.
 
 ## Inputs
 
@@ -49,10 +49,15 @@ two-table gate. Only what the user confirms is written.
    in flight, an active exploration, or an existing open item? If yes, do NOT
    capture — say so in one line, naming what covers it, and stop.
 
-2. **Skill-initiated only — qualify intent.** Apply Test 2 in `CAPTURE-BAR.md`.
-   Declined or raised-and-dropped → nothing. Otherwise build a candidate record
-   with its receipt and a `clear` / `ambiguous` strength, and hold it for the gate.
-   Do not touch any file yet.
+2. **Skill-initiated only — qualify intent, then test for a ride-along.** Apply
+   Test 2 in `CAPTURE-BAR.md`. Declined or raised-and-dropped → nothing. Otherwise
+   build a candidate record with its receipt and a `clear` / `ambiguous` strength.
+   Then apply Test 3 to every `clear` candidate: is doing it now, as part of the
+   current work, cheaper than doing it later? Passing candidates get a `rideAlong`
+   field; the rest stay plain backlog candidates. Hold them all for the gate and do
+   not touch any file yet. This skill never *performs* a ride-along — the calling
+   skill does that work in its own worktree — and never offers one from inside work
+   that was itself a ride-along (depth-1).
 
 3. **Pick the tier.** A one-liner or small fix → **loose**. A cohesive future
    capability with its own scope, contracts, and acceptance criteria → **stub**.
@@ -68,10 +73,13 @@ two-table gate. Only what the user confirms is written.
      `BACKLOG-FORMAT.md`.
 
 5. **Skill-initiated only — the gate.** Present every candidate in ONE pass, in
-   the two tables defined in `CAPTURE-BAR.md` (clear intent / needs a decision),
-   each row showing its receipt, then ask once: capture Table 1 as-is, Table 2 by
-   number. Deliver it as the final text of the turn with no tool call after it.
-   Nothing is written before the reply. An empty candidate set → say nothing.
+   the three sections defined in `CAPTURE-BAR.md` — `## Ride-alongs — do now, in
+   this work`, then `## Backlog candidates` with its `### Clear intent` and
+   `### Needs a decision` tables — each row showing its receipt, then ask once in
+   `CAPTURE-BAR.md`'s words. Never head a table "Capture candidates": the
+   user-facing noun is **backlog candidate**. Deliver it as the final text of the
+   turn with no tool call after it. Nothing is written or done before the reply. An
+   empty candidate set → say nothing.
 
 6. **Write the item(s)** — confirmed candidates only, or the direct invocation.
    - **Loose:** append one `- [ ] <description>` line with optional trailing
@@ -98,11 +106,13 @@ the candidate record. Where the gate happens depends on the caller's context:
 
 - **Interactive caller** (`plan-feature`, `groom-backlog`, `easy-work-scan`) —
   the caller batches candidates into its own end-of-run confirmation pass and
-  presents the two tables there. One interruption, not two.
+  presents the three sections there. One interruption, not two.
 - **Non-interactive caller** (an `execute-feature` or `quick-fix` task agent
   inside a background Workflow) — there is nobody to ask. The agent returns
   candidates in its task result's `followups` array and writes nothing; the
-  invoking console runs the gate in its end-of-run report.
+  invoking console applies Test 3 and runs the gate while its worktree is still
+  open. A task agent never proposes a ride-along itself: it cannot know what the
+  console will do next, and its receipt already names the path criterion 1 needs.
 
 ## Rules
 
@@ -112,6 +122,9 @@ the candidate record. Where the gate happens depends on the caller's context:
   `groom-backlog`.
 - Nothing a skill decided on its own reaches a `BACKLOG.md` unconfirmed. A direct
   human invocation is already confirmed and needs no gate.
+- A ride-along is a promotion of a backlog candidate, never a separate species: one
+  the user declines falls through to the backlog untouched. This skill proposes
+  ride-alongs; the calling skill does the work.
 - Never demand refinement at capture time. A vague one-liner from someone
   mid-task is a good item; the tests filter for coverage and intent, never for
   quality.

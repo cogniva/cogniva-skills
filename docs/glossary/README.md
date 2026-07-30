@@ -92,6 +92,11 @@ _Avoid_: resolution marker, status tag
 A [Backlog](#backlog) item the `easy-work-scan` skill judges safe to hand off without the user in the loop: no pending design decision, unambiguous wording, mechanically verifiable, small blast radius, nothing irreversible — all five, or it is disqualified with the failing reason. Distinct from `size:S`, which measures effort, not autonomy.
 _Avoid_: easy work, low-hanging fruit, quick win
 
+## Ride-along
+
+Work surfaced during planning or execution that is done as part of the current work rather than deferred to the [Backlog](#backlog): a backlog candidate promoted at the confirmation gate because doing it now is cheaper than doing it later — the context is already paid for, the goal is unchanged, and any open decision is small enough to pose in the gate table. Named for the merge it rides. Offered once per run and never recursive: a ride-along carries no ride-alongs of its own.
+_Avoid_: fold-in, tag-along, scope creep
+
 ## Status
 
 The lifecycle stage of a feature, recorded as the `Status:` line in its `state.md`: `deferred → planned → in-progress → blocked → integrated → done`. Seeded by `plan-feature`, advanced by `execute-feature`, and read by the status skills. A deferred stub can also exit the lifecycle via [Grooming](#grooming): `deferred → obsolete | superseded | wont-do`.
