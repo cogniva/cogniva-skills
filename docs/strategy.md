@@ -60,8 +60,11 @@ ignores it; an absent section or block is a silent no-op. Phases currently wired
 
 - `before-planning` — plan-feature, at the start of its design loop.
 - `before-integrate` — plan-feature / quick-fix / execute-feature, on the
-  worktree just before integration (so anything the block produces rides the
-  same merge).
+  worktree while it is still open, so anything the block produces rides the same
+  merge. In the execution skills it runs BEFORE the green gate, not immediately
+  before the merge command: everything that rides the merge must be verified by
+  the gate, and a block that writes code would otherwise ship unverified. The name
+  is kept — its contract was always "on the worktree", not "adjacent to the merge".
 
 The vocabulary is open: add a phase by naming it in a skill checkpoint and
 listing it here. This repo's own CLAUDE.md uses `before-integrate` to fire the

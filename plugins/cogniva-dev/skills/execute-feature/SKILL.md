@@ -3,7 +3,7 @@ name: execute-feature
 description: Use to execute a feature plan produced by plan-feature, from a single prompt, with a small model. Runs each task in a fresh subagent (lean context, no manual /clear, no reviewer fan-out) inside an isolated git worktree, then auto-integrates the result into the branch you have checked out. Resumable; stops at manual-validation (⛔) gates. Run several at once — each is isolated.
 ---
 
-<!-- check-adrs-ignore-file: Step 3.4 cites ADR-C4 as an example. -->
+<!-- check-adrs-ignore-file: Step 3.1c cites ADR-C4 as an example. -->
 
 
 # Execute Feature
@@ -105,15 +105,53 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
   the gate the workflow continues toward auto-merge; the gate is NOT a signal that
   the user should validate the whole feature. If the workflow returned any
   `followups`, run the capture gate below before stopping.
-- **All tasks done — GREEN GATE (mandatory, no shortcuts):**
+- **All tasks done.** Run these IN ORDER. The green gate is LAST, immediately
+  before integration, because everything that rides the merge must be verified by
+  it — ride-along work, the repo's `before-integrate` obligations, and any ADR
+  renumbering all land BEFORE the gate, never after it:
+
+  ```
+  tasks done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate
+  ```
+
   1. **Commit everything first.** `git -C "<worktree>" status --porcelain` MUST be
-     empty before the gate runs. The per-task agents commit their own files, but tick
+     empty before you go further. The per-task agents commit their own files, but tick
      edits / state.md / stray files can linger — stage and commit them on the feature
      branch now. NEVER run the gate against a dirty tree: a green gate over
      uncommitted changes is a lie (those changes do NOT ride into the merge, so the
      target can break even though "it passed"). This holds even when the gate runs no
-     commands. Verify clean, THEN gate.
-  2. **Run the repo's configured gate.** Read `<worktree>/.claude/cogniva-dev/green-gate.json`.
+     commands.
+
+  1a. **Ride-along gate (only when a candidate exists).** Read `CAPTURE-BAR.md` in
+     the `backlog` skill's directory and apply Test 3 to every `clear` candidate in
+     the workflow's `followups`. If NONE passes, skip straight to 1b — the run stays
+     fire-and-forget and its backlog candidates are gated after integration, as
+     always. If at least one passes, STOP here and present the full three-section
+     gate (ride-alongs, then the two backlog tables) as the final text of the turn.
+     One interruption, and it happens now rather than after the merge precisely
+     because the worktree is still open.
+
+     For each ride-along the user confirms: make the change IN THE WORKTREE, on the
+     feature branch, and commit it on its own —
+     `git -C "<worktree>" commit -m "feat(<scope>): <what the ride-along did>"`.
+     Answer any open question they punted with "your call" by picking, proceeding,
+     and saying what you picked. Anything not ridden along is captured to the
+     backlog via `/cogniva-dev:backlog`, on the worktree, exactly as a plain
+     candidate would be.
+
+     Ride-alongs are **depth-1**: this offer happens once per run. Work you just
+     admitted as a ride-along never gets a ride-along gate of its own — anything it
+     surfaces goes into the backlog tables of your final report. Do not weigh
+     whether "just one more" is warranted; the answer is no by construction.
+
+  1b. **Repo obligations (`before-integrate`).** Check the target repo's CLAUDE.md
+     `## Cogniva-dev workflow instructions` for a `### before-integrate` block and
+     honour it on the worktree now, committing anything it produces on the feature
+     branch. Absent → nothing to do. This runs BEFORE the gate so an obligation that
+     writes code is verified like any other change.
+  2. **GREEN GATE — run the repo's configured gate (mandatory, no shortcuts).** This
+     is the LAST step before integration; the tree must be exactly what will merge.
+     Read `<worktree>/.claude/cogniva-dev/green-gate.json`.
      Schema: `{ "commands": [ { "run": "<shell command>", "label": "<short, optional>",
      "note": "<optional reasoning, shown in reports>" } ] }`. Run each `commands[].run`
      IN ORDER, in the worktree. Each must exit 0. The FIRST non-zero exit fails the
@@ -138,7 +176,7 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      whole-solution `dotnet build <RepoName>.slnx` — which catches cross-module test
      consumers that scoped per-project builds miss — then `dotnet test <RepoName>.slnx`
      with the suspended UI tests excluded; see the opt-in README for the worked example.)
-  4. **ADR check (mandatory, after the gate, before Step 4).** Task agents write
+  1c. **ADR check (mandatory, BEFORE the gate).** Task agents write
      concrete ADRs during execution without seeing each other or the target branch,
      so two things go wrong silently: two parallel worktrees pick the same free
      number, and a plan's candidate label (`ADR-C4`) gets copied into shipped code
@@ -146,8 +184,9 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      `ADR-C4` means a different decision in every feature. Run:
      `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Worktree "<worktree>" -TargetBranch "<target>"`
      It exits 0 clean, 1 with problems listed, 2 on a usage error. On exit 1: fix
-     the named files IN THE WORKTREE, commit on the feature branch, re-run it, and
-     only then integrate. Renumber the ADR (file, heading, and any reference to it)
+     the named files IN THE WORKTREE, commit on the feature branch, and re-run it
+     until clean — before the green gate, so a renumber that rewrites a code
+     reference is verified rather than shipped unseen. Renumber the ADR (file, heading, and any reference to it)
      when the number is taken; dereference the candidate label to the assigned
      number when a heading or a shipped line still cites one. It reports only what
      THIS branch introduced — pre-existing labels elsewhere in the repo are not
@@ -156,9 +195,21 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      fixture) exempts itself by containing the literal `check-adrs-ignore-file`;
      skipped files are named in the report, so the opt-out is never silent. Reach
      for it only when the label is an example, never to quiet a real citation.
-  5. Only if the gate is GREEN (or skipped/empty) AND the ADR check is clean,
-     integrate (Step 4). If either is red, report the exact failing command and its
-     output, and STOP.
+  2a. **If the gate is red and this run has ride-along commits.** Make ONE repair
+     attempt in the worktree, commit it, and re-run the gate. Still red: `git revert`
+     every ride-along commit (theirs are the only optional ones), commit the reverts,
+     and re-run the gate a third time. Green now → the ride-alongs were the cause;
+     integrate the feature and report plainly: "folded-in <X> failed the gate —
+     reverted and captured to the backlog instead", then capture each reverted item
+     via `/cogniva-dev:backlog`. Still red after the revert → an ordinary pre-existing
+     gate failure; report it and STOP. Optional work approved in passing never holds
+     finished work hostage. The same revert path applies if a ride-along turns out
+     mid-work to be larger than you stated: stop, revert, capture, say what you got
+     wrong — do not design your way out of it.
+
+  3. Only if the gate is GREEN (or skipped/empty) AND the ADR check is clean,
+     integrate (Step 4). With no ride-along commits in play, a red gate is an
+     ordinary failure: report the exact failing command and its output, and STOP.
 
   For a multi-plan feature this fires only after EVERY sub-plan's tasks are done —
   there is no per-sub-plan integration. Tick the `## Sub-plans` checklist in the
@@ -168,10 +219,8 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
 
 ## Step 4 — auto-integrate into the user's branch
 
-**Repo obligations (`before-integrate`).** Before the steps below, check the
-target repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
-block; honor it on the worktree now (commit anything it produces on the feature
-branch so it rides the merge). Absent → nothing to do.
+(`before-integrate` already ran in Step 3.1b, before the gate — do not run it
+again here.)
 
 First, **in the WORKTREE** (NEVER the primary checkout — the guard blocks it and a
 direct primary edit would dirty the shared tree), set `state.md` `Status: integrated`
@@ -205,27 +254,31 @@ remote). Interpret the JSON `status`:
   force anything.
 - `ERROR` — surface the detail; do not retry blindly.
 
-## Capture gate — followups from the run
+## Backlog gate — followups from the run
 
 Task agents never write to a `BACKLOG.md`; they return candidates in the workflow
 result's `followups` array. Whenever the workflow returns a non-empty `followups`
 — on a BLOCKED stop, a gate stop, or after a successful integration — run the gate
 in your report, as the last thing you say.
 
+This is the post-integration half of the gate. If a candidate passed Test 3, it was
+already offered as a ride-along in Step 3.1a, while the worktree was open — that
+happens instead of this, not as well as it. On a BLOCKED or ⛔ stop nothing is
+ridden along at all: the run is not finished, so there is no merge to ride.
+
 Read `CAPTURE-BAR.md` in the `backlog` skill's directory. Drop any candidate that
 Test 1 covers (a task still remaining in this run, an open plan folder, an existing
-open item), then present the survivors in two tables:
+open item), then present the survivors under `## Backlog candidates` in its two
+tables — `### Clear intent` (numbered; the item and its receipt: which task, and
+the located fact) and `### Needs a decision` (numbering continues; the item, its
+receipt, and one line on why it is ambiguous). Never head a table "Capture
+candidates".
 
-- **Table 1 — clear intent:** numbered; the item and its receipt (which task, and
-  the located fact).
-- **Table 2 — needs a decision:** numbering continues; the item, its receipt, and
-  one line on why it is ambiguous.
-
-Then ask once: capture Table 1 as-is? Table 2 by number (or none). Write only
-confirmed candidates, via `/cogniva-dev:backlog`. Deliver the tables as the final
-text of the turn, with no tool call after it. Empty `followups`, or nothing
-surviving the coverage check, means say nothing at all — do not print an empty
-table and do not invent candidates to fill one.
+Then ask once, in `CAPTURE-BAR.md`'s words. Write only confirmed candidates, via
+`/cogniva-dev:backlog`. Deliver the tables as the final text of the turn, with no
+tool call after it. Empty `followups`, or nothing surviving the coverage check,
+means say nothing at all — do not print an empty table and do not invent candidates
+to fill one.
 
 ## ADRs during execution
 
@@ -238,14 +291,14 @@ Relitigation + body, and commit it with that task's files.
 
 - The ADRs were already human-confirmed during planning. Do NOT invent new ones,
   reword them, or add ADRs the plan didn't list — just materialize what's there.
-- Rare number collisions (parallel worktrees) are caught by the Step 3.4 ADR check
+- Rare number collisions (parallel worktrees) are caught by the Step 3.1c ADR check
   BEFORE the merge — git itself only notices when the two filenames happen to
   match, so different slugs would otherwise merge cleanly into two ADRs claiming
   one number. Resolve by renumbering. Don't pre-reserve.
 - The candidate labels (`ADR-C4`) belong to the plan, not the code. When a task
   materializes one, dereference every reference it writes — the ADR's own heading
   and any code comment or skill line citing it — to the assigned number. The same
-  Step 3.4 check fails the integration if one survives.
+  Step 3.1c check fails the integration if one survives.
 - Treat the plan's decisions and any existing ADRs as **settled**. If a task truly
   can't proceed without reopening a documented decision, BLOCK and surface it to the
   human with the reason — honour the ADR's relitigation weight; never silently change
