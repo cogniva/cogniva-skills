@@ -1024,7 +1024,7 @@ Ride-along work, the repo's `before-integrate` obligations, and the ADR check al
 **Files:**
 - Modify: `plugins/cogniva-dev/skills/quick-fix/SKILL.md`
 
-- [ ] **Step 1 (rewrite Step 2's ordering):** in
+- [x] **Step 1 (rewrite Step 2's ordering):** in
       `plugins/cogniva-dev/skills/quick-fix/SKILL.md`, replace exactly:
 
 ```
@@ -1059,7 +1059,7 @@ as a ride-along never gets a gate of its own — a genuine second round is anoth
 Then run the repo green gate exactly as **execute-feature Step 3** defines it: read
 ````
 
-- [ ] **Step 2 (move before-integrate ahead of the gate):** replace exactly:
+- [x] **Step 2 (move before-integrate ahead of the gate):** replace exactly:
 
 ```
 **ADR check.** After the gate, before integrating, run the same mandatory check
@@ -1102,7 +1102,7 @@ execute-feature Step 3.2a.
 If the gate is green (or skipped) and the ADR check is clean:
 ```
 
-- [ ] **Step 3 (update the followups rule):** replace exactly:
+- [x] **Step 3 (update the followups rule):** replace exactly:
 
 ```
 - If the fix surfaces a follow-up you are NOT doing now, don't drop it and don't
@@ -1132,7 +1132,7 @@ If the gate is green (or skipped) and the ADR check is clean:
   `→ done` — that is a closure, not a capture, and needs no gate.
 ```
 
-- [ ] **Step 4 (verify):** run each and confirm:
+- [x] **Step 4 (verify):** run each and confirm:
       - `grep -c "fix done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `1`
       - `grep -c "Step 3.4" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `0`
       - `grep -c "Backlog gate —" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `1`
@@ -1141,7 +1141,7 @@ If the gate is green (or skipped) and the ADR check is clean:
         it can never match — check the cross-reference, not the line wrap)
       - `grep -c "Also BEFORE the gate" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `1`
 
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md`
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md`
       then `git commit -m "feat(quick-fix): run the green gate last and add the ride-along gate"`
 
 ---
@@ -1157,7 +1157,7 @@ Context: the task prompt interpolates `taskPlanPath` and `statePath` uncondition
 `statePath`. A planless run therefore tells its agent to edit the literal string
 `undefined`. Make those two instructions conditional.
 
-- [ ] **Step 1 (make the prompt conditional):** in
+- [x] **Step 1 (make the prompt conditional):** in
       `plugins/cogniva-dev/templates/execute-feature.workflow.js`, replace exactly:
 
 ```
@@ -1192,7 +1192,7 @@ Context: the task prompt interpolates `taskPlanPath` and `statePath` uncondition
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,
 ```
 
-- [ ] **Step 2 (drop the nulls before joining):** replace exactly:
+- [x] **Step 2 (drop the nulls before joining):** replace exactly:
 
 ```
     `=== TASK ${t.n}: ${t.title} ===`,
@@ -1208,12 +1208,12 @@ Context: the task prompt interpolates `taskPlanPath` and `statePath` uncondition
   ].filter(l => l !== null).join('\n')
 ```
 
-- [ ] **Step 3 (verify — syntax and behaviour):** run each and confirm:
+- [x] **Step 3 (verify — syntax and behaviour):** run each and confirm:
       - `node --check plugins/cogniva-dev/templates/execute-feature.workflow.js` → exits 0, no output
       - `grep -c "filter(l => l !== null)" plugins/cogniva-dev/templates/execute-feature.workflow.js` → `1`
       - `grep -c "taskPlanPath ?" plugins/cogniva-dev/templates/execute-feature.workflow.js` → `1`
       - `tr -cd '\r' < plugins/cogniva-dev/templates/execute-feature.workflow.js | wc -c` → `0`
         (the file must stay LF — CRLF makes the Workflow tool reject the script)
 
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/templates/execute-feature.workflow.js`
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/templates/execute-feature.workflow.js`
       then `git commit -m "fix(execute-feature): omit plan/state prompt lines on a planless run"`
