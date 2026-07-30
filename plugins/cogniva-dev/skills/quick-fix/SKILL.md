@@ -59,8 +59,27 @@ control characters that would be hidden in the approval dialog"*, the template
 has CRLF line endings — it must be LF. See execute-feature Step 2 for the check
 and fix (`tr -cd '\r' < <template> | wc -c` should be 0).
 
-## Step 2 — build/test, then auto-integrate
-Run the repo green gate exactly as **execute-feature Step 3** defines it: read
+## Step 2 — finish everything, gate last, then auto-integrate
+
+Same order as **execute-feature Step 3**, and for the same reason — the green gate
+is the LAST step before integration, so every change that rides the merge is
+verified by it:
+
+```
+fix done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate
+```
+
+**Ride-along gate (only when a candidate exists).** Read `CAPTURE-BAR.md` in the
+`backlog` skill's directory and apply Test 3 to every `clear` candidate in the
+workflow's `followups`. None passes → skip it; the fix stays fire-and-forget. At
+least one passes → STOP and present the full three-section gate as the final text
+of the turn, then make each confirmed ride-along IN THE WORKTREE on the feature
+branch, one commit each. Anything not ridden along is captured via
+`/cogniva-dev:backlog`. Depth-1: this offer happens once, and work you just admitted
+as a ride-along never gets a gate of its own — a genuine second round is another
+`/cogniva-dev:quick-fix`, which is cheap. That is the whole point of this skill.
+
+Then run the repo green gate exactly as **execute-feature Step 3** defines it: read
 `<worktree>/.claude/cogniva-dev/green-gate.json` and run its `commands` in order (each
 must exit 0). If the file is ABSENT, skip the gate with the same one-line note ("No
 `.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test gate…");
@@ -74,8 +93,8 @@ checkout. Shell cwd persists across tool calls, and a process sitting in the
 worktree is exactly what makes Windows refuse to delete it at close-out. See
 execute-feature Step 3 for the full reasoning.
 
-**ADR check.** After the gate, before integrating, run the same mandatory check
-execute-feature Step 3.4 defines:
+**ADR check.** BEFORE the gate, run the same mandatory check execute-feature
+Step 3.1c defines:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Worktree "<worktree>" -TargetBranch "<target>"`
 It catches an ADR number this branch added that the target already uses, and any
 candidate `ADR-Cn` label this branch introduced into shipped code or an ADR
@@ -83,10 +102,17 @@ heading. Exit 1 → fix in the worktree, commit on the feature branch, re-run, a
 only then integrate. A quick-fix that wrote no ADR still runs it — the label can
 arrive in a code comment without any ADR file being touched.
 
-**Repo obligations (`before-integrate`).** Before integrating, check the target
+**Repo obligations (`before-integrate`).** Also BEFORE the gate — check the target
 repo's CLAUDE.md `## Cogniva-dev workflow instructions` for a `### before-integrate`
 block; honor it on the worktree now (commit anything it produces on the feature
-branch so it rides the merge). Absent → nothing to do.
+branch so it rides the merge). Absent → nothing to do. It runs ahead of the gate so
+a block that writes code is verified like any other change.
+
+**If the gate is red and this run has ride-along commits:** one repair attempt, then
+`git revert` every ride-along commit and re-run. Green after the revert → the
+ride-alongs were the cause; integrate the fix and capture the reverted items to the
+backlog instead. Still red → an ordinary failure; report and STOP. Full rules in
+execute-feature Step 3.2a.
 
 If the gate is green (or skipped) and the ADR check is clean:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
@@ -112,10 +138,12 @@ Handle the JSON `status` exactly as execute-feature Step 4 does:
   `/cogniva-dev:plan-feature` instead.
 - If the fix surfaces a follow-up you are NOT doing now, don't drop it and don't
   silently write it — the task agent returns it in the workflow result's
-  `followups` array, and you run the capture gate in your report (see
-  execute-feature's "Capture gate — followups from the run", and `CAPTURE-BAR.md`
-  in the `backlog` skill's directory). Drop anything already covered by this fix
-  or an open item; present the rest in the two tables; write only what the user
-  confirms, via `/cogniva-dev:backlog`. No followups, or nothing surviving
-  coverage → say nothing. If this fix resolved a loose `BACKLOG.md` item, tick it
-  and append `→ done` — that is a closure, not a capture, and needs no gate.
+  `followups` array, and you run the gate (see execute-feature's "Backlog gate —
+  followups from the run", and `CAPTURE-BAR.md` in the `backlog` skill's
+  directory). Drop anything already covered by this fix or an open item; anything
+  that passed Test 3 was already offered as a ride-along in Step 2, while the
+  worktree was open; present the rest under `## Backlog candidates` in its two
+  tables and write only what the user confirms, via `/cogniva-dev:backlog`. Never
+  head a table "Capture candidates". No followups, or nothing surviving coverage →
+  say nothing. If this fix resolved a loose `BACKLOG.md` item, tick it and append
+  `→ done` — that is a closure, not a capture, and needs no gate.
