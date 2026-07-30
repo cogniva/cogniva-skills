@@ -149,33 +149,7 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      honour it on the worktree now, committing anything it produces on the feature
      branch. Absent → nothing to do. This runs BEFORE the gate so an obligation that
      writes code is verified like any other change.
-  2. **GREEN GATE — run the repo's configured gate (mandatory, no shortcuts).** This
-     is the LAST step before integration; the tree must be exactly what will merge.
-     Read `<worktree>/.claude/cogniva-dev/green-gate.json`.
-     Schema: `{ "commands": [ { "run": "<shell command>", "label": "<short, optional>",
-     "note": "<optional reasoning, shown in reports>" } ] }`. Run each `commands[].run`
-     IN ORDER, in the worktree. Each must exit 0. The FIRST non-zero exit fails the
-     gate: report the failing command (its `label` if present) and its output, and
-     STOP — do not integrate.
 
-     **The gate's cwd is the worktree root, but do NOT leave your shell parked
-     there.** Shell cwd persists across tool calls, and a live process sitting in
-     the worktree is what makes Windows refuse to delete it at close-out — `git
-     worktree remove` deletes the CONTENTS, fails on the directory, and leaves a
-     gutted husk. So scope the cwd to the gate: `Push-Location "<worktree>"` … run
-     the commands … `Pop-Location` **in the same call**, or run each command as
-     `powershell -NoProfile -Command "Set-Location '<worktree>'; <run>"`. Either
-     way the shell must be back in the primary checkout before Step 4.
-  3. **No gate file → skip, don't block.** If `green-gate.json` is ABSENT, skip the
-     gate and proceed to Step 4 after emitting exactly ONE line: "No
-     `.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test
-     gate. Add one to gate future runs (see the opt-in README)." Do NOT prompt, do
-     NOT fall back to any build command. Absence is expected for docs-only or
-     early-stage repos. A present-but-empty `commands: []` means an intentional
-     no-gate — proceed silently. (A .NET Module repo's gate typically runs a
-     whole-solution `dotnet build <RepoName>.slnx` — which catches cross-module test
-     consumers that scoped per-project builds miss — then `dotnet test <RepoName>.slnx`
-     with the suspended UI tests excluded; see the opt-in README for the worked example.)
   1c. **ADR check (mandatory, BEFORE the gate).** Task agents write
      concrete ADRs during execution without seeing each other or the target branch,
      so two things go wrong silently: two parallel worktrees pick the same free
@@ -195,7 +169,36 @@ task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDon
      fixture) exempts itself by containing the literal `check-adrs-ignore-file`;
      skipped files are named in the report, so the opt-out is never silent. Reach
      for it only when the label is an example, never to quiet a real citation.
-  2a. **If the gate is red and this run has ride-along commits.** Make ONE repair
+
+  2. **GREEN GATE — run the repo's configured gate (mandatory, no shortcuts).** This
+     is the LAST step before integration; the tree must be exactly what will merge.
+     Read `<worktree>/.claude/cogniva-dev/green-gate.json`.
+     Schema: `{ "commands": [ { "run": "<shell command>", "label": "<short, optional>",
+     "note": "<optional reasoning, shown in reports>" } ] }`. Run each `commands[].run`
+     IN ORDER, in the worktree. Each must exit 0. The FIRST non-zero exit fails the
+     gate: report the failing command (its `label` if present) and its output, and
+     STOP — do not integrate.
+
+     **The gate's cwd is the worktree root, but do NOT leave your shell parked
+     there.** Shell cwd persists across tool calls, and a live process sitting in
+     the worktree is what makes Windows refuse to delete it at close-out — `git
+     worktree remove` deletes the CONTENTS, fails on the directory, and leaves a
+     gutted husk. So scope the cwd to the gate: `Push-Location "<worktree>"` … run
+     the commands … `Pop-Location` **in the same call**, or run each command as
+     `powershell -NoProfile -Command "Set-Location '<worktree>'; <run>"`. Either
+     way the shell must be back in the primary checkout before Step 4.
+  2a. **No gate file → skip, don't block.** If `green-gate.json` is ABSENT, skip the
+     gate and proceed to Step 4 after emitting exactly ONE line: "No
+     `.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test
+     gate. Add one to gate future runs (see the opt-in README)." Do NOT prompt, do
+     NOT fall back to any build command. Absence is expected for docs-only or
+     early-stage repos. A present-but-empty `commands: []` means an intentional
+     no-gate — proceed silently. (A .NET Module repo's gate typically runs a
+     whole-solution `dotnet build <RepoName>.slnx` — which catches cross-module test
+     consumers that scoped per-project builds miss — then `dotnet test <RepoName>.slnx`
+     with the suspended UI tests excluded; see the opt-in README for the worked example.)
+
+  2b. **If the gate is red and this run has ride-along commits.** Make ONE repair
      attempt in the worktree, commit it, and re-run the gate. Still red: `git revert`
      every ride-along commit (theirs are the only optional ones), commit the reverts,
      and re-run the gate a third time. Green now → the ride-alongs were the cause;

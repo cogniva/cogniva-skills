@@ -112,7 +112,7 @@ a block that writes code is verified like any other change.
 `git revert` every ride-along commit and re-run. Green after the revert → the
 ride-alongs were the cause; integrate the fix and capture the reverted items to the
 backlog instead. Still red → an ordinary failure; report and STOP. Full rules in
-execute-feature Step 3.2a.
+execute-feature Step 3.2b.
 
 If the gate is green (or skipped) and the ADR check is clean:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
