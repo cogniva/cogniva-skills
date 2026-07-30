@@ -52,7 +52,7 @@ block, follow it before designing. Absent → nothing to do.
    *Suggested by agent* only once the human explicitly approves your idea; err
    toward *Suggested by human*; ask before *Required by human*.
 
-## Confirm candidate ADRs and capture candidates (once, at handoff)
+## Confirm candidate ADRs, ride-alongs and backlog candidates (once, at handoff)
 
 When the design is essentially settled and you're ready to hand off to
 execute-feature — **not before** — present the full candidate-ADR list to the user
@@ -68,19 +68,32 @@ differs from the provenance default). The user confirms, amends, or drops each.
   candidate is attached to.
 - If there are no candidate ADRs, skip this — don't invent decisions to record.
 
-**Capture candidates go in the same pass**, as a distinct, separately-answerable
-section below the ADRs — one interruption, not two. Present them in the two tables
-defined in `CAPTURE-BAR.md`:
+**Backlog candidates and ride-alongs go in the same pass**, as distinct,
+separately-answerable sections below the ADRs — one interruption, not three.
+Present them in the three sections defined in `CAPTURE-BAR.md`: `## Ride-alongs —
+do now, in this work`, then `## Backlog candidates` with its `### Clear intent` and
+`### Needs a decision` tables. Never head a table "Capture candidates" — the
+user-facing noun is **backlog candidate**.
 
-- **Table 1 — clear intent:** numbered; the item and its receipt. Scan and nod.
-- **Table 2 — needs a decision:** numbering continues; the item, its receipt, and
-  one line on why it is ambiguous.
+**Riding along, in a design session, means amending the plan** — adding a step to
+an existing task, or one more task — before the plan is committed. The executor
+then does it as part of the feature. Two consequences specific to planning:
 
-Then ask once: capture Table 1 as-is? Table 2 by number (or none). Write only
-confirmed candidates, via `/cogniva-dev:backlog`, onto the worktree so they ride
-the plan commit. If there are no capture candidates, omit the section entirely —
-do not print an empty table. Deliver the whole handoff pass (ADRs plus tables) as
-the final text of the turn, with no tool call after it.
+- Criterion 1 of Test 3 ("the context is already paid for") is satisfied here by a
+  file you READ during this design session, since there is no diff yet. Name the
+  path; "the surrounding code" is not a path.
+- If a confirmed ride-along does not fit any task cleanly, say so and capture it to
+  the backlog instead. Do not bend the plan's shape around it — that is criterion 3
+  (it does not move the goal) failing late.
+
+After amending the plan, do NOT re-run this pass. The amendment is not a new design
+round, and ride-alongs are depth-1 (ADR: the ride-along tier is depth-1 and
+non-recursive).
+
+Write only confirmed backlog candidates, via `/cogniva-dev:backlog`, onto the
+worktree so they ride the plan commit. Omit any section with no rows — do not print
+an empty table. Deliver the whole handoff pass (ADRs plus the sections) as the final
+text of the turn, with no tool call after it.
 
 ## Emit the plan
 
@@ -159,12 +172,14 @@ in `PLAN-FORMAT.md`):
 - Seed the multi-plan `state.md` variant (per-sub-plan checklist), not the plain
   one.
 
-## Capture deferrals (propose, don't write)
+## Deferred scope (propose, don't write)
 
 A focused design always cuts scope — but most cut scope is not backlog material.
 Do NOT write anything to a `BACKLOG.md` from this session. Hold cut items as
-**capture candidates** and confirm them at handoff, in the same pass as the
-candidate ADRs (below).
+**backlog candidates** and confirm them at handoff, in the same pass as the
+candidate ADRs (below). A `clear` candidate may also qualify as a **ride-along** —
+folded into the plan you are writing rather than deferred; Test 3 in
+`CAPTURE-BAR.md` decides, and the handoff pass is where it is offered.
 
 Read `CAPTURE-BAR.md` in the `backlog` skill's directory for the full tests. In
 short:
