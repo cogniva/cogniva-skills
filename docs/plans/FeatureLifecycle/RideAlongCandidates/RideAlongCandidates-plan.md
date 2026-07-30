@@ -84,7 +84,7 @@ Ride-along work, the repo's `before-integrate` obligations, and the ADR check al
 - Create: `docs/adr/NNNN-ride-along-promotes-a-backlog-candidate.md` (number resolved in Step 3)
 - Create: `docs/adr/NNNN-ride-along-tier-is-depth-1.md` (number resolved in Step 3)
 
-- [ ] **Step 1 (rewrite the file):** Replace the ENTIRE contents of
+- [x] **Step 1 (rewrite the file):** Replace the ENTIRE contents of
       `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` with exactly this:
 
 ````markdown
@@ -346,14 +346,14 @@ Rules for the gate:
   each ride-along as one line too: what changed, and its commit.
 ````
 
-- [ ] **Step 2 (verify the rewrite):** run each and confirm the stated result:
+- [x] **Step 2 (verify the rewrite):** run each and confirm the stated result:
       - `grep -c "^## Test 3 — ride-along" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` → `1`
       - `grep -c "^## Ride-alongs — do now, in this work" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` → `1`
       - `grep -c "Never head a table \"Capture candidates\"" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` → `1`
       - `grep -c "rideAlong" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` → `2`
       - `grep -n "^## Test 1 — coverage\|^## Test 2 — intent" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` → two lines, both present
 
-- [ ] **Step 3 (write ADRs C1 and C2):** scan `docs/adr/` for the highest existing
+- [x] **Step 3 (write ADRs C1 and C2):** scan `docs/adr/` for the highest existing
       number and increment for each file, per auto-doc's `ADR-FORMAT.md`. Write
       `docs/adr/NNNN-ride-along-promotes-a-backlog-candidate.md`:
 
@@ -378,7 +378,7 @@ A run offers ride-alongs exactly once, and work admitted as a ride-along returns
       Neither heading may contain `ADR-C1` or `ADR-C2` — the candidate labels belong
       to this plan, not to the shipped file.
 
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md docs/adr/`
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md docs/adr/`
       then `git commit -m "feat(backlog): add the ride-along tier to the capture bar"`
 
 ---
@@ -391,7 +391,7 @@ A run offers ride-alongs exactly once, and work admitted as a ride-along returns
 - Modify: `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`
 - Modify: `plugins/cogniva-dev/skills/explore-idea/SKILL.md`
 
-- [ ] **Step 1 (backlog SKILL.md — skill-initiated mode):** in
+- [x] **Step 1 (backlog SKILL.md — skill-initiated mode):** in
       `plugins/cogniva-dev/skills/backlog/SKILL.md`, replace exactly:
 
 ```
@@ -412,7 +412,7 @@ against all three tests, hold them as candidate records, and present them in the
 three-section gate. Only what the user confirms is written or done.
 ```
 
-- [ ] **Step 2 (backlog SKILL.md — Step 2 of its Steps list):** replace exactly:
+- [x] **Step 2 (backlog SKILL.md — Step 2 of its Steps list):** replace exactly:
 
 ```
 2. **Skill-initiated only — qualify intent.** Apply Test 2 in `CAPTURE-BAR.md`.
@@ -435,7 +435,7 @@ three-section gate. Only what the user confirms is written or done.
    that was itself a ride-along (depth-1).
 ```
 
-- [ ] **Step 3 (backlog SKILL.md — Step 5, the gate):** replace exactly:
+- [x] **Step 3 (backlog SKILL.md — Step 5, the gate):** replace exactly:
 
 ```
 5. **Skill-initiated only — the gate.** Present every candidate in ONE pass, in
@@ -458,7 +458,7 @@ three-section gate. Only what the user confirms is written or done.
    empty candidate set → say nothing.
 ```
 
-- [ ] **Step 4 (backlog SKILL.md — called-by-another-skill routing):** replace exactly:
+- [x] **Step 4 (backlog SKILL.md — called-by-another-skill routing):** replace exactly:
 
 ```
 - **Interactive caller** (`plan-feature`, `groom-backlog`, `easy-work-scan`) —
@@ -484,7 +484,7 @@ three-section gate. Only what the user confirms is written or done.
   console will do next, and its receipt already names the path criterion 1 needs.
 ```
 
-- [ ] **Step 5 (backlog SKILL.md — Rules):** replace exactly:
+- [x] **Step 5 (backlog SKILL.md — Rules):** replace exactly:
 
 ```
 - Nothing a skill decided on its own reaches a `BACKLOG.md` unconfirmed. A direct
@@ -501,7 +501,7 @@ three-section gate. Only what the user confirms is written or done.
   ride-alongs; the calling skill does the work.
 ```
 
-- [ ] **Step 6 (glossary entry):** in `docs/glossary/README.md`, replace exactly:
+- [x] **Step 6 (glossary entry):** in `docs/glossary/README.md`, replace exactly:
 
 ```
 ## Status
@@ -525,7 +525,7 @@ The lifecycle stage of a feature, recorded as the `Status:` line in its `state.m
       NOTE: the replacement re-emits the two `## Status` lines verbatim — do not
       delete the Status entry.
 
-- [ ] **Step 7 (easy-work-scan rename):** in
+- [x] **Step 7 (easy-work-scan rename):** in
       `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`, replace exactly:
 
 ```
@@ -546,7 +546,7 @@ The lifecycle stage of a feature, recorded as the `Status:` line in its `state.m
    `plan-feature`, and those runs own their own ride-along gates.
 ```
 
-- [ ] **Step 8 (explore-idea rename):** in
+- [x] **Step 8 (explore-idea rename):** in
       `plugins/cogniva-dev/skills/explore-idea/SKILL.md`, replace exactly (this is a
       TWO-line match — both lines, as one replacement):
 
@@ -567,7 +567,7 @@ The lifecycle stage of a feature, recorded as the `Status:` line in its `state.m
       writes - capture candidates in the doc only.`) — "capture" there is a verb
       about ADR/glossary candidates in the thinking doc, not the backlog noun.
 
-- [ ] **Step 9 (verify):** run each and confirm:
+- [x] **Step 9 (verify):** run each and confirm:
       - `grep -c "three-section gate" plugins/cogniva-dev/skills/backlog/SKILL.md` → `1`
       - `grep -c "rideAlong" plugins/cogniva-dev/skills/backlog/SKILL.md` → `1`
       - `grep -c "^## Ride-along$" docs/glossary/README.md` → `1`
@@ -575,7 +575,7 @@ The lifecycle stage of a feature, recorded as the `Status:` line in its `state.m
       - `grep -c "capture CANDIDATE" plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` → `0`
       - `grep -c "it is just a thing you said" plugins/cogniva-dev/skills/explore-idea/SKILL.md` → `1`
 
-- [ ] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md docs/glossary/README.md plugins/cogniva-dev/skills/easy-work-scan/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md`
+- [x] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md docs/glossary/README.md plugins/cogniva-dev/skills/easy-work-scan/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md`
       then `git commit -m "feat(backlog): wire ride-alongs through the backlog skill and glossary"`
 
 ---
@@ -585,7 +585,7 @@ The lifecycle stage of a feature, recorded as the `Status:` line in its `state.m
 **Files:**
 - Modify: `plugins/cogniva-dev/skills/plan-feature/SKILL.md`
 
-- [ ] **Step 1 (the handoff pass):** in
+- [x] **Step 1 (the handoff pass):** in
       `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, replace exactly:
 
 ```
@@ -635,7 +635,7 @@ an empty table. Deliver the whole handoff pass (ADRs plus the sections) as the f
 text of the turn, with no tool call after it.
 ```
 
-- [ ] **Step 2 (the capture-deferrals section):** replace exactly:
+- [x] **Step 2 (the capture-deferrals section):** replace exactly:
 
 ```
 A focused design always cuts scope — but most cut scope is not backlog material.
@@ -655,7 +655,7 @@ folded into the plan you are writing rather than deferred; Test 3 in
 `CAPTURE-BAR.md` decides, and the handoff pass is where it is offered.
 ```
 
-- [ ] **Step 3 (the heading):** replace exactly:
+- [x] **Step 3 (the heading):** replace exactly:
 
 ```
 ## Confirm candidate ADRs and capture candidates (once, at handoff)
@@ -667,7 +667,7 @@ folded into the plan you are writing rather than deferred; Test 3 in
 ## Confirm candidate ADRs, ride-alongs and backlog candidates (once, at handoff)
 ```
 
-- [ ] **Step 4 (the deferrals heading):** replace exactly:
+- [x] **Step 4 (the deferrals heading):** replace exactly:
 
 ```
 ## Capture deferrals (propose, don't write)
@@ -679,13 +679,13 @@ folded into the plan you are writing rather than deferred; Test 3 in
 ## Deferred scope (propose, don't write)
 ```
 
-- [ ] **Step 5 (verify):** run each and confirm:
+- [x] **Step 5 (verify):** run each and confirm:
       - `grep -c "Capture candidates" plugins/cogniva-dev/skills/plan-feature/SKILL.md` → `1`
         (the single remaining hit is the "Never head a table" instruction)
       - `grep -c "Riding along, in a design session, means amending the plan" plugins/cogniva-dev/skills/plan-feature/SKILL.md` → `1`
       - `grep -c "^## Deferred scope (propose, don't write)$" plugins/cogniva-dev/skills/plan-feature/SKILL.md` → `1`
 
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md`
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md`
       then `git commit -m "feat(plan-feature): offer ride-alongs at the handoff pass"`
 
 ---
@@ -699,7 +699,7 @@ folded into the plan you are writing rather than deferred; Test 3 in
 - Create: `docs/adr/NNNN-failing-ride-along-is-reverted.md` (number resolved in Step 5)
 - Create: `docs/adr/NNNN-green-gate-is-last-before-integration.md` (number resolved in Step 5)
 
-- [ ] **Step 1 (insert the ride-along gate and the new order):** in
+- [x] **Step 1 (insert the ride-along gate and the new order):** in
       `plugins/cogniva-dev/skills/execute-feature/SKILL.md`, replace exactly:
 
 ```
@@ -763,7 +763,7 @@ folded into the plan you are writing rather than deferred; Test 3 in
      writes code is verified like any other change.
 ````
 
-- [ ] **Step 2 (renumber the ADR check ahead of the gate):** replace exactly:
+- [x] **Step 2 (renumber the ADR check ahead of the gate):** replace exactly:
 
 ```
   4. **ADR check (mandatory, after the gate, before Step 4).** Task agents write
@@ -792,7 +792,7 @@ folded into the plan you are writing rather than deferred; Test 3 in
      reference is verified rather than shipped unseen.
 ```
 
-- [ ] **Step 3 (renumber the gate itself and add the ride-along failure policy):**
+- [x] **Step 3 (renumber the gate itself and add the ride-along failure policy):**
       replace exactly:
 
 ```
@@ -835,7 +835,7 @@ folded into the plan you are writing rather than deferred; Test 3 in
      ordinary failure: report the exact failing command and its output, and STOP.
 ```
 
-- [ ] **Step 4 (strip the now-duplicated before-integrate block from Step 4):**
+- [x] **Step 4 (strip the now-duplicated before-integrate block from Step 4):**
       replace exactly:
 
 ```
@@ -896,7 +896,7 @@ First, **in the WORKTREE**
 <!-- check-adrs-ignore-file: Step 3.1c cites ADR-C4 as an example. -->
 ```
 
-- [ ] **Step 5 (rename the capture-gate heading):** replace exactly:
+- [x] **Step 5 (rename the capture-gate heading):** replace exactly:
 
 ```
 ## Capture gate — followups from the run
@@ -952,7 +952,7 @@ means say nothing at all — do not print an empty table and do not invent candi
 to fill one.
 ```
 
-- [ ] **Step 6 (strategy.md phase vocabulary):** in `docs/strategy.md`, replace exactly:
+- [x] **Step 6 (strategy.md phase vocabulary):** in `docs/strategy.md`, replace exactly:
 
 ```
 - `before-integrate` — plan-feature / quick-fix / execute-feature, on the
@@ -971,7 +971,7 @@ to fill one.
   is kept — its contract was always "on the worktree", not "adjacent to the merge".
 ```
 
-- [ ] **Step 7 (write ADRs C3, C4 and C5):** scan `docs/adr/` for the highest
+- [x] **Step 7 (write ADRs C3, C4 and C5):** scan `docs/adr/` for the highest
       existing number and increment for each file in turn, per auto-doc's
       `ADR-FORMAT.md`. Write `docs/adr/NNNN-ride-along-gate-on-the-open-worktree.md`:
 
@@ -1005,15 +1005,16 @@ Ride-along work, the repo's `before-integrate` obligations, and the ADR check al
 
       No heading may contain `ADR-C3`, `ADR-C4` or `ADR-C5`.
 
-- [ ] **Step 8 (verify):** run each and confirm:
+- [x] **Step 8 (verify):** run each and confirm:
       - `grep -c "tasks done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate" plugins/cogniva-dev/skills/execute-feature/SKILL.md` → `1`
       - `grep -c "^## Backlog gate — followups from the run$" plugins/cogniva-dev/skills/execute-feature/SKILL.md` → `1`
       - `grep -c "Step 3.4" plugins/cogniva-dev/skills/execute-feature/SKILL.md` → `0`
       - `grep -c "Repo obligations (\`before-integrate\`)" plugins/cogniva-dev/skills/execute-feature/SKILL.md` → `1`
-      - `grep -c "before the green gate, not immediately" docs/strategy.md` → `1`
+      - `grep -c "BEFORE the green gate, not immediately" docs/strategy.md` → `1`
+        (Step 6's replacement text writes `BEFORE` in caps; the check is case-sensitive)
       - `ls docs/adr/ | wc -l` → 5 more than before this feature began
 
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/SKILL.md docs/strategy.md docs/adr/`
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/SKILL.md docs/strategy.md docs/adr/`
       then `git commit -m "feat(execute-feature): run the green gate last and add the ride-along gate"`
 
 ---
@@ -1134,7 +1135,10 @@ If the gate is green (or skipped) and the ADR check is clean:
 - [ ] **Step 4 (verify):** run each and confirm:
       - `grep -c "fix done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `1`
       - `grep -c "Step 3.4" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `0`
-      - `grep -c "Backlog gate — followups from the run" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `1`
+      - `grep -c "Backlog gate —" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `1`
+        (the full phrase "Backlog gate — followups from the run" wraps across a
+        line break in Step 3's replacement text, so a line-oriented `grep -c` for
+        it can never match — check the cross-reference, not the line wrap)
       - `grep -c "Also BEFORE the gate" plugins/cogniva-dev/skills/quick-fix/SKILL.md` → `1`
 
 - [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md`

@@ -1,8 +1,14 @@
 # RideAlongCandidates — execution state
 
-Status: planned
-Target branch: (set by execute-feature at run time)
-Worktree: (set by execute-feature)
+Status: in-progress
+Target branch: main
+Worktree: C:\dev\cogniva-skills-ride-along-candidates
+Branch: feature/ride-along-candidates
 Integration: not started
 
 ## Log
+
+- Task 1 done (c792445): rewrote `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` (Test 3, depth-1, three-section gate, "backlog candidate" noun); created `docs/adr/0020-ride-along-promotes-a-backlog-candidate.md` and `docs/adr/0021-ride-along-tier-is-depth-1.md` — numbers from scanning `docs/adr/` (highest was 0019), headings carry no ADR-C labels. All five Step 2 greps returned the stated results.
+- Task 2 done (83173eb): modified `plugins/cogniva-dev/skills/backlog/SKILL.md` (three tests, three-section gate, `rideAlong` field, ride-along rules), `docs/glossary/README.md` (new "Ride-along" entry above the preserved "Status" entry), `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md` (backlog CANDIDATE + never-rides-along note) and `plugins/cogniva-dev/skills/explore-idea/SKILL.md` (no ride-along tier in exploration). All 10 steps were exact-string replacements; the working tree is CRLF while git stores LF (`core.autocrlf=true`, `* text=auto`), so replacements were applied LF-normalized and written back as CRLF to avoid whole-file diffs, and the two `$`-anchored Step 9 greps were confirmed against the LF content (both `1`). All six Step 9 verifications matched.
+- Task 3 done (8a27225): modified `plugins/cogniva-dev/skills/plan-feature/SKILL.md` only — handoff pass now offers the three-section gate (ride-alongs + backlog candidates), riding along in a design session = amending the plan (depth-1, no re-run), plus the `## Deferred scope` and `## Confirm candidate ADRs, ride-alongs and backlog candidates` heading renames. All four steps were exact-string replacements applied in place, so the file stayed CRLF and the diff is 32/17 lines, not a whole-file rewrite. All three Step 5 greps returned `1`.
+- Task 4 done (e24cd95): modified `plugins/cogniva-dev/skills/execute-feature/SKILL.md` (new order `tasks done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate`, Steps 1a/1b/1c/2/2a/3 renumbered, `before-integrate` moved out of Step 4, capture gate renamed `## Backlog gate`) and `docs/strategy.md` (phase vocabulary now says the block runs before the gate); created `docs/adr/0022-ride-along-gate-on-the-open-worktree.md`, `docs/adr/0023-failing-ride-along-is-reverted.md`, `docs/adr/0024-green-gate-is-last-before-integration.md` (highest existing was 0021; no ADR-C labels in any heading). All nine steps were exact-string replacements. Step 8 verifications: 1 / 1 / 0 / 1 / 24 files (= 19 + 5) as stated; the `before the green gate, not immediately` grep matches only case-insensitively because the plan's own Step 6 replacement text writes `BEFORE` in caps — the verbatim edit was kept and the plan's lowercase grep string is the inconsistency.
