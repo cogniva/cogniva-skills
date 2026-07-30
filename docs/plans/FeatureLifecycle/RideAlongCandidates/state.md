@@ -1,6 +1,6 @@
 # RideAlongCandidates — execution state
 
-Status: in-progress
+Status: integrated
 Target branch: main
 Worktree: C:\dev\cogniva-skills-ride-along-candidates
 Branch: feature/ride-along-candidates
