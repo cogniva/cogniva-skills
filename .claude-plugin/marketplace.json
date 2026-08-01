@@ -12,7 +12,7 @@
       "name": "cogniva-dev",
       "source": "./plugins/cogniva-dev",
       "description": "Cogniva's development toolkit: auto-doc, backlog, groom-backlog, easy-work-scan, repo-init, feature lifecycle (plan-feature, execute-feature, quick-fix) with ledger-based worktree cleanup (cleanup-work, cleanup-allwork), module-deps, and status roll-ups",
-      "version": "0.4.3",
+      "version": "0.4.4",
       "author": {
         "name": "Cogniva"
       }
