@@ -50,3 +50,26 @@ directly in the primary checkout — they are append-only bookkeeping, not workf
 output, and a worktree round-trip for a one-line item defeats
 `/cogniva-dev:backlog`'s purpose. Everything else under `docs/plans/**` — plans,
 `state.md`, and a deferred stub's `backlog.md` — remains worktree-only.
+
+**Addendum (2026-07-31).** The tier-1 write exemption above now carries a matching
+**commit obligation**. Granting the write without the commit left exempt appends
+sitting dirty in the primary indefinitely, which blocks `integrate-feature.ps1`
+(`QUEUED_DIRTY`) — the exemption solved the round-trip cost and created a new
+failure in its place. So on a **direct** human `/cogniva-dev:backlog` invocation,
+the skill makes a path-scoped `chore(backlog): ...` commit of that one
+`BACKLOG.md`, and that is the single sanctioned direct-to-primary commit. This
+**narrows** the Decision's "the merge is the only path onto the user's branch"
+rather than revoking it: the commit is scoped to the already-exempt paths, stages
+nothing else, and is skipped entirely if the file was already dirty before the
+append (those are the user's own edits, not ours to commit). **Skill-initiated
+capture is unchanged** and now explicitly routed — it writes into the open
+worktree and reaches the branch via the merge, exactly as plans and `state.md` do;
+the primary path exists only for a direct invocation with no worktree in play. A
+non-blocking `nudge-backlog-commit.js` PostToolUse hook flags a tier-1
+`BACKLOG.md` left dirty in the primary; it is **advisory only** and does **not**
+reinstate `auto-commit-plans.ps1`, which this ADR's Decision removed — the commit
+belongs in the skill, where it is visible and reported, not in a hook. Finally,
+one **deliberate** divergence, recorded so nobody later "fixes" it as an
+oversight: `groom-backlog` keeps its existing OFFER-to-commit / never-auto-commit
+behaviour (`groom-backlog/SKILL.md`), because a groom rewrites many items across
+several files and merits a human look, whereas a direct capture appends one line.
