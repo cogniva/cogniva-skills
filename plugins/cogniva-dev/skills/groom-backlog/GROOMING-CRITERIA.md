@@ -88,8 +88,11 @@ Low priority; batch these.
   Append-by-default everywhere else; never delete or reorder lines — git
   history carries the old wording.
 - **Guard routing:** loose `BACKLOG.md` edits are guard-exempt (edit directly
-  in the primary checkout). Stub `state.md` edits are not — in a guard-opted
-  repo, batch ALL confirmed stub closures into ONE `/cogniva-dev:quick-fix`
-  invocation listing the exact flips.
+  in the primary checkout) — but the exemption is not a licence to leave the
+  tree dirty. Close the loop as Step 4 of the skill requires: OFFER to commit
+  the directly-edited backlog file(s), never auto-commit. An exempt edit nobody
+  commits blocks the next integrate with `QUEUED_DIRTY`. Stub `state.md` edits
+  are not exempt — in a guard-opted repo, batch ALL confirmed stub closures into
+  ONE `/cogniva-dev:quick-fix` invocation listing the exact flips.
 - **New items** produced by grooming (remainders, merged scope) go through
   `/cogniva-dev:backlog`, so its dedup and placement rules apply.
