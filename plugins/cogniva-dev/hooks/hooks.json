@@ -23,6 +23,19 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/nudge-backlog-commit.js\"",
+            "timeout": 15,
+            "statusMessage": "Checking for an uncommitted backlog capture in the primary checkout"
+          }
+        ]
+      }
     ]
   }
 }
