@@ -37,8 +37,25 @@ Invoke: `/execute-feature <Module>/<Feature>` (or a plan path).
 3. Run:
    `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/new-feature-worktree.ps1" -Slug <slug>`
    It reads the user's current branch as the integration **target** (never
-   switches it) and prints JSON `{ worktree, branch, base, reused }`. Capture
-   `worktree` (absolute) and `branch` (`feature/<slug>`).
+   switches it) and prints JSON
+   `{ worktree, branch, base, reused, ahead, behind, resynced, stale, staleReason }`.
+   Capture `worktree` (absolute) and `branch` (`feature/<slug>`).
+3a. **Check `stale` before you parse the plan.** A `reused: true` worktree sits
+   at whatever commit it was created from, which may be far behind the target.
+   This matters more than it sounds: the plan file IN THE WORKTREE can be an
+   older revision than the one you are about to read, so tasks implement a
+   decision the target has already replaced — and nothing downstream notices.
+   - `resynced: true` — it was behind, had no commits of its own, and was
+     fast-forwarded for you. Say so in one line and carry on.
+   - `stale: true` — it is behind AND divergent (or dirty), so the script would
+     not decide for you. STOP. Report `staleReason`, merge the target into the
+     feature branch in the worktree (`git -C "<worktree>" merge <target>`),
+     resolve anything that conflicts, commit, and only then continue. Do NOT
+     parse the plan or dispatch a task first.
+   - Neither set — the worktree is current; proceed.
+   Whatever the outcome, parse the plan FROM THE WORKTREE afterwards, never
+   before, so the line numbers and task text you dispatch are the ones that
+   will actually be executed.
 4. Record `Target branch`, `Worktree`, and `branch` into the worktree's
    `state.md` if not already present, and set its `Status:` line to
    `in-progress` (the status skills read this).

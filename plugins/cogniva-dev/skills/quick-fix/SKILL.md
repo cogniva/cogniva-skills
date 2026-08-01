@@ -29,6 +29,14 @@ Derive a short `<slug>` from the description (e.g. `fix-status-bar-alignment`), 
 Capture `worktree` and `branch` (`feature/<slug>`). The user's current branch is
 the integration target (never switched).
 
+A reused worktree may sit well behind that target, so the JSON also carries
+`ahead` / `behind` / `resynced` / `stale` / `staleReason`. `resynced: true` means
+it was safely fast-forwarded for you — mention it and carry on. `stale: true`
+means it is behind AND divergent (or dirty): STOP, report `staleReason`, merge
+the target into the feature branch in the worktree and commit, and only then
+dispatch. Fixing a file against a stale tree is how a fix lands on code the
+target already changed.
+
 ## Step 0.5 — candidate ADRs (confirm BEFORE dispatch)
 While scoping the fix, hold any architectural decision worth recording as a
 *candidate* ADR (title, 1–3 sentences, **provenance**, and **relitigation** only if
