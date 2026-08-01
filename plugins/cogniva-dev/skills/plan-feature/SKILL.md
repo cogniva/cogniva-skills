@@ -217,14 +217,39 @@ produces rides this commit. Absent → nothing to do.
 
 When the plan — and any sub-plans plus `state.md` — is complete on the worktree,
 commit the plan folder as a single commit (stage ONLY that folder, never `git add
--A`), then fast-forward it onto the user's branch and mark the worktree cleanupable:
+-A`), then fast-forward it onto the user's branch and close the worktree out:
 
 ```bash
 git -C "<worktree>" add -- "docs/plans/<Module>/<Feature>"
 git -C "<worktree>" commit -m "plan(<Module>/<Feature>): <one-line summary>"
 powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<your branch>"
 powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/mark-cleanupable.ps1" -Worktree "<worktree>" -Branch "feature/<slug>" -Summary "plan <Module>/<Feature>"
+powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/cleanup-worktrees.ps1" -Scope list -Worktrees "<worktree>"
 ```
+
+**Close out your own worktree — never leave it for a later session.** The
+mark-cleanupable-then-wait handshake exists so the user can *run* code before the
+worktree is destroyed. A plan is a markdown file that integrate has already
+fast-forwarded onto their branch, so there is nothing to validate and the worktree
+is dead the moment integrate returns. Leaving it alive leaks it across session
+boundaries — `/cogniva-dev:cleanup-work` only knows the worktrees ITS session
+created, and `/cogniva-dev:execute-feature` usually runs in a fresh one — and,
+because plan-feature and execute-feature derive the same `<slug>` and therefore the
+same worktree path and branch, lets execute-feature silently reuse your stale
+planning worktree (ADR: a worktree with no validation gate closes itself out).
+
+Run the close-out with your shell in the PRIMARY checkout, never inside the
+worktree — Windows will not delete a directory that is a live process's cwd, and
+`git worktree remove` guts it instead. Parse its last JSON line, `{ closed, kept,
+pruned }`: `closed` is the normal result and needs no comment; a `kept` entry means
+the worktree survived, so quote its reason verbatim in one line and leave it for
+`/cogniva-dev:cleanup-work`.
+
+Only run the last two commands when integrate reported `INTEGRATED`. On
+`QUEUED_DIRTY` (the user's branch was dirty) still mark the worktree cleanupable but
+SKIP the close-out, and say in one line that the plan is queued and
+`/cogniva-dev:cleanup-work` will land it once their tree is clean. On `CONFLICT` or
+`ERROR`, report the detail and stop — force nothing.
 
 One plan-feature = one commit on the user's branch. (Any glossary edits made on the
 SAME worktree ride the same integration; candidate ADRs live inside the plan, not in
