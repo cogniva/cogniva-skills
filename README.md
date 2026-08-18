@@ -20,7 +20,7 @@ Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins:
 
 | Piece | Purpose |
 |---|---|
-| `plugins/cogniva-dev/skills/auto-doc` | Auto-document architectural decisions as ADRs |
+| `plugins/cogniva-dev/skills/adr` | Record architectural decisions as ADRs (confirm-first) |
 | `plugins/cogniva-dev/skills/backlog` | Capture deferred or not-yet-planned work |
 | `plugins/cogniva-dev/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
 | `plugins/cogniva-dev/skills/add-module` | Add a Module (vertical slice) to an existing repo |

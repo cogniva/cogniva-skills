@@ -54,7 +54,7 @@ a fresh subagent context — so **every task must be self-contained**.
 - [ ] **Step 4 (run until green):** `<exact command>` → <expected output>
 - [ ] **Step 5 (write ADR, only if this task has one in `## Candidate ADRs`):**
       scan `docs/adr/` for the next number and write the confirmed candidate
-      (`ADR-Cn`) verbatim to `docs/adr/NNNN-<slug>.md` per auto-doc's ADR-FORMAT.
+      (`ADR-Cn`) verbatim to `docs/adr/NNNN-<slug>.md` per the adr skill's ADR-FORMAT.
 - [ ] **Step 6 (commit):** `git add <only this task's files + any ADR written above>`
       then `git commit -m "<conventional message>"`
 

@@ -123,7 +123,7 @@ know what you are proposing.
 
 Two hard limits. At most **two** open decisions across the whole ride-along; a
 third means you are designing, not riding along. And none of them ADR-worthy —
-apply auto-doc's test (hard to reverse, surprising without context, the result of a
+apply the adr skill's test (hard to reverse, surprising without context, the result of a
 real trade-off). A decision that meets it earns a design conversation, not a line
 at the end of a run when attention is at its lowest. Send it to the backlog and say
 which criterion it tripped.

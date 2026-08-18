@@ -306,7 +306,7 @@ Concrete ADRs are written HERE, not by plan-feature. If the plan has a
 `## Candidate ADRs` section, each candidate names the task it's attached to
 ("Write with: Task N"). When that task completes, its agent writes the confirmed
 candidate **verbatim** to `docs/adr/NNNN-<slug>.md` — scan `docs/adr/` for the next
-number (see auto-doc's ADR-FORMAT), copy the candidate's title + Provenance +
+number (see the adr skill's ADR-FORMAT), copy the candidate's title + Provenance +
 Relitigation + body, and commit it with that task's files.
 
 - The ADRs were already human-confirmed during planning. Do NOT invent new ones,

@@ -6,7 +6,7 @@ What this repo is, the conventions it encodes, and how to consume it.
 
 `cogniva` is Cogniva's Claude Code plugin marketplace (repo:
 github.com/cogniva/cogniva-skills). Its single `cogniva-skills` plugin carries
-the team toolkit: shared skills (glossary, auto-doc) and repo-initialization
+the team toolkit: shared skills (glossary, adr) and repo-initialization
 scaffolding (repo-init, add-module) — so every new repo starts identical and
 improvements propagate (consuming repos reinstall/update the plugin instead of
 copying files).
@@ -33,7 +33,7 @@ All tools ship in the `cogniva-skills` plugin:
 | repo-init | skill | user starts a new repo |
 | add-module | skill | user adds a vertical slice |
 | glossary | skill | unrecognized terminology (docs/glossary lookup) |
-| auto-doc | skill | architectural decisions during design/planning |
+| adr | skill | architectural decisions during design/planning |
 
 ## Consuming in a new repo
 

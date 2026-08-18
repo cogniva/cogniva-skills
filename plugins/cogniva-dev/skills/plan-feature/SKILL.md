@@ -1,6 +1,6 @@
 ---
 name: plan-feature
-description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /execute-feature). Pairs with auto-doc (ADRs) and glossary. Does not depend on superpowers.
+description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /execute-feature). Pairs with adr (ADRs) and glossary. Does not depend on superpowers.
 ---
 
 # Plan Feature
@@ -40,14 +40,14 @@ block, follow it before designing. Absent → nothing to do.
    per genuine fork). Describe UI choices in prose so the user can validate
    against the implemented result rather than a mockup.
 4. **Honour existing ADRs.** Before reopening anything already in `docs/adr/`, read
-   the ADR and respect its relitigation weight (see `/auto-doc`) — don't reopen a
+   the ADR and respect its relitigation weight (see `/adr`) — don't reopen a
    `Compelling reasons only` / `Blockers only` decision without cause. If you think
    one should change, surface it to the user with the reason rather than quietly
    working around it.
 5. **Keep a candidate-ADR list — do NOT write ADRs during design.** When an
    architectural decision lands, add it to a running list of *candidate* ADRs
    (title, the decision in 1–3 sentences, its **provenance**, and a **relitigation**
-   weight only if it differs from the provenance default — see `/auto-doc`). Do not
+   weight only if it differs from the provenance default — see `/adr`). Do not
    ask about them yet and do not write anything to `docs/adr/`. Provenance is
    *Suggested by agent* only once the human explicitly approves your idea; err
    toward *Suggested by human*; ask before *Required by human*.

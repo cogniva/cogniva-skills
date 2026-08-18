@@ -40,7 +40,7 @@ target already changed.
 ## Step 0.5 — candidate ADRs (confirm BEFORE dispatch)
 While scoping the fix, hold any architectural decision worth recording as a
 *candidate* ADR (title, 1–3 sentences, **provenance**, and **relitigation** only if
-it differs from the provenance default — see `/auto-doc`). Most quick-fixes produce
+it differs from the provenance default — see `/adr`). Most quick-fixes produce
 none. If any exist, present them to the user and get an explicit yes/amend/drop
 **before** you dispatch the Workflow — never write an ADR without confirmation, and
 never write one from this control session. Fold each confirmed candidate into the
@@ -141,7 +141,7 @@ Handle the JSON `status` exactly as execute-feature Step 4 does:
 - Never write an ADR without human confirmation, and never from this control
   session — concrete ADRs are written by the task agent during execution (Step 0.5).
 - Before reopening anything in `docs/adr/`, respect its relitigation weight (see
-  `/auto-doc`); surface a needed change to the user rather than working around it.
+  `/adr`); surface a needed change to the user rather than working around it.
 - Keep it small — if the change grows into a real feature, stop and suggest
   `/cogniva-dev:plan-feature` instead.
 - If the fix surfaces a follow-up you are NOT doing now, don't drop it and don't

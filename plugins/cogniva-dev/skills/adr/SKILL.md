@@ -1,9 +1,9 @@
 ---
-name: auto-doc
+name: adr
 description: The authority on Architecture Decision Records (ADRs) — their format, provenance, relitigation weight, and numbering. Use to record a confirmed architectural decision as an ADR (ALWAYS with explicit human confirmation first), or to check how open an existing decision is to being reopened. Also runs as a quiet background observer during design/planning: it holds ADR-worthy decisions as candidates and offers them for confirmation at natural breakpoints — it never writes one on its own.
 ---
 
-# auto-doc
+# adr
 
 The single source of truth for ADRs. Two jobs:
 
@@ -75,7 +75,7 @@ it.
 
 ## Direct invocation
 
-You can call `/auto-doc` explicitly to:
+You can call `/adr` explicitly to:
 - record a specific decision as an ADR (still confirm-first), or
 - check the provenance / relitigation posture of an existing decision before acting
   on it.
