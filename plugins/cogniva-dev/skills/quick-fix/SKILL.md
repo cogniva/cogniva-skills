@@ -16,8 +16,24 @@ repo's `.claude/cogniva-dev.local.json` has `"worktrees": true`. ON → read
 `WORKTREE.md` beside this file NOW; it replaces the ⟦worktree⟧ steps. OFF →
 work directly on the user's checkout and current branch.
 
+**Host dispatch (check second):** if the Workflow tool is not available in
+this session (Codex or any non-Claude host), read
+`../execute-feature/CODEX.md` NOW — its sequential subagent loop replaces
+Step 1 (the Workflow dispatch), driven by the task list synthesized there.
+Worktree mode requires the Claude Workflow runtime; under any other host
+only lean mode is supported — if worktree mode is ON and the Workflow tool
+is absent, STOP and say so.
+
 `<plugin>` = this plugin's root (parent of `skills/`) — tooling, not the
 target; the repo being fixed is the one you were invoked from.
+
+**Flags:** quick-fix honours `commits=` exactly as the `## Flags` section of
+`../execute-feature/SKILL.md` defines it — the same `none|task|final`
+semantics and the same defaults (lean mode → `none`, worktree mode →
+`task`), and `none|final` are just as INVALID in worktree mode, where
+integration is a fast-forward of commits: reject the combination with one
+clear line and stop, never silently ignore it. quick-fix is planless, so
+`plan=` does not apply.
 
 ## Step 0 — workspace
 
@@ -39,20 +55,29 @@ execution and committed with the fix.
 
 Run `<plugin>/templates/execute-feature.workflow.js` (copy verbatim; CRLF
 rejection → write an LF copy). One synthesized task for trivial fixes, or a
-short ordered list. Each task body: what to change, how to verify, a commit
-step. Planless — no `planPath`. The agent works in `WORKSPACE` on `BRANCH`,
-stages only its own files, and commits.
+short ordered list. Each task body: what to change, how to verify, and —
+only under a commit policy that commits — a commit step. Planless — no
+`planPath`. The agent works in `WORKSPACE` on `BRANCH`; where the policy
+commits it stages only its own files and commits, otherwise it stages
+nothing and leaves the change in the working tree.
 
 ## Step 2 — land it
 
 Same order as execute-feature's Land step, for the same reasons:
-tree clean → ride-along gate (`CAPTURE-BAR.md` Test 3; depth-1 — a genuine
-second round is another `/cogniva-dev:quick-fix`, which is cheap and the
-whole point of this skill) → `### before-integrate` CLAUDE.md block → ADR
-check
+tree consistent with the commit policy → ride-along gate (`CAPTURE-BAR.md`
+Test 3; depth-1 — a genuine second round is another
+`/cogniva-dev:quick-fix`, which is cheap and the whole point of this skill)
+→ `### before-integrate` CLAUDE.md block → ADR check
 (`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Workspace "<WORKSPACE>" -Since START` ⟦worktree⟧)
+→ `git diff --check` (whitespace errors or conflict markers → fix them,
+respecting the commit policy, and re-run until clean; record the result)
 → GREEN GATE (`.claude/cogniva-dev/green-gate.json`; absent → skip with one
-line) → done ⟦worktree⟧: report the fix in 1–2 sentences.
+line) → done ⟦worktree⟧.
+
+In lean mode "done" IS the handoff: emit it in full per
+`../execute-feature/HANDOFF.md` as the final text of the turn. A short fix
+yields a short handoff — every section still appears, one with nothing to
+report saying `none`. Worktree mode ends by integrating, unchanged.
 
 ## Rules
 
