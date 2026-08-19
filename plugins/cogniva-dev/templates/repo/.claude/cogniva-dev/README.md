@@ -8,6 +8,33 @@ per-clone, personal opt-in: an untracked `.claude/cogniva-dev.local.json`
 containing `{ "worktrees": true }`. Default is lean — skills work directly on
 your checkout. See the plugin's `docs/worktrees.md`.
 
+`.claude/settings.json` carries NO unconditional branch-switch denies: lean is
+the default and those denies block legitimate lean work — primary-checkout
+branch protection is the job of the mode-aware `guard-primary-git` hook, which
+the cogniva-dev plugin registers itself and which allows everything in lean mode.
+
+## Branch policy — `.claude/cogniva-dev/policy.json`
+
+Optional, tracked, and absent by default. It lets a repo require that lean-mode
+work happens on a development branch rather than on `main`:
+
+```json
+{ "requiredDevelopmentBranchPrefix": "feature/" }
+```
+
+Semantics:
+
+- **Lean mode only.** `/cogniva-dev:execute-feature` and `/cogniva-dev:quick-fix`
+  check the current branch against the prefix BEFORE mutating anything. Worktree
+  mode needs no check — its generated branches are `feature/<slug>` by
+  construction.
+- **Stop, never switch.** A branch that does not start with the prefix stops the
+  run with one clear line naming the branch and the required prefix. The skills
+  never create a branch, and never switch to one, to satisfy the policy —
+  choosing the branch stays with the user.
+- **Absent = no policy.** No file, an unreadable file, or a file without
+  `requiredDevelopmentBranchPrefix` means no check and no behaviour change.
+
 ## Green gate config — `.claude/cogniva-dev/green-gate.json`
 
 `/cogniva-dev:execute-feature` and `/cogniva-dev:quick-fix` run a **green gate** in the

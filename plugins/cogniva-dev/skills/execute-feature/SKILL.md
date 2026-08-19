@@ -93,6 +93,15 @@ it); `START` = `git rev-parse HEAD`. If `git status --porcelain` is
 non-empty, show the user what is dirty and get an OK before dispatching —
 the run's commits will land next to their uncommitted work. ⟦worktree⟧
 
+**Branch policy (lean mode only).** BEFORE mutating anything, read
+`.claude/cogniva-dev/policy.json`. If it exists and carries
+`requiredDevelopmentBranchPrefix`, `BRANCH` must start with that prefix.
+Mismatch → STOP with one clear line naming the current branch and the
+required prefix; NEVER create or switch a branch to satisfy the policy —
+which branch to work on is the user's call, not yours. Absent or unreadable
+file, or no such key → no policy, no behaviour change. Worktree mode needs
+no check: its generated branches are `feature/<slug>` by construction.
+
 ## Step 1 — normalize the plan to the task format
 
 Read the plan. If it already has `## Task N:` headings (the PLAN-FORMAT.md

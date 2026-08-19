@@ -26,10 +26,14 @@ Scaffold a new Module-architecture .NET repo. Templates live at
    execution + the `guard-primary-edit` / `guard-primary-git` guards) is a
    per-clone opt-in: an untracked `.claude/cogniva-dev.local.json` containing
    `{ "worktrees": true }`; absent/false/unreadable means lean.
-   `.claude/settings.json` denies primary-checkout branch switches as a
-   node-independent backstop. The `.gitignore` already ignores the AI's scratch
-   dirs (`.explore/`, `.plans-staging/`). (The guards require `node` on PATH;
-   without it they fail open — allow.)
+   `.claude/settings.json` carries no unconditional branch-switch denies —
+   primary-checkout branch protection is the mode-aware `guard-primary-git`
+   hook the plugin registers, which allows everything in lean mode. An optional
+   `.claude/cogniva-dev/policy.json` can require a development-branch prefix in
+   lean mode (see the template README); it is absent by default. The
+   `.gitignore` already ignores the AI's scratch dirs (`.explore/`,
+   `.plans-staging/`). (The guards require `node` on PATH; without it they fail
+   open — allow.)
 4. Copy `templates/glossary/README.md` to `docs/glossary/README.md`.
 5. Create empty dirs: `docs/plans/`, `docs/superpowers/specs/`, `docs/superpowers/plans/`. Drop a `.gitkeep` file in each so git tracks them.
 6. Create the solution and shared build props:

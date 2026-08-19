@@ -41,6 +41,15 @@ clear line and stop, never silently ignore it. quick-fix is planless, so
 = `git rev-parse HEAD`. Dirty tree → show the user what is dirty and get an
 OK before dispatching. ⟦worktree⟧
 
+**Branch policy (lean mode only).** BEFORE mutating anything, read
+`.claude/cogniva-dev/policy.json`. If it exists and carries
+`requiredDevelopmentBranchPrefix`, `BRANCH` must start with that prefix.
+Mismatch → STOP with one clear line naming the current branch and the
+required prefix; NEVER create or switch a branch to satisfy the policy —
+which branch to work on is the user's call, not yours. Absent or unreadable
+file, or no such key → no policy, no behaviour change. Worktree mode needs
+no check: its generated branches are `feature/<slug>` by construction.
+
 ## Step 0.5 — candidate ADRs (confirm BEFORE dispatch)
 
 Most quick-fixes produce none. If scoping surfaces an architectural
