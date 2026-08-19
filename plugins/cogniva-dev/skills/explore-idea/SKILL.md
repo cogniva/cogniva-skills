@@ -35,7 +35,8 @@ further, not to wrap up. This is the whole point of the skill.
   `.explore/<slug>/exploration.md`; fork sub-threads into sibling `<sub-slug>.md`
   files as the conversation branches.
 - `.explore/` is in `.gitignore`, so it is invisible to git: it never appears as
-  an uncommitted change and never blocks the background fast-forward auto-merges.
+  an uncommitted change, so it can never dirty a tree or hold up a run — in
+  worktree mode, that includes the background fast-forward auto-merges.
   Do NOT write exploration docs anywhere tracked.
 - NEVER commit, stage, branch, or create a worktree for this work. Explore-idea
   makes no code edits, so in worktree mode it stays in the primary checkout and
