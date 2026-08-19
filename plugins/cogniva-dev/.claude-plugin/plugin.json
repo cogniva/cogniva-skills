@@ -1,6 +1,6 @@
 {
   "name": "cogniva-dev",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Cogniva's development toolkit: pre-planning idea exploration (explore-idea), human-confirmed architectural decision records with provenance and relitigation weight (adr), deferred work capture and grooming (backlog, groom-backlog), low-involvement work selection (easy-work-scan), repo scaffolding (repo-init, add-module), the feature lifecycle (plan-feature, execute-feature, quick-fix) with optional per-clone isolated-worktree execution and ledger-based cleanup (cleanup-work, cleanup-allwork), Module dependency-graph generation (module-deps), and read-only status roll-ups (feature-status, module-status, repo-status, workflow-status).",
   "author": { "name": "Cogniva" },
   "homepage": "https://github.com/cogniva/cogniva-skills",
