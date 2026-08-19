@@ -61,10 +61,13 @@ const { planPath, statePath, tasks } = _args
 const workspace = _args.workspace ?? _args.worktree
 const branch = _args.branch ?? _args.featureBranch
 const results = []
+// Task numbers restart per sub-plan, so anything identifying a task must use
+// (subplan, n) — the tag qualifies with the subplan where one exists.
+const tagOf = t => t.subplan ? `${t.subplan}/task-${t.n}` : `task-${t.n}`
 
 for (let i = 0; i < tasks.length; i++) {
   const t = tasks[i]
-  const tag = t.subplan ? `${t.subplan}/task-${t.n}` : `task-${t.n}`
+  const tag = tagOf(t)
   if (t.done) { results.push({ n: t.n, subplan: t.subplan, status: 'SKIPPED' }); continue }
 
   const taskPlanPath = t.planPath || planPath
@@ -91,12 +94,12 @@ for (let i = 0; i < tasks.length; i++) {
   results.push({ n: t.n, subplan: t.subplan, ...res })
   log(`${tag} (${t.title}): ${res.status}${res.commitSha ? ' @' + res.commitSha : ''}`)
 
-  if (res.status === 'BLOCKED') { log(`Stopping: task ${t.n} is blocked.`); break }
-  if (t.isGate) { log(`Stopping: task ${t.n} is a manual-validation gate. Validate the app, then re-run to resume.`); break }
+  if (res.status === 'BLOCKED') { log(`Stopping: ${tag} is blocked.`); break }
+  if (t.isGate) { log(`Stopping: ${tag} is a manual-validation gate. Validate the app, then re-run to resume.`); break }
 }
 
-const done = results.filter(r => r.status === 'DONE').map(r => r.n)
+const done = results.filter(r => r.status === 'DONE').map(tagOf)
 const blocked = results.find(r => r.status === 'BLOCKED')
-const gateHit = (() => { const last = results[results.length - 1]; const t = tasks.find(x => x.n === last?.n); return !!(t && t.isGate && last.status === 'DONE') })()
+const gateHit = (() => { const last = results[results.length - 1]; const t = tasks.find(x => x.n === last?.n && x.subplan === last?.subplan); return !!(t && t.isGate && last.status === 'DONE') })()
 const followups = results.flatMap(r => (r.followups || []).map(f => ({ ...f, task: r.n, subplan: r.subplan })))
-return { results, done, blocked: blocked ? blocked.n : null, gateHit, allDone: !blocked && done.length === tasks.filter(t => !t.done).length, followups }
+return { results, done, blocked: blocked ? tagOf(blocked) : null, gateHit, allDone: !blocked && done.length === tasks.filter(t => !t.done).length, followups }
