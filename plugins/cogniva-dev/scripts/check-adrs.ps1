@@ -1,4 +1,17 @@
-# Pre-integration ADR sanity check for a feature / quick-fix worktree.
+# ADR sanity check for a run of execute-feature / quick-fix, in either mode.
+#
+# Two ways to call it, one set of checks:
+#
+#   -Worktree <path> [-TargetBranch <branch>]   worktree mode - the run lives on
+#     its own branch in its own worktree, so "what THIS work added" is
+#     <merge base with the target>..HEAD, and a new ADR number is also checked
+#     against the target branch it is about to be merged into.
+#
+#   -Workspace <path> -Since <commit-ish>       lean mode - the run committed
+#     straight onto the user's own branch in their own checkout, so there is no
+#     target branch to compare against. "What THIS work added" is <Since>..HEAD
+#     (the commit the run started from), and a new ADR number is checked against
+#     the tree as it stood at <Since>.
 #
 # Concrete ADRs are written DURING execution (execute-feature's "ADRs during
 # execution", quick-fix Step 0.5), by task agents that cannot see each other or
@@ -15,14 +28,16 @@
 #      feature, so a reader following one from elsewhere lands on the wrong ADR.
 #
 # Checks (all four run; the script does not stop at the first problem):
-#   A. Every docs/adr/NNNN-*.md number is unique within the worktree.
+#   A. Every docs/adr/NNNN-*.md number is unique in the tree being checked.
 #   B. Every ADR's H1 heading names the same number as its filename - this is
 #      what catches an "# ADR-C4:" title.
-#   C. No line ADDED by this branch introduces a candidate ADR-C<n> label outside
-#      the excluded paths. Pre-existing labels elsewhere in the repo are not this
-#      integration's problem and are deliberately not reported.
-#   D. No ADR number this branch ADDS is already taken on the target branch by a
-#      different file (the parallel-worktree collision, caught pre-merge).
+#   C. No line ADDED by this run introduces a candidate ADR-C<n> label outside
+#      the excluded paths. Labels that were already there before the run are not
+#      this run's problem and are deliberately not reported.
+#   D. No ADR number this run ADDS is already taken by a different file on the
+#      comparison ref - the target branch (worktree mode) or the tree at -Since
+#      (lean mode). That is the parallel-worktree collision, caught before it
+#      lands.
 #
 # Exit: 0 = clean (or nothing to check), 1 = problems found, 2 = usage or
 # environment error. Every path prints why before it exits.
@@ -31,8 +46,14 @@
 # it must exempt itself from its own check C or it can never be integrated.
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string]$Worktree,
+    # Worktree mode.
+    [string]$Worktree,
     [string]$TargetBranch = 'main',
+
+    # Lean mode.
+    [string]$Workspace,
+    [string]$Since,
+
     [string]$AdrDir = 'docs/adr',
     # Paths where a candidate ADR-C label is CORRECT and must not be reported.
     # Plans and design notes are where candidates are supposed to live; the
@@ -63,18 +84,35 @@ function Invoke-Git {
     return [pscustomobject]@{ Code = $code; Lines = $lines }
 }
 
-if (-not (Test-Path -LiteralPath $Worktree -PathType Container)) {
-    Fail "worktree not found: $Worktree"
+# The two modes are separated by hand rather than by a PowerShell parameter set:
+# an unresolvable ParameterSetName exits 1, and 1 is reserved here for "problems
+# found", so a caller could not tell a typo from a real ADR collision. Every
+# usage mistake below exits 2 instead.
+if ($Worktree -and $Workspace)  { Fail "pass either -Worktree (with -TargetBranch) or -Workspace (with -Since), not both." }
+if ($Worktree -and $Since)      { Fail "-Since belongs to -Workspace mode; worktree mode compares against -TargetBranch." }
+if ($Workspace -and -not $Since) { Fail "-Workspace requires -Since <commit-ish> - the commit this run started from." }
+if ($Since -and -not $Workspace) { Fail "-Since requires -Workspace <path>." }
+if (-not $Worktree -and -not $Workspace) {
+    Fail "usage: check-adrs.ps1 -Worktree <path> [-TargetBranch <branch>] | -Workspace <path> -Since <commit-ish>"
 }
 
-$adrFull    = Join-Path $Worktree $AdrDir
+# Everything below works off these three, so the four checks are written once.
+$sinceMode = [bool]$Workspace
+if ($sinceMode) { $root = $Workspace; $rootLabel = 'workspace'; $compareRef = $Since }
+else            { $root = $Worktree;  $rootLabel = 'worktree';  $compareRef = $TargetBranch }
+
+if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+    Fail "$rootLabel not found: $root"
+}
+
+$adrFull    = Join-Path $root $AdrDir
 $adrPresent = Test-Path -LiteralPath $adrFull -PathType Container
 $problems   = @()
 $checked    = @()
 
 # --------------------------------------------------------------- checks A + B
 if (-not $adrPresent) {
-    Write-Output "check-adrs: no $AdrDir/ in this worktree - skipping the number and heading checks (A, B)."
+    Write-Output "check-adrs: no $AdrDir/ in this $rootLabel - skipping the number and heading checks (A, B)."
 } else {
     $adrFiles = @(Get-ChildItem -LiteralPath $adrFull -Filter '*.md' -File | Sort-Object Name)
     if ($adrFiles.Count -eq 0) {
@@ -127,19 +165,29 @@ if (-not $adrPresent) {
 }
 
 # --------------------------------------------------------------- checks C + D
-# Both need the merge base with the target branch. If it does not resolve (fresh
-# repo, unusual target name), say so rather than silently passing.
-$mb = Invoke-Git -C $Worktree merge-base $TargetBranch HEAD
-$mergeBase = ($mb.Lines | Select-Object -First 1)
-if ($mb.Code -ne 0 -or -not $mergeBase) {
-    Write-Output "check-adrs: cannot resolve a merge base between '$TargetBranch' and HEAD - skipping the added-line checks (C, D)."
-    Write-Output "check-adrs: pass -TargetBranch if '$TargetBranch' is not this repo's integration target."
+# Both need a base commit to diff from: the merge base with the target branch in
+# worktree mode, the caller's -Since commit in lean mode. A target branch that
+# does not resolve (fresh repo, unusual name) is tolerated and announced rather
+# than silently passing; a -Since the caller handed us is a usage error.
+$base = ''
+if ($sinceMode) {
+    $rp   = Invoke-Git -C $root rev-parse --verify --quiet "$Since^{commit}"
+    $base = "$($rp.Lines | Select-Object -First 1)".Trim()
+    if ($rp.Code -ne 0 -or -not $base) { Fail "cannot resolve -Since '$Since' in $root" }
 } else {
-    $mergeBase = $mergeBase.Trim()
+    $mb   = Invoke-Git -C $root merge-base $TargetBranch HEAD
+    $base = "$($mb.Lines | Select-Object -First 1)".Trim()
+    if ($mb.Code -ne 0 -or -not $base) {
+        $base = ''
+        Write-Output "check-adrs: cannot resolve a merge base between '$TargetBranch' and HEAD - skipping the added-line checks (C, D)."
+        Write-Output "check-adrs: pass -TargetBranch if '$TargetBranch' is not this repo's integration target."
+    }
+}
 
-    # --- Check C: candidate labels on lines this branch ADDED.
-    $d = Invoke-Git -C $Worktree diff --unified=0 "$mergeBase..HEAD"
-    if ($d.Code -ne 0) { Fail "git diff failed against '$TargetBranch' in $Worktree" }
+if ($base) {
+    # --- Check C: candidate labels on lines this run ADDED.
+    $d = Invoke-Git -C $root diff --unified=0 "$base..HEAD"
+    if ($d.Code -ne 0) { Fail "git diff failed against '$compareRef' in $root" }
     $diff = $d.Lines
 
     # A file that legitimately DISCUSSES candidate labels - this script, its
@@ -151,7 +199,7 @@ if ($mb.Code -ne 0 -or -not $mergeBase) {
     $optOut = @{}
     function Test-OptOut($relPath) {
         if ($optOut.ContainsKey($relPath)) { return $optOut[$relPath] }
-        $full = Join-Path $Worktree $relPath
+        $full = Join-Path $root $relPath
         $val = $false
         if (Test-Path -LiteralPath $full -PathType Leaf) {
             try {
@@ -198,20 +246,19 @@ if ($mb.Code -ne 0 -or -not $mergeBase) {
         $checked += "C: SKIPPED $sf - declares the '$optOutMarker' marker"
     }
 
-    # --- Check D: numbers this branch adds that the target already uses.
-    # --- Check D: numbers this branch adds that the target already uses.
+    # --- Check D: numbers this run adds that the comparison ref already uses.
     # A path-scoped git call returns non-zero when $AdrDir exists in neither
     # tree. That is a repo without ADRs, not a broken environment, so it is
     # announced and skipped rather than treated as a failure.
     if (-not $adrPresent) {
-        Write-Output "check-adrs: no $AdrDir/ in this worktree - skipping the target-collision check (D)."
+        Write-Output "check-adrs: no $AdrDir/ in this $rootLabel - skipping the collision check (D)."
     } else {
-        $a = Invoke-Git -C $Worktree diff --name-only --diff-filter=A "$mergeBase..HEAD" -- $AdrDir
+        $a = Invoke-Git -C $root diff --name-only --diff-filter=A "$base..HEAD" -- $AdrDir
         $added = @()
         if ($a.Code -eq 0) { $added = $a.Lines }
-        else { Write-Output "check-adrs: no ADR paths in the range $TargetBranch..HEAD - treating check D as 'no new ADRs'." }
+        else { Write-Output "check-adrs: no ADR paths in the range $compareRef..HEAD - treating check D as 'no new ADRs'." }
 
-        $t = Invoke-Git -C $Worktree ls-tree -r --name-only $TargetBranch -- $AdrDir
+        $t = Invoke-Git -C $root ls-tree -r --name-only $compareRef -- $AdrDir
         $targetFiles = @()
         if ($t.Code -eq 0) { $targetFiles = $t.Lines }
 
@@ -230,10 +277,10 @@ if ($mb.Code -ne 0 -or -not $mergeBase) {
             $addedCount++
             $num = $m.Groups['n'].Value
             if ($targetByNumber.ContainsKey($num) -and $targetByNumber[$num] -ne $leaf) {
-                $problems += "NUMBER TAKEN     $af collides with $($targetByNumber[$num]) already on '$TargetBranch' - renumber before integrating"
+                $problems += "NUMBER TAKEN     $af collides with $($targetByNumber[$num]) already on '$compareRef' - renumber before it lands"
             }
         }
-        $checked += "D: $addedCount new ADR(s) checked against '$TargetBranch' for an already-taken number"
+        $checked += "D: $addedCount new ADR(s) checked against '$compareRef' for an already-taken number"
     }
 }
 
@@ -247,11 +294,11 @@ if ($problems.Count -gt 0) {
     Write-Output ""
     foreach ($p in $problems) { Write-Output "  $p" }
     Write-Output ""
-    Write-Output "Fix them in the worktree, commit on the feature branch, then re-run this check."
+    Write-Output "Fix them in the $rootLabel, commit, then re-run this check."
     exit 1
 }
 
 Write-Output "check-adrs: clean - ADR numbers are unique, every heading matches its filename,"
 Write-Output "            no new ADR-C candidate labels were introduced, and no new ADR number"
-Write-Output "            collides with '$TargetBranch'."
+Write-Output "            collides with '$compareRef'."
 exit 0
