@@ -8,7 +8,8 @@ export const meta = {
 //   args = {
 //     workspace:     absolute path to the workspace the run happens in — the repo checkout in lean mode,
 //                    the feature worktree in worktree mode (legacy alias: `worktree`, still accepted),
-//     featureBranch: 'feature/<slug>',
+//     branch:        the branch the run commits on — the user's current branch in lean
+//                    mode, 'feature/<slug>' in worktree mode (legacy alias: `featureBranch`),
 //     planPath:      absolute path to the manifest/flat plan .md inside the workspace (FALLBACK tick target),
 //     statePath:     OPTIONAL absolute path to state.md inside the workspace (durable handoff between
 //                    tasks); omit it and no state-log instruction is emitted,
@@ -54,9 +55,11 @@ phase('Execute')
 // object; normalize so destructuring works either way (otherwise this throws
 // "undefined is not an object (evaluating 'tasks.length')").
 const _args = typeof args === 'string' ? JSON.parse(args) : args
-const { featureBranch, planPath, statePath, tasks } = _args
-// `workspace` is the arg name in both modes; `worktree` stays as a legacy alias so older callers work.
+const { planPath, statePath, tasks } = _args
+// `workspace` and `branch` are the arg names in both modes; `worktree` and
+// `featureBranch` stay as legacy aliases so older callers keep working.
 const workspace = _args.workspace ?? _args.worktree
+const branch = _args.branch ?? _args.featureBranch
 const results = []
 
 for (let i = 0; i < tasks.length; i++) {
@@ -68,7 +71,7 @@ for (let i = 0; i < tasks.length; i++) {
   const prompt = [
     `Implement EXACTLY ONE task of a feature plan, then stop. Do not start the next task.`,
     `Your only working directory is: ${workspace}`,
-    `You are already checked out on ${featureBranch}. NEVER run git switch / checkout / branch — work where you are.`,
+    `You are already checked out on ${branch}. NEVER run git switch / checkout / branch — work where you are.`,
     `Use absolute paths under the workspace. Follow the task's steps verbatim, TDD-style:`,
     `write the failing test → run it (confirm it fails) → minimal implementation → run until green → run the task's full verification.`,
     `On success: stage ONLY the files you changed, commit with the task's commit message (keep the repo's commit conventions).`,
