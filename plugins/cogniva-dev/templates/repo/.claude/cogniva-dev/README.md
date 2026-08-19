@@ -1,23 +1,12 @@
-# cogniva-dev opt-in marker
+# cogniva-dev repo config
 
-The **presence of this directory** opts this repository into the `cogniva-dev`
-plugin's **pristine-primary worktree workflow**. The plugin's PreToolUse guards
-(`guard-primary-edit.js`, `guard-primary-git.js`) only enforce in repos where
-`.claude/cogniva-dev/` exists — everywhere else they allow everything.
+This directory holds this repository's TRACKED cogniva-dev configuration —
+today that is `green-gate.json` (below). It is NOT a mode switch.
 
-While opted in, inside this repo's **primary checkout** Claude may not:
-
-- edit files directly — all work happens in a git worktree that fast-forward-merges
-  into your branch (the only directly-editable paths are the gitignored scratch dirs
-  `.explore/**` and `.plans-staging/**`, plus tier-1 backlog capture:
-  `docs/plans/BACKLOG.md` and `docs/plans/<Module>/BACKLOG.md`);
-- `git switch` / `checkout`, or create/delete/move branches.
-
-Feature work runs via `/cogniva-dev:plan-feature`, `/cogniva-dev:execute-feature`,
-and `/cogniva-dev:quick-fix`, which create the worktree, integrate, and mark it
-cleanupable. See the plugin's ADR 0006 (plans live in the worktree).
-
-**To opt out**, delete this directory — the guards then allow everything here again.
+**Worktree mode** (isolated-worktree execution + primary-checkout guards) is a
+per-clone, personal opt-in: an untracked `.claude/cogniva-dev.local.json`
+containing `{ "worktrees": true }`. Default is lean — skills work directly on
+your checkout. See the plugin's `docs/worktrees.md`.
 
 ## Green gate config — `.claude/cogniva-dev/green-gate.json`
 

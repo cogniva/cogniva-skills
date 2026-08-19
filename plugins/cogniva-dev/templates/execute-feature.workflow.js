@@ -4,19 +4,22 @@ export const meta = {
   phases: [{ title: 'Execute' }],
 }
 
-// The execute-feature skill (or any ad-hoc worktree run) parses the plan and invokes Workflow with:
+// The execute-feature skill (or any ad-hoc run) parses the plan and invokes Workflow with:
 //   args = {
-//     worktree:      absolute path to the feature worktree (already checked out on featureBranch),
-//     featureBranch: 'feature/<slug>',
-//     planPath:      absolute path to the manifest/flat plan .md inside the worktree (FALLBACK tick target),
-//     statePath:     absolute path to state.md inside the worktree (durable handoff between tasks),
+//     workspace:     absolute path to the workspace the run happens in — the repo checkout in lean mode,
+//                    the feature worktree in worktree mode (legacy alias: `worktree`, still accepted),
+//     branch:        the branch the run commits on — the user's current branch in lean
+//                    mode, 'feature/<slug>' in worktree mode (legacy alias: `featureBranch`),
+//     planPath:      absolute path to the manifest/flat plan .md inside the workspace (FALLBACK tick target),
+//     statePath:     OPTIONAL absolute path to state.md inside the workspace (durable handoff between
+//                    tasks); omit it and no state-log instruction is emitted,
 //     tasks: [ { n, title, body, isGate, done, planPath?, subplan? } ]  // self-contained task sections, in order
 //   }
 // A flat plan yields tasks with no per-task planPath (they tick the global planPath). A multi-plan feature
 // flattens every sub-plan's tasks, in dependency order, into this ONE array — each task carries its own
 // planPath (its subplans/NN-<slug>.md) and a subplan label. Either way tasks run SEQUENTIALLY in the SAME
-// worktree (each builds on the previous) — do NOT parallelize and do NOT use per-agent isolation:'worktree'.
-// Integration into the user's branch happens ONCE, AFTER this workflow returns, via
+// workspace (each builds on the previous) — do NOT parallelize and do NOT use per-agent isolation:'worktree'.
+// In worktree mode, integration into the user's branch happens ONCE, AFTER this workflow returns, via
 // scripts/integrate-feature.ps1 (kept out of the workflow so git stays deterministic).
 
 const TASK_RESULT = {
@@ -52,7 +55,11 @@ phase('Execute')
 // object; normalize so destructuring works either way (otherwise this throws
 // "undefined is not an object (evaluating 'tasks.length')").
 const _args = typeof args === 'string' ? JSON.parse(args) : args
-const { worktree, featureBranch, planPath, statePath, tasks } = _args
+const { planPath, statePath, tasks } = _args
+// `workspace` and `branch` are the arg names in both modes; `worktree` and
+// `featureBranch` stay as legacy aliases so older callers keep working.
+const workspace = _args.workspace ?? _args.worktree
+const branch = _args.branch ?? _args.featureBranch
 const results = []
 
 for (let i = 0; i < tasks.length; i++) {
@@ -63,13 +70,13 @@ for (let i = 0; i < tasks.length; i++) {
   const taskPlanPath = t.planPath || planPath
   const prompt = [
     `Implement EXACTLY ONE task of a feature plan, then stop. Do not start the next task.`,
-    `Your only working directory is this git worktree: ${worktree}`,
-    `You are already checked out on ${featureBranch}. NEVER run git switch / checkout / branch — work where you are.`,
-    `Use absolute paths under the worktree. Follow the task's steps verbatim, TDD-style:`,
+    `Your only working directory is: ${workspace}`,
+    `You are already checked out on ${branch}. NEVER run git switch / checkout / branch — work where you are.`,
+    `Use absolute paths under the workspace. Follow the task's steps verbatim, TDD-style:`,
     `write the failing test → run it (confirm it fails) → minimal implementation → run until green → run the task's full verification.`,
     `On success: stage ONLY the files you changed, commit with the task's commit message (keep the repo's commit conventions).`,
-    // Planless runs (quick-fix) pass no planPath/statePath — omit these two instructions
-    // entirely rather than interpolating the string "undefined" into the prompt.
+    // planPath and statePath are both OPTIONAL (planless quick-fix runs; plans with no
+    // state.md) — omit the instruction entirely rather than interpolating "undefined".
     taskPlanPath ? `Then edit ${taskPlanPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]".` : null,
     statePath ? `Append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.` : null,
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,

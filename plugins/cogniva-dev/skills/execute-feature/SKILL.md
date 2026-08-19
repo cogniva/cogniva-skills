@@ -1,334 +1,162 @@
 ---
 name: execute-feature
-description: Use to execute a feature plan produced by plan-feature, from a single prompt, with a small model. Runs each task in a fresh subagent (lean context, no manual /clear, no reviewer fan-out) inside an isolated git worktree, then auto-integrates the result into the branch you have checked out. Resumable; stops at manual-validation (⛔) gates. Run several at once — each is isolated.
+description: Use to execute a feature plan from a single prompt — given EITHER a plan name/path OR the full text of a plan pasted straight into the prompt (e.g. copied from another agent). Accepts any plan format — freeform plans are converted to the task format first, so checkbox tracking and resume work for every run. Runs each task in a fresh subagent via a background Workflow; stops at manual-validation (⛔) gates. In worktree mode the run is isolated in a git worktree and auto-integrates into your branch.
 ---
-
-<!-- check-adrs-ignore-file: Step 3.1c cites ADR-C4 as an example. -->
-
 
 # Execute Feature
 
-Execute `docs/plans/<Module>/<Feature>/<Feature>-plan.md` task-by-task. The heavy
-work runs in a background Workflow of one-agent-per-task, so this session stays a
-lean control console — fire another `execute-feature`, or make small ad-hoc edits
-(which auto-isolate into their own worktree), from the same session without
-bloating context.
+Run a feature plan task-by-task via a background Workflow (one agent per
+task); this session is only the control console — relay short status.
 
-Invoke: `/execute-feature <Module>/<Feature>` (or a plan path).
+Invoke with EITHER a reference or the plan itself:
 
-> **MERGE FLOW — read this first:**
-> When all tasks complete the feature is **automatically merged** into the
-> user's checked-out branch, then marked **cleanupable** in the ledger (with a
-> close-out recipe). There is NO pre-merge validation step — the user validates
-> AFTER the merge in their own working tree, then runs `/cleanup-work` to close
-> it out (or `/cleanup-allwork` if this session is gone).
->
-> ⛔ gates are **mid-process checkpoints** (e.g. "confirm the DB migration before
-> writing the code that depends on it") — NOT a pre-merge gate. After the user
-> resolves a gate and re-runs this skill, execution continues and the auto-merge
-> still happens at the end.
+- `/cogniva-dev:execute-feature <Module>/<Feature>` (resolves to
+  `docs/plans/<Module>/<Feature>/<Feature>-plan.md`), or any plan path.
+- `/cogniva-dev:execute-feature <full text of a plan>` — a plan pasted
+  straight into the prompt (copied from another agent, a doc, a chat).
+  Step 0a names it and lands it on disk before anything runs.
 
-`<plugin>` below = this plugin's root (the parent of this `skills/` dir); it holds the `scripts/` and `templates/` these steps reference. `<plugin>` is tooling, not the target: it usually lives in a DIFFERENT checkout (the plugin marketplace repo). The repo being worked on is the one you were invoked from — even when the plan's tasks touch a Claude Code skill or plugin, those files live in the target repo, never under `<plugin>`.
+**Worktree dispatch (check first):** worktree mode is ON iff the target
+repo's `.claude/cogniva-dev.local.json` has `"worktrees": true`. ON → read
+`WORKTREE.md` beside this file NOW; it replaces the steps tagged ⟦worktree⟧.
+OFF → ignore the tags; work on the user's checkout and current branch.
 
-## Step 0 — create / reuse the isolated worktree (Bash, once)
+`<plugin>` = this plugin's root (the parent of `skills/`); it holds
+`scripts/` and `templates/`. It is tooling, not the target — the repo being
+worked on is the one you were invoked from.
 
-1. Confirm a plan exists at `docs/plans/<Module>/<Feature>/<Feature>-plan.md`.
-2. Derive `<slug>` (kebab of `<Feature>`).
-3. Run:
-   `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/new-feature-worktree.ps1" -Slug <slug>`
-   It reads the user's current branch as the integration **target** (never
-   switches it) and prints JSON
-   `{ worktree, branch, base, reused, ahead, behind, resynced, stale, staleReason }`.
-   Capture `worktree` (absolute) and `branch` (`feature/<slug>`).
-3a. **Check `stale` before you parse the plan.** A `reused: true` worktree sits
-   at whatever commit it was created from, which may be far behind the target.
-   This matters more than it sounds: the plan file IN THE WORKTREE can be an
-   older revision than the one you are about to read, so tasks implement a
-   decision the target has already replaced — and nothing downstream notices.
-   - `resynced: true` — it was behind, had no commits of its own, and was
-     fast-forwarded for you. Say so in one line and carry on.
-   - `stale: true` — it is behind AND divergent (or dirty), so the script would
-     not decide for you. STOP. Report `staleReason`, merge the target into the
-     feature branch in the worktree (`git -C "<worktree>" merge <target>`),
-     resolve anything that conflicts, commit, and only then continue. Do NOT
-     parse the plan or dispatch a task first.
-   - Neither set — the worktree is current; proceed.
-   Whatever the outcome, parse the plan FROM THE WORKTREE afterwards, never
-   before, so the line numbers and task text you dispatch are the ones that
-   will actually be executed.
-4. Record `Target branch`, `Worktree`, and `branch` into the worktree's
-   `state.md` if not already present, and set its `Status:` line to
-   `in-progress` (the status skills read this).
+## Step 0a — resolve the argument: plan reference OR pasted plan text
 
-## Step 1 — parse the plan into one ordered task array
+The argument is one of two things. Decide by SHAPE, before anything else:
 
-Work from the plan IN THE WORKTREE. First detect the mode by reading
-`<Feature>-plan.md`:
+- **A reference** — one line, no blank line, no `#` heading: either
+  `<Module>/<Feature>` or a path to a `.md` file. Read that file.
+- **Pasted plan text** — anything multi-line, or carrying markdown
+  headings. A plan authored elsewhere and pasted into the prompt. It has
+  no file and no name yet, so give it both:
+  1. Propose `<Module>/<Feature>` from the text's own H1/Goal — Module
+     from an existing `docs/plans/<Module>/` when one clearly fits, else
+     propose a new one. Show the proposal in ONE line and get an OK: it
+     names a folder and, in worktree mode, a branch, so it is not yours
+     to pick silently.
+  2. Write the text VERBATIM to
+     `docs/plans/<Module>/<Feature>/<Feature>-plan.md`. Never trim,
+     reword, or "improve" it on the way in — Step 1 is where shaping
+     happens, and an intact original is what makes a bad conversion
+     diagnosable afterwards.
+  3. Commit it, then continue exactly as if it had been a reference.
 
-- **Flat plan** (no `## Sub-plans (execution order)` heading): parse its own Task
-  sections, as before.
-- **Multi-plan manifest** (has that heading): read each `subplans/NN-<slug>.md`
-  file **in the listed table order** (the list is already dependency-sorted —
-  listed order IS execution order; do not re-sort) and parse each one's Task
-  sections. Concatenate them into a SINGLE ordered task array. The split is just a
-  bigger chunk of sequential work in the SAME worktree — there is still ONE
-  integration, at the very end (Step 4).
+Never execute pasted text straight from the prompt. Landing it on disk
+first is what gives every later step — normalization, checkboxes, resume,
+the `planPath` each agent ticks — a file to point at. ⟦worktree⟧
 
-Each task object is `{ n, title, body, isGate, done, planPath, subplan }` where
-- `body` = that task's full text (all its `- [ ]` steps, verbatim, self-contained),
-- `isGate` = the heading starts with `⛔`,
-- `done` = every checkbox in the task is already `- [x]` (resume support),
-- `planPath` = absolute path to the file whose checkboxes this task ticks — the
-  manifest/flat plan for a flat plan, or the specific `subplans/NN-<slug>.md` for a
-  multi-plan task,
-- `subplan` = the sub-plan slug (e.g. `01-<slug>`) for multi-plan tasks, omitted for
-  flat plans. Used only for labels/logging.
+## Step 0b — workspace
 
-Task numbers restart per sub-plan; that is fine — tasks are keyed by `(subplan, n)`
-for resume and labels.
+`WORKSPACE` = the repo root; `BRANCH` = the current branch (never switch
+it); `START` = `git rev-parse HEAD`. If `git status --porcelain` is
+non-empty, show the user what is dirty and get an OK before dispatching —
+the run's commits will land next to their uncommitted work. ⟦worktree⟧
 
-## Step 2 — run the Workflow (background, one agent per task)
+## Step 1 — normalize the plan to the task format
 
-Author/run the Workflow from `<plugin>/templates/execute-feature.workflow.js`
-(copy its script; do not rewrite it). Prefer `Workflow({ scriptPath: ... })` over
-inlining. If the launch is rejected for *"script contains control characters"*, the
-template was checked out with CRLF (a pre-fix Windows checkout — `.gitattributes`
-now pins `*.workflow.js` to LF): write an LF copy to the scratchpad
-(`tr -d '\r' < template > scratchpad/execute-feature.workflow.js`) and pass THAT
-`scriptPath`. Then run, passing:
+Read the plan. If it already has `### Task N:` headings (the PLAN-FORMAT.md
+shape), use it as-is. Otherwise CONVERT it: write
+`<same folder>/<basename>.tasks.md` in the task format — coarse,
+SELF-CONTAINED `### Task N:` sections (each carries everything its agent
+needs; agents don't see each other) with `- [ ]` steps and a final commit
+step per task. Derive the tasks faithfully from the document; invent nothing
+it doesn't ask for. Commit the converted file, tell the user in one line,
+and execute THAT file from here on. Conversion is what buys tracking: every
+run — even from a freeform plan — gets checkboxes, so an interrupted run can
+resume.
+
+## Step 2 — parse the (task-format) plan
+
+- **Flat plan** (no `## Sub-plans (execution order)` heading): parse its
+  Task sections.
+- **Multi-plan manifest** (has that heading): read each `subplans/NN-*.md`
+  in the listed table order (already dependency-sorted — listed order IS
+  execution order) and concatenate all Task sections into ONE ordered task
+  array. Still one workspace, one landing at the end.
+
+Each task = `{ n, title, body, isGate, done, planPath, subplan }`: `body` =
+the task's full text verbatim; `isGate` = the heading starts with `⛔`;
+`done` = the task HAS checkboxes AND all are `- [x]` (a task with none is
+NEVER done — do not skip it on resume); `planPath` = the file whose
+checkboxes the task ticks; `subplan` = sub-plan slug (task numbers restart
+per sub-plan — key by `(subplan, n)`).
+
+Resume = re-running this skill: fully-ticked tasks come back `done` and are
+skipped.
+
+## Step 3 — run the Workflow (background)
+
+Run `<plugin>/templates/execute-feature.workflow.js` via
+`Workflow({ scriptPath })`, copied verbatim (CRLF rejection → write an LF
+copy and use that). Pass:
+
 ```
-args = { worktree, featureBranch: "feature/<slug>",
-         planPath:  "<worktree>/docs/plans/<Module>/<Feature>/<Feature>-plan.md",
-         statePath: "<worktree>/docs/plans/<Module>/<Feature>/state.md",
-         tasks: [ ...parsed... ] }
+args = { workspace: WORKSPACE, branch: BRANCH, planPath, tasks }
 ```
-- `planPath` (global) is the FALLBACK file for ticking checkboxes — used for flat
-  plans. For multi-plan, every task carries its own `planPath` (its
-  `subplans/NN-<slug>.md`); the workflow ticks per-task.
-- `statePath` is always the single `state.md` — all tasks append their one-line log
-  there regardless of sub-plan.
 
-Tasks run SEQUENTIALLY in the ONE worktree (each builds on the previous), whether
-they came from one plan or several sub-plans. The workflow stops early on a BLOCKED
-task or after a ⛔ gate, and returns `{ results, done, blocked, gateHit, allDone }`.
+⟦worktree⟧ Tasks run SEQUENTIALLY in the one workspace; each agent flips its
+own task's checkboxes in `planPath`, stages only its own files, and commits
+on `BRANCH`. The workflow stops early on a BLOCKED task or after a ⛔ gate
+and returns `{ results, done, blocked, gateHit, allDone, followups }`.
 
-## Step 3 — on workflow completion
+**Blocked / ⛔ gate:** report which task and why (a ⛔ gate is a MID-RUN
+checkpoint — e.g. "confirm the destructive migration before dependent tasks"
+— not a pre-landing validation). If `followups` is non-empty, run the
+backlog gate; STOP. The user resolves it and re-runs this skill to continue.
+⟦worktree⟧
 
-- **Blocked / gate hit:** set the WORKTREE `state.md` `Status: blocked` (never the
-  primary checkout); report which task and
-  why; STOP. The user resolves / validates the specific gate concern, then re-runs
-  this skill — Step 1 marks finished tasks `done`, sets `Status: in-progress`
-  again, and the workflow resumes (or use the Workflow `resumeFromRunId`). After
-  the gate the workflow continues toward auto-merge; the gate is NOT a signal that
-  the user should validate the whole feature. If the workflow returned any
-  `followups`, run the capture gate below before stopping.
-- **All tasks done.** Run these IN ORDER. The green gate is LAST, immediately
-  before integration, because everything that rides the merge must be verified by
-  it — ride-along work, the repo's `before-integrate` obligations, and any ADR
-  renumbering all land BEFORE the gate, never after it:
+## Step 4 — land (all tasks done — in this order, green gate LAST)
 
-  ```
-  tasks done → tree clean → ride-along gate → before-integrate → ADR check → GREEN GATE → integrate
-  ```
-
-  1. **Commit everything first.** `git -C "<worktree>" status --porcelain` MUST be
-     empty before you go further. The per-task agents commit their own files, but tick
-     edits / state.md / stray files can linger — stage and commit them on the feature
-     branch now. NEVER run the gate against a dirty tree: a green gate over
-     uncommitted changes is a lie (those changes do NOT ride into the merge, so the
-     target can break even though "it passed"). This holds even when the gate runs no
-     commands.
-
-  1a. **Ride-along gate (only when a candidate exists).** Read `CAPTURE-BAR.md` in
-     the `backlog` skill's directory and apply Test 3 to every `clear` candidate in
-     the workflow's `followups`. If NONE passes, skip straight to 1b — the run stays
-     fire-and-forget and its backlog candidates are gated after integration, as
-     always. If at least one passes, STOP here and present the full three-section
-     gate (ride-alongs, then the two backlog tables) as the final text of the turn.
-     One interruption, and it happens now rather than after the merge precisely
-     because the worktree is still open.
-
-     For each ride-along the user confirms: make the change IN THE WORKTREE, on the
-     feature branch, and commit it on its own —
-     `git -C "<worktree>" commit -m "feat(<scope>): <what the ride-along did>"`.
-     Answer any open question they punted with "your call" by picking, proceeding,
-     and saying what you picked. Anything not ridden along is captured to the
-     backlog via `/cogniva-dev:backlog`, on the worktree, exactly as a plain
-     candidate would be.
-
-     Ride-alongs are **depth-1**: this offer happens once per run. Work you just
-     admitted as a ride-along never gets a ride-along gate of its own — anything it
-     surfaces goes into the backlog tables of your final report. Do not weigh
-     whether "just one more" is warranted; the answer is no by construction.
-
-  1b. **Repo obligations (`before-integrate`).** Check the target repo's CLAUDE.md
-     `## Cogniva-dev workflow instructions` for a `### before-integrate` block and
-     honour it on the worktree now, committing anything it produces on the feature
-     branch. Absent → nothing to do. This runs BEFORE the gate so an obligation that
-     writes code is verified like any other change.
-
-  1c. **ADR check (mandatory, BEFORE the gate).** Task agents write
-     concrete ADRs during execution without seeing each other or the target branch,
-     so two things go wrong silently: two parallel worktrees pick the same free
-     number, and a plan's candidate label (`ADR-C4`) gets copied into shipped code
-     or into the ADR's own heading instead of the number it was assigned — and
-     `ADR-C4` means a different decision in every feature. Run:
-     `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Worktree "<worktree>" -TargetBranch "<target>"`
-     It exits 0 clean, 1 with problems listed, 2 on a usage error. On exit 1: fix
-     the named files IN THE WORKTREE, commit on the feature branch, and re-run it
-     until clean — before the green gate, so a renumber that rewrites a code
-     reference is verified rather than shipped unseen. Renumber the ADR (file, heading, and any reference to it)
-     when the number is taken; dereference the candidate label to the assigned
-     number when a heading or a shipped line still cites one. It reports only what
-     THIS branch introduced — pre-existing labels elsewhere in the repo are not
-     this integration's problem and are deliberately not raised. A file that
-     legitimately *discusses* candidate labels (guidance, a glossary entry, a test
-     fixture) exempts itself by containing the literal `check-adrs-ignore-file`;
-     skipped files are named in the report, so the opt-out is never silent. Reach
-     for it only when the label is an example, never to quiet a real citation.
-
-  2. **GREEN GATE — run the repo's configured gate (mandatory, no shortcuts).** This
-     is the LAST step before integration; the tree must be exactly what will merge.
-     Read `<worktree>/.claude/cogniva-dev/green-gate.json`.
-     Schema: `{ "commands": [ { "run": "<shell command>", "label": "<short, optional>",
-     "note": "<optional reasoning, shown in reports>" } ] }`. Run each `commands[].run`
-     IN ORDER, in the worktree. Each must exit 0. The FIRST non-zero exit fails the
-     gate: report the failing command (its `label` if present) and its output, and
-     STOP — do not integrate.
-
-     **The gate's cwd is the worktree root, but do NOT leave your shell parked
-     there.** Shell cwd persists across tool calls, and a live process sitting in
-     the worktree is what makes Windows refuse to delete it at close-out — `git
-     worktree remove` deletes the CONTENTS, fails on the directory, and leaves a
-     gutted husk. So scope the cwd to the gate: `Push-Location "<worktree>"` … run
-     the commands … `Pop-Location` **in the same call**, or run each command as
-     `powershell -NoProfile -Command "Set-Location '<worktree>'; <run>"`. Either
-     way the shell must be back in the primary checkout before Step 4.
-  2a. **No gate file → skip, don't block.** If `green-gate.json` is ABSENT, skip the
-     gate and proceed to Step 4 after emitting exactly ONE line: "No
-     `.claude/cogniva-dev/green-gate.json` in this repo — skipping the build/test
-     gate. Add one to gate future runs (see the opt-in README)." Do NOT prompt, do
-     NOT fall back to any build command. Absence is expected for docs-only or
-     early-stage repos. A present-but-empty `commands: []` means an intentional
-     no-gate — proceed silently. (A .NET Module repo's gate typically runs a
-     whole-solution `dotnet build <RepoName>.slnx` — which catches cross-module test
-     consumers that scoped per-project builds miss — then `dotnet test <RepoName>.slnx`
-     with the suspended UI tests excluded; see the opt-in README for the worked example.)
-
-  2b. **If the gate is red and this run has ride-along commits.** Make ONE repair
-     attempt in the worktree, commit it, and re-run the gate. Still red: `git revert`
-     every ride-along commit (theirs are the only optional ones), commit the reverts,
-     and re-run the gate a third time. Green now → the ride-alongs were the cause;
-     integrate the feature and report plainly: "folded-in <X> failed the gate —
-     reverted and captured to the backlog instead", then capture each reverted item
-     via `/cogniva-dev:backlog`. Still red after the revert → an ordinary pre-existing
-     gate failure; report it and STOP. Optional work approved in passing never holds
-     finished work hostage. The same revert path applies if a ride-along turns out
-     mid-work to be larger than you stated: stop, revert, capture, say what you got
-     wrong — do not design your way out of it.
-
-  3. Only if the gate is GREEN (or skipped/empty) AND the ADR check is clean,
-     integrate (Step 4). With no ride-along commits in play, a red gate is an
-     ordinary failure: report the exact failing command and its output, and STOP.
-
-  For a multi-plan feature this fires only after EVERY sub-plan's tasks are done —
-  there is no per-sub-plan integration. Tick the `## Sub-plans` checklist in the
-  WORKTREE `state.md` for any sub-plan whose tasks are all complete (resume aid; the
-  source of truth is the per-sub-plan checkboxes). All such edits happen in the
-  worktree and ride in on the Step 4 merge — never edit the primary checkout.
-
-## Step 4 — auto-integrate into the user's branch
-
-(`before-integrate` already ran in Step 3.1b, before the gate — do not run it
-again here.)
-
-First, **in the WORKTREE** (NEVER the primary checkout — the guard blocks it and a
-direct primary edit would dirty the shared tree), set `state.md` `Status: integrated`
-and commit it on the feature branch so the merge carries it:
-  edit `<worktree>/docs/plans/<Module>/<Feature>/state.md`, then
-  `git -C "<worktree>" commit -m "docs(<module>): integrate <Feature>" -- <that state.md>`
-
-Then run:
-`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/integrate-feature.ps1" -WorktreePath "<worktree>" -FeatureBranch "feature/<slug>" -TargetBranch "<target>"`
-
-It pre-merges the target into the feature (sandbox), serializes via a lock, and
-**fast-forward LOCAL-pushes** into the target branch (`git push .` — never a
-remote). Interpret the JSON `status`:
-- `INTEGRATED` — done (the `Status: integrated` flip you committed above is now on
-  the branch). Mark the worktree **cleanupable** so it can close itself out later:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/mark-cleanupable.ps1" -Worktree "<worktree>" -Branch "feature/<slug>" -StatePath "<PRIMARY-checkout>/docs/plans/<Module>/<Feature>/state.md" -TargetStatus done -Summary "<one line of what shipped>" -Followups "<deferred items, if any>"`
-  (the `-StatePath` is only a reference cleanup maps INTO the worktree at close-out:
-  the `Status: done` flip is made + committed IN THE WORKTREE and merged in — the
-  primary tree is never written directly.)
-  **The feature is now live on the user's branch.** Tell them: "Merged into your
-  branch. Validate it in your working tree, then run `/cleanup-work` to close out
-  (removes the worktree, sets Status: done). If you close this session first,
-  `/cleanup-allwork` will finish it." Do NOT run `git worktree remove` manually —
-  cleanup-work / cleanup-allwork own that.
-- `QUEUED_DIRTY` — the target tree had uncommitted changes; nothing was clobbered.
-  Tell the user to commit/stash, then re-run `execute-feature` (or a future
-  `integrate`) to land it. Record "Integration: queued" in the WORKTREE `state.md`
-  and commit it there (never edit the primary checkout).
-- `CONFLICT` — a real semantic conflict with work already on the target. Report
-  the worktree path for resolution (human or a one-shot resolve agent); do not
-  force anything.
-- `ERROR` — surface the detail; do not retry blindly.
-
-## Backlog gate — followups from the run
-
-Task agents never write to a `BACKLOG.md`; they return candidates in the workflow
-result's `followups` array. Whenever the workflow returns a non-empty `followups`
-— on a BLOCKED stop, a gate stop, or after a successful integration — run the gate
-in your report, as the last thing you say.
-
-This is the post-integration half of the gate. If a candidate passed Test 3, it was
-already offered as a ride-along in Step 3.1a, while the worktree was open — that
-happens instead of this, not as well as it. On a BLOCKED or ⛔ stop nothing is
-ridden along at all: the run is not finished, so there is no merge to ride.
-
-Read `CAPTURE-BAR.md` in the `backlog` skill's directory. Drop any candidate that
-Test 1 covers (a task still remaining in this run, an open plan folder, an existing
-open item), then present the survivors under `## Backlog candidates` in its two
-tables — `### Clear intent` (numbered; the item and its receipt: which task, and
-the located fact) and `### Needs a decision` (numbering continues; the item, its
-receipt, and one line on why it is ambiguous). Never head a table "Capture
-candidates".
-
-Then ask once, in `CAPTURE-BAR.md`'s words. Write only confirmed candidates, via
-`/cogniva-dev:backlog`. Deliver the tables as the final text of the turn, with no
-tool call after it. Empty `followups`, or nothing surviving the coverage check,
-means say nothing at all — do not print an empty table and do not invent candidates
-to fill one.
+1. **Tree clean** — `git status --porcelain` empty; commit leftovers on
+   `BRANCH`. Never gate a dirty tree: a green gate over uncommitted changes
+   is a lie.
+2. **Ride-along gate** — only when a `clear` followup passes Test 3 of
+   `CAPTURE-BAR.md` (in the `backlog` skill's directory): present the
+   three-section gate, one commit per confirmed ride-along. Depth-1, once
+   per run.
+3. **Repo obligations** — honour any `### before-integrate` block under the
+   target repo CLAUDE.md's `## Cogniva-dev workflow instructions`; commit
+   what it produces.
+4. **ADR check** —
+   `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Workspace "<WORKSPACE>" -Since START` ⟦worktree⟧
+   It flags, in what this run added: an ADR number the repo already uses
+   (renumber the file, heading, and every reference) and a plan-candidate
+   label (`ADR-Cn`) shipped into code or an ADR heading (replace with the
+   assigned number). Exit 1 → fix, commit, re-run until clean.
+5. **Green gate** (mandatory, no shortcuts) — read
+   `.claude/cogniva-dev/green-gate.json`; run its `commands` in order, each
+   must exit 0. First failure → report the command
+   and its output, STOP (the commits stay on `BRANCH`; say so plainly).
+   File absent → one line: "No green-gate.json — skipping the gate." Empty
+   `commands` → intentional, skip silently.
+6. **Done.** ⟦worktree⟧ Report what landed on `BRANCH` in 2–4 sentences,
+   then the backlog gate if `followups` is non-empty.
 
 ## ADRs during execution
 
-Concrete ADRs are written HERE, not by plan-feature. If the plan has a
-`## Candidate ADRs` section, each candidate names the task it's attached to
-("Write with: Task N"). When that task completes, its agent writes the confirmed
-candidate **verbatim** to `docs/adr/NNNN-<slug>.md` — scan `docs/adr/` for the next
-number (see the adr skill's ADR-FORMAT), copy the candidate's title + Provenance +
-Relitigation + body, and commit it with that task's files.
+If the plan carries a `## Candidate ADRs` section ("Write with: Task N"),
+that task's agent materializes the confirmed candidate VERBATIM to
+`docs/adr/NNNN-<slug>.md` — next free number by scanning `docs/adr/` at
+write time, per the adr skill's `ADR-FORMAT.md` — committed with that task's
+files. Never invent, reword, or add ADRs the plan didn't list. Candidate
+labels (`ADR-Cn`) never ship — dereference every mention to the assigned
+number (Step 4.4 enforces this). Existing ADRs are settled — a task that
+can't proceed without reopening one BLOCKS and surfaces it (see `/adr`).
 
-- The ADRs were already human-confirmed during planning. Do NOT invent new ones,
-  reword them, or add ADRs the plan didn't list — just materialize what's there.
-- Rare number collisions (parallel worktrees) are caught by the Step 3.1c ADR check
-  BEFORE the merge — git itself only notices when the two filenames happen to
-  match, so different slugs would otherwise merge cleanly into two ADRs claiming
-  one number. Resolve by renumbering. Don't pre-reserve.
-- The candidate labels (`ADR-C4`) belong to the plan, not the code. When a task
-  materializes one, dereference every reference it writes — the ADR's own heading
-  and any code comment or skill line citing it — to the assigned number. The same
-  Step 3.1c check fails the integration if one survives.
-- Treat the plan's decisions and any existing ADRs as **settled**. If a task truly
-  can't proceed without reopening a documented decision, BLOCK and surface it to the
-  human with the reason — honour the ADR's relitigation weight; never silently change
-  course or re-propose a `Blockers only` / `Compelling reasons only` call.
+## Backlog gate
+
+Never silently write or drop `followups`. Apply `CAPTURE-BAR.md`: drop
+covered items, present survivors under `## Backlog candidates`
+(`### Clear intent` / `### Needs a decision`), ask once, write only
+confirmed items via `/cogniva-dev:backlog`. Empty → say nothing. Deliver the
+tables as the final text of the turn.
 
 ## Rules
 
-- NEVER push to a remote. NEVER `git switch/checkout/branch` in the primary
-  checkout. All task work happens on `feature/<slug>` inside the worktree.
-- No reviewer fan-out — one agent per task. (An end-of-feature review is optional
-  and off by default.)
-- Keep this console lean: the Workflow runs in the background; you only relay
-  short status. Suggest `/clear` only if the console itself grows large.
+- Never push to a remote; never switch the user's branch uninvited.
+- One agent per task; no reviewer fan-out. Keep the console lean.

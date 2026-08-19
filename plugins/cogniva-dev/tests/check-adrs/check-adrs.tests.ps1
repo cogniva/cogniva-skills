@@ -14,11 +14,18 @@ function Check($label, $cond) {
     else { Write-Host "  FAIL  $label"; $script:failures += $label }
 }
 
-function New-Repo($root) {
-    New-Item -ItemType Directory -Path $root -Force | Out-Null
-    & git -C $root init -q -b main 2>$null | Out-Null
+# `git init -b main` needs git 2.28+; setting the unborn HEAD by hand does the
+# same thing on every version, so the suite runs on older git too.
+function Init-Repo($root) {
+    & git -C $root init -q 2>$null | Out-Null
+    & git -C $root symbolic-ref HEAD refs/heads/main 2>$null | Out-Null
     & git -C $root config user.email 'test@example.com' | Out-Null
     & git -C $root config user.name  'Test' | Out-Null
+}
+
+function New-Repo($root) {
+    New-Item -ItemType Directory -Path $root -Force | Out-Null
+    Init-Repo $root
     New-Item -ItemType Directory -Path (Join-Path $root 'docs\adr') -Force | Out-Null
 }
 
@@ -31,17 +38,30 @@ function Commit-All($root, $msg) {
     & git -C $root commit -q -m $msg 2>$null | Out-Null
 }
 
-function Run-Check($root, $extra) {
+function Run-Raw($cliArgs) {
     # Merging the child's stderr into stdout yields ErrorRecords, which the
     # file-level 'Stop' preference would turn into a thrown NativeCommandError
     # before we could inspect the exit code. Relax it just for the invocation.
     $prev = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $out  = & powershell -NoProfile -ExecutionPolicy Bypass -File $script -Worktree $root @extra 2>&1
+        $out  = & powershell -NoProfile -ExecutionPolicy Bypass -File $script @cliArgs 2>&1
         $code = $LASTEXITCODE
     } finally { $ErrorActionPreference = $prev }
     return @{ code = $code; text = (($out | ForEach-Object { $_.ToString() }) -join "`n") }
+}
+
+function Run-Check($root, $extra) { Run-Raw (@('-Worktree', $root) + $extra) }
+
+# Lean mode: no worktree and no target branch, just the commit the run started
+# from - so the examined change set is <Since>..HEAD.
+function Run-Since($root, $since, $extra) { Run-Raw (@('-Workspace', $root, '-Since', $since) + $extra) }
+
+function Head-Sha($root) {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { $sha = & git -C $root rev-parse HEAD 2>$null } finally { $ErrorActionPreference = $prev }
+    return "$($sha | Select-Object -First 1)".Trim()
 }
 
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("ca-test-" + [guid]::NewGuid().ToString('N'))
@@ -166,14 +186,71 @@ try {
     # ------------------------------------------------------- graceful skipping
     $r9 = Join-Path $tmp 'no-adr-dir'
     New-Item -ItemType Directory -Path $r9 -Force | Out-Null
-    & git -C $r9 init -q -b main 2>$null | Out-Null
-    & git -C $r9 config user.email 'test@example.com' | Out-Null
-    & git -C $r9 config user.name  'Test' | Out-Null
+    Init-Repo $r9
     Set-Content -LiteralPath (Join-Path $r9 'README.md') -Value 'hi' -Encoding UTF8
     Commit-All $r9 'base'
     $res = Run-Check $r9 @()
     Check 'exit 0 when the repo has no docs/adr/' ($res.code -eq 0)
     Check 'the skip is announced, not silent' ($res.text -match 'no docs/adr/ in this worktree')
+
+    # ========================================== lean mode: -Workspace / -Since
+    # The lean run has no worktree and no target branch - it commits straight
+    # onto the user's own branch - so "what this run added" is <Since>..HEAD.
+
+    # ------------------------------------------ Since: clean run over the range
+    $s1 = Join-Path $tmp 'since-clean'
+    New-Repo $s1
+    Add-Adr $s1 '0001-first.md' '# ADR-0001: First'
+    New-Item -ItemType Directory -Path (Join-Path $s1 'src') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $s1 'src\old.py') -Value '# legacy ADR-C3 reference' -Encoding UTF8
+    Commit-All $s1 'base with a pre-existing label'
+    $since1 = Head-Sha $s1
+    Add-Adr $s1 '0002-second.md' '# ADR-0002: Second'
+    Commit-All $s1 'the run adds an ADR'
+    $res = Run-Since $s1 $since1 @()
+    Check 'exit 0 - a clean -Since run passes' ($res.code -eq 0)
+    Check 'a label committed before -Since is not this run''s problem' ($res.text -match 'check-adrs: clean')
+    Check 'the report names the since commit it compared against' ($res.text -match [regex]::Escape($since1))
+
+    # -------------------------------- Since: candidate label added after -Since
+    $s2 = Join-Path $tmp 'since-label'
+    New-Repo $s2
+    Add-Adr $s2 '0001-first.md' '# ADR-0001: First'
+    Commit-All $s2 'base'
+    $since2 = Head-Sha $s2
+    New-Item -ItemType Directory -Path (Join-Path $s2 'src') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $s2 'src\thing.py') -Value '# see ADR-C8 for the rule' -Encoding UTF8
+    Commit-All $s2 'the run adds code'
+    $res = Run-Since $s2 $since2 @()
+    Check 'exit 1 when the run adds an ADR-C label after -Since' ($res.code -eq 1)
+    Check 'the citing file and label are reported in -Since mode' (($res.text -match 'CANDIDATE LABEL') -and ($res.text -match 'src/thing.py') -and ($res.text -match 'ADR-C8'))
+
+    # --------------------- Since: a number the repo already used before the run
+    $s3 = Join-Path $tmp 'since-taken'
+    New-Repo $s3
+    Add-Adr $s3 '0002-theirs.md' '# ADR-0002: Theirs'
+    Commit-All $s3 'base'
+    $since3 = Head-Sha $s3
+    Add-Adr $s3 '0002-mine.md' '# ADR-0002: Mine'
+    Commit-All $s3 'the run adds a colliding ADR'
+    $res = Run-Since $s3 $since3 @()
+    Check 'exit 1 when the run reuses a number the repo already had' ($res.code -eq 1)
+    Check 'check D names the pre-run holder in -Since mode' (($res.text -match 'NUMBER TAKEN') -and ($res.text -match '0002-theirs.md'))
+
+    # ------------------------------------ Since: the opt-out marker still works
+    $s4 = Join-Path $tmp 'since-opt-out'
+    New-Repo $s4
+    Add-Adr $s4 '0001-first.md' '# First'
+    Commit-All $s4 'base'
+    $since4 = Head-Sha $s4
+    New-Item -ItemType Directory -Path (Join-Path $s4 'src') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $s4 'src\doc.md') -Encoding UTF8 -Value @(
+        '<!-- check-adrs-ignore-file: explains the convention -->',
+        'A candidate label looks like ADR-C8.')
+    Commit-All $s4 'the run adds a doc that explains the convention'
+    $res = Run-Since $s4 $since4 @()
+    Check 'exit 0 - the ignore marker is honoured in -Since mode' ($res.code -eq 0)
+    Check 'the skipped file is named in -Since mode too' (($res.text -match 'SKIPPED') -and ($res.text -match 'src/doc.md'))
 
     # --------------------------------------------------------- usage / env errors
     $res = Run-Check (Join-Path $tmp 'does-not-exist') @()
@@ -181,6 +258,26 @@ try {
 
     $res = Run-Check $r1 @('-TargetBranch', 'no-such-branch')
     Check 'exit 0 but announced when the target branch does not resolve' (($res.code -eq 0) -and ($res.text -match 'cannot resolve a merge base'))
+
+    $res = Run-Since (Join-Path $tmp 'does-not-exist') $since1 @()
+    Check 'exit 2 when the workspace does not exist' ($res.code -eq 2)
+
+    # -Since is handed over by the caller, so an unresolvable one is a usage
+    # error - not the tolerated "the target branch may not exist yet" case.
+    $res = Run-Since $s1 'no-such-commit' @()
+    Check 'exit 2 when -Since does not resolve' ($res.code -eq 2)
+
+    $res = Run-Raw @()
+    Check 'exit 2 when neither -Worktree nor -Workspace is given' ($res.code -eq 2)
+
+    $res = Run-Raw @('-Workspace', $s1)
+    Check 'exit 2 when -Workspace is given without -Since' ($res.code -eq 2)
+
+    $res = Run-Raw @('-Worktree', $r1, '-Since', 'HEAD')
+    Check 'exit 2 when -Since is given without -Workspace' ($res.code -eq 2)
+
+    $res = Run-Raw @('-Worktree', $r1, '-Workspace', $s1, '-Since', $since1)
+    Check 'exit 2 when the two modes are mixed' ($res.code -eq 2)
 }
 finally {
     # Git marks pack files read-only on Windows; clear it so cleanup succeeds.

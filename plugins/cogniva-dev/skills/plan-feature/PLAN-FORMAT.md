@@ -10,8 +10,8 @@ a fresh subagent context — so **every task must be self-contained**.
 # <Feature> — Feature Plan
 
 > REQUIRED EXECUTOR: /execute-feature <Module>/<Feature>
-> Tasks contain NO git worktree/branch step — execute-feature creates the worktree
-> and the tasks commit on the feature branch they are already on. Never run
+> Tasks contain NO git worktree/branch step — execute-feature sets up the workspace
+> and the tasks commit on the branch they are already on. Never run
 > git switch/checkout/branch inside a task.
 
 **Goal:** <one sentence — what this feature delivers>
@@ -64,7 +64,7 @@ a fresh subagent context — so **every task must be self-contained**.
 - [ ] **Step 2:** Wait for the user to confirm before any later task runs.
 ```
 
-The companion `state.md` (seeded by plan-feature, advanced by execute-feature):
+The companion `state.md` (seeded by plan-feature IN WORKTREE MODE — lean runs have no `state.md` — advanced by execute-feature):
 
 ```markdown
 # <Feature> — execution state
@@ -101,7 +101,7 @@ The manifest `<Feature>-plan.md`:
 
 > REQUIRED EXECUTOR: /execute-feature <Module>/<Feature>
 > Multi-plan feature: the sub-plans below execute IN LISTED ORDER (already
-> dependency-sorted), all in ONE worktree, sequentially, integrating ONCE at the
+> dependency-sorted), all in ONE workspace, sequentially, landing ONCE at the
 > end. Tasks contain NO git worktree/branch step.
 
 **Goal:** <one sentence — the whole feature>
@@ -148,7 +148,7 @@ Integration: not started
 - Exact paths, exact commands, expected outputs. No placeholders.
 - One action per `- [ ]` step (2-5 min).
 - Prefix a task with `⛔` when a human must validate before proceeding.
-- Order tasks so each builds on the previous (they share one worktree, sequentially).
+- Order tasks so each builds on the previous (they share one workspace, sequentially).
 - Multi-plan: list sub-plans in a valid dependency order; the listed order IS the
   execution order. Sub-plans are self-contained too — never "same as sub-plan 01".
 - Candidate ADRs are human-confirmed during planning but written to `docs/adr/` only

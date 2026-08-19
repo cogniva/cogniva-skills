@@ -1,5 +1,11 @@
 # execute-feature — workflow / resume / integration contract
 
+> **Scope (0.6.0):** execute-feature now runs in two modes. "Why a Workflow",
+> the sequencing rules and "State / resume" hold in BOTH. The shared-worktree,
+> integration and target-repo-prerequisite sections describe **worktree mode
+> only** — a lean run commits straight to the branch you are already on, has no
+> `state.md`, and never integrates. See `WORKTREE.md` beside this file.
+
 ## Why a Workflow (not an orchestrator skill)
 The control loop is plain JS → ~0 model tokens, deterministic task order, and
 `resumeFromRunId`. Each task is ONE fresh subagent → lean context per task with no

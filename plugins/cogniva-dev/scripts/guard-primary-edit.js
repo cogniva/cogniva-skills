@@ -1,5 +1,5 @@
 // PreToolUse guard (Write|Edit|NotebookEdit): block ALL direct edits to the
-// PRIMARY checkout of an opted-in repo. Every change Claude makes - code, docs,
+// PRIMARY checkout of a clone running in worktree mode. Every change Claude makes - code, docs,
 // .claude, anything - must happen in a git worktree, which fast-forward-merges
 // into your branch. This keeps the shared primary checkout's tree clean: Claude
 // never lands on your branch except via a worktree merge (see docs/adr/0006).
@@ -13,7 +13,8 @@
 //     (deferred stubs' backlog.md, plans, and state.md remain guarded)
 // ALWAYS ALLOWED:
 //   - any file inside a LINKED worktree (that is where all work belongs)
-//   - any repo that has not opted in (no .claude/cogniva-dev/ marker at its root)
+//   - any clone NOT in worktree mode (no .claude/cogniva-dev.local.json with
+//     worktrees: true at the repo root) - lean mode is the default
 //
 // Contract: only ever DENY a primary-checkout edit; on any uncertainty or
 // error, ALLOW (never hard-fail a tool because of this hook).
@@ -31,6 +32,12 @@ function deny(reason) {
   }));
   process.exit(0);
 }
+// Worktree-mode predicate is shared (scripts/worktree-mode.js) so all hooks
+// read the switch identically. A missing/broken lib degrades to lean mode =>
+// this hook stands down (contract: on any uncertainty, allow).
+let worktreesOn;
+try { ({ worktreesOn } = require(path.join(__dirname, 'worktree-mode.js'))); }
+catch (e) { worktreesOn = () => false; }
 
 let raw = '';
 process.stdin.on('data', d => (raw += d)).on('end', () => {
@@ -58,8 +65,8 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
     // Linked worktree => git-dir (.../worktrees/<name>) differs from common-dir => ALLOW.
     if (path.resolve(gitDir).toLowerCase() !== path.resolve(commonAbs).toLowerCase()) return allow();
 
-    // Opt-in: only enforce in repos wired with the cogniva worktree workflow.
-    if (!fs.existsSync(path.join(topo, '.claude', 'cogniva-dev'))) return allow();
+    // Opt-in: only enforce in clones running in worktree mode.
+    if (!worktreesOn(topo)) return allow();
 
     // We are in the PRIMARY checkout. Allow ONLY gitignored disposable scratch dirs.
     const rel = path.relative(topo, abs).split(path.sep).join('/');

@@ -10,7 +10,8 @@
 // NOTHING unless ALL of the following hold:
 //   1. the edited path is a tier-1 BACKLOG.md (same depth test the guard uses)
 //   2. we are in the PRIMARY checkout (a linked worktree is silent)
-//   3. the repo opted in (.claude/cogniva-dev/ marker at its root)
+//   3. worktree mode is on in this clone (.claude/cogniva-dev.local.json with
+//      worktrees: true at the repo root); lean mode is the default and silent
 //   4. the file is actually dirty (git status --porcelain is non-empty)
 // On any uncertainty or error: exit 0, silently. A hook that chatters on
 // unrelated writes is worse than no hook.
@@ -28,6 +29,12 @@ function nudge(message) {
   }));
   process.exit(0);
 }
+// Worktree-mode predicate is shared (scripts/worktree-mode.js) so all hooks
+// read the switch identically. A missing/broken lib degrades to lean mode =>
+// this hook stands down (contract: on any uncertainty, allow).
+let worktreesOn;
+try { ({ worktreesOn } = require(path.join(__dirname, 'worktree-mode.js'))); }
+catch (e) { worktreesOn = () => false; }
 
 let raw = '';
 process.stdin.on('data', d => (raw += d)).on('end', () => {
@@ -67,8 +74,8 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
     // The capture already rides that worktree's commit - nothing to nudge about.
     if (path.resolve(gitDir).toLowerCase() !== path.resolve(commonAbs).toLowerCase()) return quiet();
 
-    // Opt-in: only nudge in repos wired with the cogniva worktree workflow.
-    if (!fs.existsSync(path.join(topo, '.claude', 'cogniva-dev'))) return quiet();
+    // Opt-in: only nudge in clones running in worktree mode.
+    if (!worktreesOn(topo)) return quiet();
 
     // Only nudge if the file is genuinely uncommitted right now.
     let status;

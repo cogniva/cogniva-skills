@@ -56,7 +56,7 @@ three-section gate. Only what the user confirms is written or done.
    current work, cheaper than doing it later? Passing candidates get a `rideAlong`
    field; the rest stay plain backlog candidates. Hold them all for the gate and do
    not touch any file yet. This skill never *performs* a ride-along — the calling
-   skill does that work in its own worktree — and never offers one from inside work
+   skill does that work in its own workspace — and never offers one from inside work
    that was itself a ride-along (depth-1).
 
 3. **Pick the tier.** A one-liner or small fix → **loose**. A cohesive future
@@ -67,13 +67,15 @@ three-section gate. Only what the user confirms is written or done.
 
 4. **Resolve the write root, then the path.**
 
-   **(a) The write root — which checkout.** Decide this BEFORE the path. If a
-   worktree is open for the current work — skill-initiated capture from
+   **(a) The write root — which workspace.** Decide this BEFORE the path. Every
+   item is written in **your workspace**: the worktree you are working in, when
+   one is active; otherwise the checkout you were invoked from. In worktree mode
+   a worktree is open for the current work — skill-initiated capture from
    `plan-feature`, `execute-feature`, or `quick-fix`, or any session with an open
-   worktree on this repo — the item is written under `<worktree>/docs/plans/...`
-   and rides that worktree's existing commit. It never goes to the primary
-   checkout. Only a **direct** human invocation with no worktree in play writes to
-   the primary.
+   worktree on this repo — so the item is written under
+   `<worktree>/docs/plans/...` and rides that worktree's existing commit; it
+   never goes to the primary checkout. Only a **direct** human invocation with no
+   worktree in play writes to the primary.
 
    **(b) The path — which file.**
    - Belongs to a Module → `docs/plans/<Module>/BACKLOG.md` (loose) or
@@ -99,23 +101,25 @@ three-section gate. Only what the user confirms is written or done.
      the MVP it depends on, and a one-line "expand with /cogniva-dev:plan-feature"
      pointer).
 
-7. **Commit — direct invocation only.** A capture that lands in the primary
-   checkout must not be left dirty: an uncommitted `BACKLOG.md` blocks the next
-   `integrate-feature` run with `QUEUED_DIRTY`. Commit only when all three hold —
-   mode is **direct**, tier is **loose**, and the write landed in the **primary
+7. **Commit — direct invocation only.** A capture that lands in a tracked file
+   must not be left dirty: an uncommitted `BACKLOG.md` leaves the user's tree
+   dirty, and in worktree mode it blocks the next `integrate-feature` run with
+   `QUEUED_DIRTY`. Commit only when both hold — mode is **direct** and tier is
+   **loose** — and, in worktree mode, the write landed in the **primary
    checkout**. Any one false → no commit.
    - **Before appending**, run `git status --porcelain -- <the BACKLOG.md>`. If it
      is already dirty, those are the user's own edits: append, do NOT commit, and
      say plainly in the report that the file had pre-existing uncommitted changes
      and was left for them.
    - Otherwise commit path-scoped:
-     `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/git-commit.ps1" -RepoPath <primary repo root> -Path <the BACKLOG.md> -Message "chore(backlog): <short item text>"`.
+     `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/git-commit.ps1" -RepoPath <the repo root you wrote in> -Path <the BACKLOG.md> -Message "chore(backlog): <short item text>"`.
      Path-scoped is the whole point — it stages that one file and never sweeps up
      the user's other uncommitted work. Report the short SHA the script prints.
-   - **Skill-initiated capture never commits.** Its write is in a worktree and
-     rides the caller's commit; a separate commit here would fragment that.
-   - Tier-2 stubs are unaffected — they were never guard-exempt and are still
-     created inside a worktree.
+   - **Skill-initiated capture never commits.** Its write rides the caller's
+     commit — in worktree mode, inside that worktree; a separate commit here
+     would fragment that.
+   - Tier-2 stubs are unaffected — in worktree mode they were never guard-exempt
+     and are still created inside a worktree.
 
 8. **Report** one line per item: tier, path, and the item text — plus the commit
    SHA when Step 7 committed, or a note that a pre-existing dirty file was left
@@ -139,9 +143,10 @@ the candidate record. Where the gate happens depends on the caller's context:
 - **Non-interactive caller** (an `execute-feature` or `quick-fix` task agent
   inside a background Workflow) — there is nobody to ask. The agent returns
   candidates in its task result's `followups` array and writes nothing; the
-  invoking console applies Test 3 and runs the gate while its worktree is still
-  open. A task agent never proposes a ride-along itself: it cannot know what the
-  console will do next, and its receipt already names the path criterion 1 needs.
+  invoking console applies Test 3 and runs the gate while the work is still open
+  in its workspace. A task agent never proposes a ride-along itself: it cannot
+  know what the console will do next, and its receipt already names the path
+  criterion 1 needs.
 
 ## Rules
 
@@ -159,12 +164,15 @@ the candidate record. Where the gate happens depends on the caller's context:
   quality.
 - Keep it lightweight: one line or one small folder, then stop. This skill never
   writes feature code and never runs subagents.
-- **Routing carries a commit obligation.** A worktree open for the current work →
-  write there; the item reaches the branch via the merge, like everything else. A
-  direct human invocation with no worktree in play → append to the primary's
-  tier-1 `BACKLOG.md` (`docs/plans/BACKLOG.md`, `docs/plans/<Module>/BACKLOG.md`),
-  which is exempt from the primary-edit guard, and then commit it path-scoped
-  yourself (Step 7). The write exemption is not a licence to leave the tree dirty:
-  an exempt append nobody commits blocks the next integrate. Tier-2 stub creation
-  is NOT exempt — create stubs inside a worktree (e.g. while other worktree work is
-  open, or via `/cogniva-dev:quick-fix`).
+- **Routing carries a commit obligation.** Captures land in your workspace — the
+  worktree you are working in, when one is active; otherwise the checkout. A
+  worktree open for the current work → write there; the item reaches the branch
+  via the merge, like everything else. A direct human invocation with no worktree
+  in play → append to the tier-1 `BACKLOG.md` (`docs/plans/BACKLOG.md`,
+  `docs/plans/<Module>/BACKLOG.md`) and then commit it path-scoped yourself
+  (Step 7). In worktree mode those tier-1 files are the ONLY tracked files
+  captured directly in the primary checkout: they are exempt from the
+  primary-edit guard, and the exemption is not a licence to leave the tree dirty
+  — an exempt append nobody commits blocks the next integrate. Tier-2 stub
+  creation is NOT exempt — create stubs inside a worktree (e.g. while other
+  worktree work is open, or via `/cogniva-dev:quick-fix`).

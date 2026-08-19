@@ -35,11 +35,12 @@ further, not to wrap up. This is the whole point of the skill.
   `.explore/<slug>/exploration.md`; fork sub-threads into sibling `<sub-slug>.md`
   files as the conversation branches.
 - `.explore/` is in `.gitignore`, so it is invisible to git: it never appears as
-  an uncommitted change and never blocks the background fast-forward auto-merges.
+  an uncommitted change, so it can never dirty a tree or hold up a run — in
+  worktree mode, that includes the background fast-forward auto-merges.
   Do NOT write exploration docs anywhere tracked.
 - NEVER commit, stage, branch, or create a worktree for this work. Explore-idea
-  makes no code edits, so under the ambient-worktree workflow it stays in the
-  primary checkout and needs no worktree (see the note at the end).
+  makes no code edits, so in worktree mode it stays in the primary checkout and
+  needs no worktree (see the note at the end).
 - Disposable by default: leaving the session loses nothing important and clutters
   nothing. The docs persist on disk for resuming but are never repo content unless
   the user explicitly promotes them.
@@ -130,11 +131,8 @@ Status: exploring   (disposable - gitignored, not a plan)
 - ...
 ```
 
-## Note for the ambient-worktree workflow
+## Note for worktree mode
 
-The worktree+auto-merge default has landed: Claude edits NOTHING in the primary
-checkout except the two gitignored scratch dirs `.explore/**` and `.plans-staging/**`
-(everything else - code, docs, .claude - goes through a worktree, and there are no
-auto-commit hooks). `.explore/` MUST stay on that exempt list: because it is gitignored
-it never touches your branch, and exempting it keeps explore-idea's brainstorm writes
-in the primary instead of forcing them into (and destroying them with) a worktree.
+In worktree mode (`.claude/cogniva-dev.local.json` `"worktrees": true`),
+`.explore/**` stays on the primary checkout's exempt list: it is gitignored,
+so brainstorm writes never touch the branch and need no worktree.
