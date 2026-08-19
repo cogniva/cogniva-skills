@@ -1,9 +1,9 @@
 # LeanWorktreeSplit — execution state
 
-Status: in-progress
+Status: integrated
 Target branch: main
 Worktree: C:\WorkingGit\cogniva-skills-lean-worktree-split
-Integration: not started
+Integration: fast-forward into main
 
 ## Sub-plans
 - [x] 01-SwitchAndHooks
