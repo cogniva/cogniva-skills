@@ -1,6 +1,6 @@
 ---
 name: execute-feature
-description: Use to execute a feature plan from a single prompt. Accepts any plan format — freeform plans are converted to the task format first, so checkbox tracking and resume work for every run. Runs each task in a fresh subagent via a background Workflow; stops at manual-validation (⛔) gates. In worktree mode the run is isolated in a git worktree and auto-integrates into your branch.
+description: Use to execute a feature plan from a single prompt — given EITHER a plan name/path OR the full text of a plan pasted straight into the prompt (e.g. copied from another agent). Accepts any plan format — freeform plans are converted to the task format first, so checkbox tracking and resume work for every run. Runs each task in a fresh subagent via a background Workflow; stops at manual-validation (⛔) gates. In worktree mode the run is isolated in a git worktree and auto-integrates into your branch.
 ---
 
 # Execute Feature
@@ -8,8 +8,13 @@ description: Use to execute a feature plan from a single prompt. Accepts any pla
 Run a feature plan task-by-task via a background Workflow (one agent per
 task); this session is only the control console — relay short status.
 
-Invoke: `/cogniva-dev:execute-feature <Module>/<Feature>` (resolves to
-`docs/plans/<Module>/<Feature>/<Feature>-plan.md`) or any plan path.
+Invoke with EITHER a reference or the plan itself:
+
+- `/cogniva-dev:execute-feature <Module>/<Feature>` (resolves to
+  `docs/plans/<Module>/<Feature>/<Feature>-plan.md`), or any plan path.
+- `/cogniva-dev:execute-feature <full text of a plan>` — a plan pasted
+  straight into the prompt (copied from another agent, a doc, a chat).
+  Step 0a names it and lands it on disk before anything runs.
 
 **Worktree dispatch (check first):** worktree mode is ON iff the target
 repo's `.claude/cogniva-dev.local.json` has `"worktrees": true`. ON → read
@@ -20,7 +25,32 @@ OFF → ignore the tags; work on the user's checkout and current branch.
 `scripts/` and `templates/`. It is tooling, not the target — the repo being
 worked on is the one you were invoked from.
 
-## Step 0 — workspace
+## Step 0a — resolve the argument: plan reference OR pasted plan text
+
+The argument is one of two things. Decide by SHAPE, before anything else:
+
+- **A reference** — one line, no blank line, no `#` heading: either
+  `<Module>/<Feature>` or a path to a `.md` file. Read that file.
+- **Pasted plan text** — anything multi-line, or carrying markdown
+  headings. A plan authored elsewhere and pasted into the prompt. It has
+  no file and no name yet, so give it both:
+  1. Propose `<Module>/<Feature>` from the text's own H1/Goal — Module
+     from an existing `docs/plans/<Module>/` when one clearly fits, else
+     propose a new one. Show the proposal in ONE line and get an OK: it
+     names a folder and, in worktree mode, a branch, so it is not yours
+     to pick silently.
+  2. Write the text VERBATIM to
+     `docs/plans/<Module>/<Feature>/<Feature>-plan.md`. Never trim,
+     reword, or "improve" it on the way in — Step 1 is where shaping
+     happens, and an intact original is what makes a bad conversion
+     diagnosable afterwards.
+  3. Commit it, then continue exactly as if it had been a reference.
+
+Never execute pasted text straight from the prompt. Landing it on disk
+first is what gives every later step — normalization, checkboxes, resume,
+the `planPath` each agent ticks — a file to point at. ⟦worktree⟧
+
+## Step 0b — workspace
 
 `WORKSPACE` = the repo root; `BRANCH` = the current branch (never switch
 it); `START` = `git rev-parse HEAD`. If `git status --porcelain` is

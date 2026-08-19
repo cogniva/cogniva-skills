@@ -5,7 +5,22 @@ Read this ONLY when the target repo's `.claude/cogniva-dev.local.json` has
 Everything here exists so the user's checkout is never touched until one
 clean fast-forward merge at the end.
 
-## Replaces Step 0 — isolated worktree
+## Step 0a in worktree mode — name first, write inside
+
+Step 0a is unchanged for a plan REFERENCE. For PASTED plan text the order
+matters, because `<slug>` comes from `<Feature>` but the file may not be
+written to the primary checkout:
+
+1. Propose and confirm `<Module>/<Feature>` FIRST — the worktree cannot be
+   created before the feature has a name.
+2. Create the worktree (below).
+3. Only THEN write the pasted text to
+   `<WORKSPACE>/docs/plans/<Module>/<Feature>/<Feature>-plan.md` and commit
+   it on the feature branch, so it rides the same merge as the work it
+   drives. Writing it to the primary checkout instead would dirty the
+   user's tree and the guard hooks deny it anyway.
+
+## Replaces Step 0b — isolated worktree
 
 Derive `<slug>` (kebab of `<Feature>`), then:
 `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/new-feature-worktree.ps1" -Slug <slug>`
