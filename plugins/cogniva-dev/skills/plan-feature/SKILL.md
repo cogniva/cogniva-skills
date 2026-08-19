@@ -67,7 +67,7 @@ following `PLAN-FORMAT.md` in this skill's directory (read it). Essentials:
 - Header: **Goal**, **Architecture**, **File structure (locked)**, "Read
   these first", and the line
   `> REQUIRED EXECUTOR: /execute-feature <Module>/<Feature>`.
-- Tasks `### Task N: <title>`, each SELF-CONTAINED (repeat any code it
+- Tasks `## Task N: <title>`, each SELF-CONTAINED (repeat any code it
   needs — never "same as Task 3"), `- [ ]` steps with exact code/commands,
   and a final commit step. Keep tasks COARSE.
 - No ⛔ gates by default — only for a genuinely irreversible mid-run action.

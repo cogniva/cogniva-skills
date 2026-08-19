@@ -59,12 +59,15 @@ the run's commits will land next to their uncommitted work. ⟦worktree⟧
 
 ## Step 1 — normalize the plan to the task format
 
-Read the plan. If it already has `### Task N:` headings (the PLAN-FORMAT.md
+Read the plan. If it already has `## Task N:` headings (the PLAN-FORMAT.md
 shape), use it as-is. Otherwise CONVERT it: write
 `<same folder>/<basename>.tasks.md` in the task format — coarse,
-SELF-CONTAINED `### Task N:` sections (each carries everything its agent
+SELF-CONTAINED `## Task N:` sections (each carries everything its agent
 needs; agents don't see each other) with `- [ ]` steps and a final commit
-step per task. Derive the tasks faithfully from the document; invent nothing
+step per task. Plans carrying old-style `### Task N:` headings are
+normalized to `## Task N:` during this conversion rather than rejected —
+in-flight plans in consuming repos predate this standardization. Derive the
+tasks faithfully from the document; invent nothing
 it doesn't ask for. Commit the converted file, tell the user in one line,
 and execute THAT file from here on. Conversion is what buys tracking: every
 run — even from a freeform plan — gets checkboxes, so an interrupted run can
@@ -72,19 +75,32 @@ resume.
 
 ## Step 2 — parse the (task-format) plan
 
-- **Flat plan** (no `## Sub-plans (execution order)` heading): parse its
-  Task sections.
-- **Multi-plan manifest** (has that heading): read each `subplans/NN-*.md`
-  in the listed table order (already dependency-sorted — listed order IS
-  execution order) and concatenate all Task sections into ONE ordered task
-  array. Still one workspace, one landing at the end.
+Task sections are parsed deterministically by the script, not by hand:
 
-Each task = `{ n, title, body, isGate, done, planPath, subplan }`: `body` =
-the task's full text verbatim; `isGate` = the heading starts with `⛔`;
-`done` = the task HAS checkboxes AND all are `- [x]` (a task with none is
-NEVER done — do not skip it on resume); `planPath` = the file whose
-checkboxes the task ticks; `subplan` = sub-plan slug (task numbers restart
-per sub-plan — key by `(subplan, n)`).
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/parse-plan-tasks.ps1" -PlanPath <plan.md>
+```
+
+It prints to stdout a JSON array of `{ n, title, body, isGate, done }`
+objects in document order (non-zero exit + a stderr message on a missing
+file or a plan with no task headings).
+
+- **Flat plan** (no `## Sub-plans (execution order)` heading): run the
+  parser once on the plan file.
+- **Multi-plan manifest** (has that heading): run the parser once per
+  `subplans/NN-*.md` in the listed table order (already dependency-sorted —
+  listed order IS execution order) and concatenate the arrays into ONE
+  ordered task array. Still one workspace, one landing at the end.
+
+Each task = `{ n, title, body, isGate, done, planPath, subplan }`. The first
+five come straight from the parser output: `n` = the task number; `title` =
+the heading remainder; `body` = the task's full text verbatim; `isGate` =
+the heading starts with `⛔`; `done` = the task HAS checkboxes AND all are
+`- [x]` (the parser ignores example checkboxes inside fenced code blocks; a
+task with none is NEVER done — do not skip it on resume). You assign the two
+the parser does not emit: `planPath` = the file whose checkboxes the task
+ticks (the file the parser was run on); `subplan` = sub-plan slug (task
+numbers restart per sub-plan — key by `(subplan, n)`).
 
 Resume = re-running this skill: fully-ticked tasks come back `done` and are
 skipped.
