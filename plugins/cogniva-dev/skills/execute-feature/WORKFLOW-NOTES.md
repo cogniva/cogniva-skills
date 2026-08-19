@@ -21,7 +21,7 @@ DSL body has top-level `return`/`await`. Verify with an AsyncFunction compile
 instead:
 
 ```
-node -e "new (Object.getPrototypeOf(async function(){}).constructor)(require('fs').readFileSync(process.argv[1],'utf8'))" <file>
+node -e "new (Object.getPrototypeOf(async function(){}).constructor)(require('fs').readFileSync(process.argv[1],'utf8').replace(/^export /gm,''))" <file>
 ```
 
 ## Sequential, one shared worktree
