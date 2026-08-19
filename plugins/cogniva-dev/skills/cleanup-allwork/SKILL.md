@@ -16,6 +16,12 @@ Invoke: `/cleanup-allwork`
 
 `<plugin>` = this plugin's root (the parent of this `skills/` dir).
 
+## Mode check (first)
+
+If the target repo's `.claude/cogniva-dev.local.json` is absent or its
+`"worktrees"` is not `true`, reply "Worktree mode is off in this repo —
+nothing to clean." and STOP.
+
 ## Scope note - surface before running
 
 The primary checkout is **shared by parallel sessions**. This is **checkout-wide**:
