@@ -21,6 +21,12 @@ repo's `.claude/cogniva-dev.local.json` has `"worktrees": true`. ON → read
 `WORKTREE.md` beside this file NOW; it replaces the steps tagged ⟦worktree⟧.
 OFF → ignore the tags; work on the user's checkout and current branch.
 
+**Host dispatch (check second):** if the Workflow tool is not available in
+this session (Codex or any non-Claude host), read CODEX.md beside this file
+NOW — it replaces Step 3 (the Workflow dispatch). Worktree mode requires the
+Claude Workflow runtime; under any other host only lean mode is supported —
+if worktree mode is ON and the Workflow tool is absent, STOP and say so.
+
 `<plugin>` = this plugin's root (the parent of `skills/`); it holds
 `scripts/` and `templates/`. It is tooling, not the target — the repo being
 worked on is the one you were invoked from.
