@@ -1,6 +1,6 @@
 # CodexDualHost — execution state
 
-Status: in-progress
+Status: integrated
 Target branch: feature/lean-worktree-split
 Worktree: C:/WorkingGit/cogniva-skills-codex-dual-host (branch feature/codex-dual-host)
 Integration: not started
