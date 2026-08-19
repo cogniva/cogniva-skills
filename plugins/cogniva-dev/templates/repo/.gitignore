@@ -21,3 +21,6 @@ Thumbs.db
 # primary checkout (never committed, so it cannot dirty your branch)
 .explore/
 .plans-staging/
+
+# cogniva-dev per-clone worktree switch (personal, never committed)
+.claude/cogniva-dev.local.json
