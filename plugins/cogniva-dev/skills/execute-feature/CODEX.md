@@ -56,7 +56,11 @@ changes in the same WORKSPACE. No reviewer fan-out, no parallelism.
 
 ## After the loop
 
-Continue at `SKILL.md` Step 4 exactly as written — the lean path.
+Continue at `SKILL.md` Step 4 exactly as written — the lean path. Its gates
+(tree consistency, ride-alongs, repo obligations, ADR check,
+`git diff --check`, green gate) run here unchanged, and the run finishes the
+same way every lean run does: emit the full `READY FOR REVIEW` handoff per
+`HANDOFF.md` beside this file as the final text of the turn.
 
 ## Resume
 

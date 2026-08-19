@@ -166,7 +166,8 @@ checkpoint — e.g. "confirm the destructive migration before dependent tasks"
 backlog gate; STOP. The user resolves it and re-runs this skill to continue.
 ⟦worktree⟧
 
-## Step 4 — land (all tasks done — in this order, green gate LAST)
+## Step 4 — land (all tasks done — in this order, green gate LAST before
+the handoff)
 
 1. **Tree / workspace consistency** — depends on the commit policy. Under
    `commits=task`: `git status --porcelain` empty; commit leftovers on
@@ -189,14 +190,22 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
    (renumber the file, heading, and every reference) and a plan-candidate
    label (`ADR-Cn`) shipped into code or an ADR heading (replace with the
    assigned number). Exit 1 → fix, commit, re-run until clean.
-5. **Green gate** (mandatory, no shortcuts) — read
+5. **`git diff --check`** — run it. Whitespace errors or conflict markers →
+   fix them (respecting the commit policy: under `commits=task|final` the fix
+   is committed, under `commits=none` it stays in the tree), then re-run until
+   it is clean. Record the result for the handoff. Worktree mode keeps its
+   integration landing (`WORKTREE.md`) — `git diff --check` applies there too,
+   in this same position.
+6. **Green gate** (mandatory, no shortcuts) — read
    `.claude/cogniva-dev/green-gate.json`; run its `commands` in order, each
    must exit 0. First failure → report the command
    and its output, STOP (the commits stay on `BRANCH`; say so plainly).
    File absent → one line: "No green-gate.json — skipping the gate." Empty
    `commands` → intentional, skip silently.
-6. **Done.** ⟦worktree⟧ Report what landed on `BRANCH` in 2–4 sentences,
-   then the backlog gate if `followups` is non-empty.
+7. **Done — the handoff.** ⟦worktree⟧ Emit the full `READY FOR REVIEW`
+   handoff per `HANDOFF.md` beside this file — every section, none dropped —
+   as the final text of the turn, then the backlog gate if `followups` is
+   non-empty.
 
 ## ADRs during execution
 
