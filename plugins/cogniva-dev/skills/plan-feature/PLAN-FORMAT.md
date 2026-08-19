@@ -64,7 +64,7 @@ a fresh subagent context — so **every task must be self-contained**.
 - [ ] **Step 2:** Wait for the user to confirm before any later task runs.
 ```
 
-The companion `state.md` (seeded by plan-feature, advanced by execute-feature):
+The companion `state.md` (seeded by plan-feature IN WORKTREE MODE — lean runs have no `state.md` — advanced by execute-feature):
 
 ```markdown
 # <Feature> — execution state
