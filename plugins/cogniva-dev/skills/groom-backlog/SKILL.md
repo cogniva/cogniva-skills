@@ -53,12 +53,15 @@ it is deliberately lazy-loaded so ordinary sessions never pay for it.
 4. **Apply — only what was confirmed.** Follow the edit mechanics in
    `GROOMING-CRITERIA.md`: tick-and-annotate loose lines, flip stub `state.md`
    statuses, reword items in place where that was the confirmed verdict, and
-   add remainder/merged items via `/cogniva-dev:backlog`. Respect the repo's
-   primary-edit guard: loose `BACKLOG.md` edits are exempt (direct); stub
-   `state.md` edits are NOT — in a guard-opted repo batch them through ONE
+   add remainder/merged items via `/cogniva-dev:backlog`. Grooming edits only
+   `BACKLOG.md` files and plan stubs, and it edits them in your workspace — the
+   worktree you are working in, when one is active; otherwise the checkout. In
+   worktree mode those edits follow the same tier-1 / worktree rules the backlog
+   skill states: loose `BACKLOG.md` edits are exempt from the primary-edit guard
+   (direct); stub `state.md` edits are NOT — batch them through ONE
    `/cogniva-dev:quick-fix`. Report one line per applied verdict.
-   If the directly-edited backlog file(s) are git-tracked in the primary
-   checkout, OFFER to commit them — never auto-commit — suggesting a one-line
+   If the directly-edited backlog file(s) are git-tracked and left uncommitted,
+   OFFER to commit them — never auto-commit — suggesting a one-line
    message, e.g. `chore(backlog): groom <scope> — close N items`.
 
 5. **Deep pass — opt-in only.** If invoked with `deep`, or the user asks after
