@@ -31,6 +31,33 @@ if worktree mode is ON and the Workflow tool is absent, STOP and say so.
 `scripts/` and `templates/`. It is tooling, not the target — the repo being
 worked on is the one you were invoked from.
 
+## Flags
+
+Flags may be passed alongside the plan argument, e.g.
+`/cogniva-dev:execute-feature <Module>/<Feature> commits=final plan=persisted`.
+
+- `commits=none|task|final` — `none`: never stage or commit; the final
+  handoff reports the uncommitted diff. `task`: one checkpoint commit per
+  task; **tick the task's plan checkboxes BEFORE the task commit so the
+  commit SHA represents the completed task state**; checkpoint commits never
+  imply approval. `final`: leave work uncommitted until all tasks and gates
+  pass, then one implementation commit. Any git failure under `task`/`final`
+  → the task stops `BLOCKED` with the git error as the note; no retry loops,
+  no special-casing of specific git errors.
+- `plan=ephemeral|persisted` — `persisted`: current behavior (plan lives
+  under `docs/plans/...`, committed). `ephemeral`: Step 0a writes the pasted
+  plan (and Step 1 any converted `.tasks.md`) under
+  `.plans-staging/<Module>/<Feature>/` instead of `docs/plans/`, NEVER
+  commits it, and first ensures `.plans-staging/` is ignored by appending it
+  to `.git/info/exclude` if absent (untracked, so the repo is never dirtied).
+  Checkbox tracking and resume work identically against the scratch copy; it
+  survives sessions on the same clone but is not tracked — say so in the
+  run's first status line.
+- **Defaults:** lean mode → `commits=none`, `plan=ephemeral`. Worktree mode →
+  `commits=task`, `plan=persisted`, and `commits=none|final` are INVALID
+  there — integration is a fast-forward of commits; reject the combination
+  with one clear line and stop, never silently ignore it.
+
 ## Step 0a — resolve the argument: plan reference OR pasted plan text
 
 The argument is one of two things. Decide by SHAPE, before anything else:
@@ -46,11 +73,14 @@ The argument is one of two things. Decide by SHAPE, before anything else:
      names a folder and, in worktree mode, a branch, so it is not yours
      to pick silently.
   2. Write the text VERBATIM to
-     `docs/plans/<Module>/<Feature>/<Feature>-plan.md`. Never trim,
-     reword, or "improve" it on the way in — Step 1 is where shaping
-     happens, and an intact original is what makes a bad conversion
-     diagnosable afterwards.
-  3. Commit it, then continue exactly as if it had been a reference.
+     `docs/plans/<Module>/<Feature>/<Feature>-plan.md` — or, under
+     `plan=ephemeral`, to
+     `.plans-staging/<Module>/<Feature>/<Feature>-plan.md` (see
+     `## Flags`). Never trim, reword, or "improve" it on the way in —
+     Step 1 is where shaping happens, and an intact original is what
+     makes a bad conversion diagnosable afterwards.
+  3. Commit it (persisted plans only — an ephemeral plan is never
+     committed), then continue exactly as if it had been a reference.
 
 Never execute pasted text straight from the prompt. Landing it on disk
 first is what gives every later step — normalization, checkboxes, resume,
@@ -74,7 +104,9 @@ step per task. Plans carrying old-style `### Task N:` headings are
 normalized to `## Task N:` during this conversion rather than rejected —
 in-flight plans in consuming repos predate this standardization. Derive the
 tasks faithfully from the document; invent nothing
-it doesn't ask for. Commit the converted file, tell the user in one line,
+it doesn't ask for. Commit the converted file (persisted plans only — under
+`plan=ephemeral` it is written beside the scratch plan and never committed),
+tell the user in one line,
 and execute THAT file from here on. Conversion is what buys tracking: every
 run — even from a freeform plan — gets checkboxes, so an interrupted run can
 resume.
@@ -118,12 +150,14 @@ Run `<plugin>/templates/execute-feature.workflow.js` via
 copy and use that). Pass:
 
 ```
-args = { workspace: WORKSPACE, branch: BRANCH, planPath, tasks }
+args = { workspace: WORKSPACE, branch: BRANCH, planPath, tasks, commits }
 ```
 
-⟦worktree⟧ Tasks run SEQUENTIALLY in the one workspace; each agent flips its
-own task's checkboxes in `planPath`, stages only its own files, and commits
-on `BRANCH`. The workflow stops early on a BLOCKED task or after a ⛔ gate
+⟦worktree⟧ `commits` is the resolved commit policy (see `## Flags`). Tasks
+run SEQUENTIALLY in the one workspace; each agent flips its own task's
+checkboxes in `planPath` and then — under `commits=task` only — stages only
+its own files and commits on `BRANCH`; under `none`/`final` it stages and
+commits nothing and leaves the work in the tree. The workflow stops early on a BLOCKED task or after a ⛔ gate
 and returns `{ results, done, blocked, gateHit, allDone, followups }`.
 
 **Blocked / ⛔ gate:** report which task and why (a ⛔ gate is a MID-RUN
@@ -134,9 +168,14 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
 
 ## Step 4 — land (all tasks done — in this order, green gate LAST)
 
-1. **Tree clean** — `git status --porcelain` empty; commit leftovers on
-   `BRANCH`. Never gate a dirty tree: a green gate over uncommitted changes
-   is a lie.
+1. **Tree / workspace consistency** — depends on the commit policy. Under
+   `commits=task`: `git status --porcelain` empty; commit leftovers on
+   `BRANCH`. Under `commits=final`: this is where the ONE implementation
+   commit happens — stage the run's files and commit them on `BRANCH`,
+   leaving the tree empty. Under `commits=none`: stage and commit NOTHING;
+   instead record `git status --porcelain` and `git diff --stat` for the
+   handoff. Whenever the policy commits, never gate a dirty tree: a green
+   gate over uncommitted changes is a lie.
 2. **Ride-along gate** — only when a `clear` followup passes Test 3 of
    `CAPTURE-BAR.md` (in the `backlog` skill's directory): present the
    three-section gate, one commit per confirmed ride-along. Depth-1, once

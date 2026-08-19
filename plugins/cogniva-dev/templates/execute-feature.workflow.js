@@ -13,6 +13,11 @@ export const meta = {
 //     planPath:      absolute path to the manifest/flat plan .md inside the workspace (FALLBACK tick target),
 //     statePath:     OPTIONAL absolute path to state.md inside the workspace (durable handoff between
 //                    tasks); omit it and no state-log instruction is emitted,
+//     commits:       OPTIONAL commit policy — 'none' | 'task' | 'final' (default 'task' for backward
+//                    compatibility). 'task' = one checkpoint commit per task, checkboxes ticked BEFORE
+//                    the commit so the SHA represents the completed task state. 'none' / 'final' = the
+//                    task agent stages and commits nothing and leaves its work in the tree (under
+//                    'final' the ONE implementation commit is made by the console at SKILL.md Step 4),
 //     tasks: [ { n, title, body, isGate, done, planPath?, subplan? } ]  // self-contained task sections, in order
 //   }
 // A flat plan yields tasks with no per-task planPath (they tick the global planPath). A multi-plan feature
@@ -60,6 +65,8 @@ const { planPath, statePath, tasks } = _args
 // `featureBranch` stay as legacy aliases so older callers keep working.
 const workspace = _args.workspace ?? _args.worktree
 const branch = _args.branch ?? _args.featureBranch
+// Commit policy; defaults to 'task' so pre-flag callers behave exactly as before.
+const commits = _args.commits ?? 'task'
 const results = []
 // Task numbers restart per sub-plan, so anything identifying a task must use
 // (subplan, n) — the tag qualifies with the subplan where one exists.
@@ -77,10 +84,19 @@ for (let i = 0; i < tasks.length; i++) {
     `You are already checked out on ${branch}. NEVER run git switch / checkout / branch — work where you are.`,
     `Use absolute paths under the workspace. Follow the task's steps verbatim, TDD-style:`,
     `write the failing test → run it (confirm it fails) → minimal implementation → run until green → run the task's full verification.`,
-    `On success: stage ONLY the files you changed, commit with the task's commit message (keep the repo's commit conventions).`,
-    // planPath and statePath are both OPTIONAL (planless quick-fix runs; plans with no
-    // state.md) — omit the instruction entirely rather than interpolating "undefined".
-    taskPlanPath ? `Then edit ${taskPlanPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]".` : null,
+    // Commit policy. planPath and statePath are both OPTIONAL (planless quick-fix runs;
+    // plans with no state.md) — omit the instruction entirely rather than interpolating
+    // "undefined". Under 'task' the checkboxes are ticked BEFORE the commit, so the SHA
+    // represents the completed task state.
+    ...(commits === 'task'
+      ? [
+          taskPlanPath ? `On success: FIRST edit ${taskPlanPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]".` : null,
+          `Then stage ONLY the files you changed and commit with the task's commit message (keep the repo's commit conventions).`,
+        ]
+      : [
+          `Do NOT stage or commit anything: leave the files you changed in the working tree.`,
+          taskPlanPath ? `On success: edit ${taskPlanPath} to flip THIS task's checkboxes from "- [ ]" to "- [x]".` : null,
+        ]),
     statePath ? `Append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.` : null,
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,
     `NEVER write to any BACKLOG.md. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console gates it with the user. No receipt, no followup.`,
