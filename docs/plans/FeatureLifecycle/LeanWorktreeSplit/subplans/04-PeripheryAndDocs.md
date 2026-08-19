@@ -36,7 +36,7 @@ BACKLOG.md                                           — module-deps -Check capt
 - Modify: `plugins/cogniva-dev/skills/cleanup-work/SKILL.md`
 - Modify: `plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md`
 
-- [ ] **Step 1 (both files):** immediately after each file's H1 heading and
+- [x] **Step 1 (both files):** immediately after each file's H1 heading and
       intro paragraph, insert this block:
 
   ```markdown
@@ -47,7 +47,7 @@ BACKLOG.md                                           — module-deps -Check capt
   nothing to clean." and STOP.
   ```
 
-- [ ] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/cleanup-work/SKILL.md plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md` then
+- [x] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/cleanup-work/SKILL.md plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md` then
       `git commit -m "feat(cogniva-dev): cleanup skills short-circuit when worktrees are off"`
 
 ## Task 2: Mode-neutral wording in backlog, explore-idea, groom-backlog
@@ -57,7 +57,7 @@ BACKLOG.md                                           — module-deps -Check capt
 - Modify: `plugins/cogniva-dev/skills/explore-idea/SKILL.md`
 - Modify: `plugins/cogniva-dev/skills/groom-backlog/SKILL.md`
 
-- [ ] **Step 1 (backlog):** grep `plugins/cogniva-dev/skills/backlog/SKILL.md`
+- [x] **Step 1 (backlog):** grep `plugins/cogniva-dev/skills/backlog/SKILL.md`
       for `worktree` and `primary checkout`. Rewrite each hit mode-neutrally:
       writing happens "in your workspace (the worktree you are working in, when
       one is active; otherwise the checkout)"; keep the tier-1
@@ -65,7 +65,7 @@ BACKLOG.md                                           — module-deps -Check capt
       (`docs/plans/BACKLOG.md`, `docs/plans/<Module>/BACKLOG.md`) are the ONLY
       tracked files captured directly in the primary checkout". Do not change
       any capture-bar semantics.
-- [ ] **Step 2 (explore-idea):** replace the closing section
+- [x] **Step 2 (explore-idea):** replace the closing section
       `## Note for the ambient-worktree workflow` (heading and body) with:
 
   ```markdown
@@ -76,11 +76,11 @@ BACKLOG.md                                           — module-deps -Check capt
   so brainstorm writes never touch the branch and need no worktree.
   ```
 
-- [ ] **Step 3 (groom-backlog):** grep for `worktree`; rewrite each hit
+- [x] **Step 3 (groom-backlog):** grep for `worktree`; rewrite each hit
       mode-neutrally the same way as Step 1 (grooming itself edits only
       `BACKLOG.md` files and plan stubs; in worktree mode those edits follow the
       same tier-1 / worktree rules the backlog skill states).
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md plugins/cogniva-dev/skills/groom-backlog/SKILL.md` then
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/backlog/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md plugins/cogniva-dev/skills/groom-backlog/SKILL.md` then
       `git commit -m "docs(cogniva-dev): mode-neutral wording in backlog, explore-idea, groom-backlog"`
 
 ## Task 3: README, plugin description, backlog capture
@@ -90,7 +90,7 @@ BACKLOG.md                                           — module-deps -Check capt
 - Modify: `plugins/cogniva-dev/.claude-plugin/plugin.json`
 - Modify: `BACKLOG.md` (repo root; create if absent)
 
-- [ ] **Step 1 (README):** in the cogniva-dev section of the repo `README.md`,
+- [x] **Step 1 (README):** in the cogniva-dev section of the repo `README.md`,
       after the pieces table, add one paragraph:
 
   ```markdown
@@ -101,7 +101,7 @@ BACKLOG.md                                           — module-deps -Check capt
   See `plugins/cogniva-dev/docs/worktrees.md`.
   ```
 
-- [ ] **Step 2 (plugin.json):** in
+- [x] **Step 2 (plugin.json):** in
       `plugins/cogniva-dev/.claude-plugin/plugin.json`, update the
       `description`: replace the phrase `with isolated-worktree execution and
       ledger-based cleanup (cleanup-work, cleanup-allwork)` with `with optional
@@ -109,12 +109,12 @@ BACKLOG.md                                           — module-deps -Check capt
       (cleanup-work, cleanup-allwork)`. (Version is NOT bumped in this task —
       the bump is offered at integration per `CLAUDE.md ## Rules`, and it must
       change `plugin.json` and `.claude-plugin/marketplace.json` together.)
-- [ ] **Step 3 (backlog):** append to the repo-root `BACKLOG.md` (create with a
+- [x] **Step 3 (backlog):** append to the repo-root `BACKLOG.md` (create with a
       `# Backlog` heading if absent):
 
   ```markdown
   - [ ] Port a `-Check` gate mode into `module-deps` (report cycles, exit 1, write nothing — CognivaNewRepo's local copy has one to crib from) so completion flows can verify Module dependencies  `size:S` `area:skills` `src:LeanWorktreeSplit`
   ```
 
-- [ ] **Step 4 (commit):** `git add README.md plugins/cogniva-dev/.claude-plugin/plugin.json BACKLOG.md` then
+- [x] **Step 4 (commit):** `git add README.md plugins/cogniva-dev/.claude-plugin/plugin.json BACKLOG.md` then
       `git commit -m "docs: two-mode note in README and plugin description; backlog module-deps -Check"`

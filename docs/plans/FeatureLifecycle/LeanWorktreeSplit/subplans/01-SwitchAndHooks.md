@@ -51,7 +51,7 @@ negotiation.
 - Modify: `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`
 - Create: `docs/adr/NNNN-per-clone-worktree-switch.md` (next free number)
 
-- [ ] **Step 1 (docs page):** create `plugins/cogniva-dev/docs/worktrees.md` with EXACTLY:
+- [x] **Step 1 (docs page):** create `plugins/cogniva-dev/docs/worktrees.md` with EXACTLY:
 
   ```markdown
   # Worktree mode — the per-clone switch
@@ -94,7 +94,7 @@ negotiation.
   the README. A repo can have a green gate without anyone using worktrees.
   ```
 
-- [ ] **Step 2 (gitignore template):** in
+- [x] **Step 2 (gitignore template):** in
       `plugins/cogniva-dev/templates/repo/.gitignore` append:
 
   ```
@@ -102,7 +102,7 @@ negotiation.
   .claude/cogniva-dev.local.json
   ```
 
-- [ ] **Step 3 (README template):** in
+- [x] **Step 3 (README template):** in
       `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`, replace
       the opening section (everything from the `# cogniva-dev opt-in marker`
       heading through the "**To opt out**, delete this directory…" paragraph)
@@ -122,10 +122,10 @@ negotiation.
 
       Keep the `## Green gate config` section unchanged.
 
-- [ ] **Step 4 (write ADR):** scan `docs/adr/` for the next number and write
+- [x] **Step 4 (write ADR):** scan `docs/adr/` for the next number and write
       ADR-C1 verbatim to `docs/adr/NNNN-per-clone-worktree-switch.md` per the adr
       skill's ADR-FORMAT.
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/docs/worktrees.md plugins/cogniva-dev/templates/repo/.gitignore "plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md" docs/adr/` then
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/docs/worktrees.md plugins/cogniva-dev/templates/repo/.gitignore "plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md" docs/adr/` then
       `git commit -m "feat(cogniva-dev): per-clone worktrees switch — docs, templates, ADR"`
 
 ## Task 2: Gate the three hook scripts on the switch
@@ -135,7 +135,7 @@ negotiation.
 - Modify: `plugins/cogniva-dev/scripts/guard-primary-git.js`
 - Modify: `plugins/cogniva-dev/scripts/nudge-backlog-commit.js`
 
-- [ ] **Step 1 (shared predicate):** in EACH of the three scripts, add this
+- [x] **Step 1 (shared predicate):** in EACH of the three scripts, add this
       function after the existing helper functions (each script already
       `require`s `fs` and `path`):
 
@@ -151,16 +151,16 @@ negotiation.
   }
   ```
 
-- [ ] **Step 2 (replace the marker test):** replace the directory-presence test
+- [x] **Step 2 (replace the marker test):** replace the directory-presence test
       in each script:
       - `guard-primary-edit.js`: `if (!fs.existsSync(path.join(topo, '.claude', 'cogniva-dev'))) return allow();`
         → `if (!worktreesOn(topo)) return allow();`
       - `guard-primary-git.js` (line ~56): same replacement, `return allow();`.
       - `nudge-backlog-commit.js` (line ~71): same test → `if (!worktreesOn(topo)) return quiet();`
-- [ ] **Step 3 (header comments):** update each script's header comment: the
+- [x] **Step 3 (header comments):** update each script's header comment: the
       opt-in is now "worktree mode on in this clone
       (`.claude/cogniva-dev.local.json` `worktrees: true`)" instead of "the repo
       opted in (`.claude/cogniva-dev/` marker)".
-- [ ] **Step 4 (syntax check):** `node --check plugins/cogniva-dev/scripts/guard-primary-edit.js && node --check plugins/cogniva-dev/scripts/guard-primary-git.js && node --check plugins/cogniva-dev/scripts/nudge-backlog-commit.js` → no output, exit 0.
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/guard-primary-edit.js plugins/cogniva-dev/scripts/guard-primary-git.js plugins/cogniva-dev/scripts/nudge-backlog-commit.js` then
+- [x] **Step 4 (syntax check):** `node --check plugins/cogniva-dev/scripts/guard-primary-edit.js && node --check plugins/cogniva-dev/scripts/guard-primary-git.js && node --check plugins/cogniva-dev/scripts/nudge-backlog-commit.js` → no output, exit 0.
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/guard-primary-edit.js plugins/cogniva-dev/scripts/guard-primary-git.js plugins/cogniva-dev/scripts/nudge-backlog-commit.js` then
       `git commit -m "feat(cogniva-dev): guard hooks read the per-clone worktrees switch"`

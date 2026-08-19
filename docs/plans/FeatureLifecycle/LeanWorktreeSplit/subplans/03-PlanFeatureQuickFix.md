@@ -36,7 +36,7 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
 - Modify: `plugins/cogniva-dev/skills/plan-feature/SKILL.md` (full replace)
 - Modify: `plugins/cogniva-dev/skills/plan-feature/PLAN-FORMAT.md`
 
-- [ ] **Step 1 (replace the file):** replace the ENTIRE content of
+- [x] **Step 1 (replace the file):** replace the ENTIRE content of
       `plugins/cogniva-dev/skills/plan-feature/SKILL.md` with EXACTLY:
 
   ````markdown
@@ -145,13 +145,13 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
   one feature even when decomposed — sub-plans are an executor detail.
   ````
 
-- [ ] **Step 2 (PLAN-FORMAT note):** in
+- [x] **Step 2 (PLAN-FORMAT note):** in
       `plugins/cogniva-dev/skills/plan-feature/PLAN-FORMAT.md`, find the line
       introducing the companion state file ("The companion `state.md` (seeded by
       plan-feature, advanced by execute-feature):") and replace it with:
       "The companion `state.md` (seeded by plan-feature IN WORKTREE MODE —
       lean runs have no `state.md` — advanced by execute-feature):".
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/skills/plan-feature/PLAN-FORMAT.md` then
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/skills/plan-feature/PLAN-FORMAT.md` then
       `git commit -m "feat(cogniva-dev): lean plan-feature"`
 
 ## Task 2: Create plan-feature WORKTREE.md
@@ -159,7 +159,7 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
 **Files:**
 - Create: `plugins/cogniva-dev/skills/plan-feature/WORKTREE.md`
 
-- [ ] **Step 1 (create the overlay):** create
+- [x] **Step 1 (create the overlay):** create
       `plugins/cogniva-dev/skills/plan-feature/WORKTREE.md` with EXACTLY:
 
   ````markdown
@@ -215,7 +215,7 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
   `CONFLICT` / `ERROR` → report the detail and stop; force nothing.
   ````
 
-- [ ] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/WORKTREE.md` then
+- [x] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/WORKTREE.md` then
       `git commit -m "feat(cogniva-dev): plan-feature worktree overlay"`
 
 ## Task 3: Replace quick-fix SKILL.md
@@ -223,7 +223,7 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
 **Files:**
 - Modify: `plugins/cogniva-dev/skills/quick-fix/SKILL.md` (full replace)
 
-- [ ] **Step 1 (replace the file):** replace the ENTIRE content of
+- [x] **Step 1 (replace the file):** replace the ENTIRE content of
       `plugins/cogniva-dev/skills/quick-fix/SKILL.md` with EXACTLY:
 
   ````markdown
@@ -295,7 +295,7 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
     capture, no gate needed.
   ````
 
-- [ ] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md` then
+- [x] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md` then
       `git commit -m "feat(cogniva-dev): lean quick-fix"`
 
 ## Task 4: Create quick-fix WORKTREE.md
@@ -303,7 +303,7 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
 **Files:**
 - Create: `plugins/cogniva-dev/skills/quick-fix/WORKTREE.md`
 
-- [ ] **Step 1 (create the overlay):** create
+- [x] **Step 1 (create the overlay):** create
       `plugins/cogniva-dev/skills/quick-fix/WORKTREE.md` with EXACTLY:
 
   ```markdown
@@ -343,5 +343,5 @@ plugins/cogniva-dev/skills/quick-fix/WORKTREE.md      — NEW: worktree overlay
       the detail; do not retry blindly.
   ```
 
-- [ ] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/WORKTREE.md` then
+- [x] **Step 2 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/WORKTREE.md` then
       `git commit -m "feat(cogniva-dev): quick-fix worktree overlay"`

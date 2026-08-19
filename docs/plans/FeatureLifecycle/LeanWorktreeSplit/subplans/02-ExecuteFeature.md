@@ -58,7 +58,7 @@ of the skill handles exactly one shape.
 - Modify: `plugins/cogniva-dev/skills/execute-feature/SKILL.md` (full replace)
 - Create: `docs/adr/NNNN-plan-normalization-step.md` (next free number)
 
-- [ ] **Step 1 (replace the file):** replace the ENTIRE content of
+- [x] **Step 1 (replace the file):** replace the ENTIRE content of
       `plugins/cogniva-dev/skills/execute-feature/SKILL.md` with EXACTLY:
 
   ````markdown
@@ -195,10 +195,10 @@ of the skill handles exactly one shape.
   - One agent per task; no reviewer fan-out. Keep the console lean.
   ````
 
-- [ ] **Step 2 (write ADR):** scan `docs/adr/` for the next number and write
+- [x] **Step 2 (write ADR):** scan `docs/adr/` for the next number and write
       ADR-C3 verbatim to `docs/adr/NNNN-plan-normalization-step.md` per the adr
       skill's ADR-FORMAT.
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/SKILL.md docs/adr/` then
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/SKILL.md docs/adr/` then
       `git commit -m "feat(cogniva-dev): lean execute-feature with plan normalization"`
 
 ## Task 2: Create WORKTREE.md
@@ -207,7 +207,7 @@ of the skill handles exactly one shape.
 - Create: `plugins/cogniva-dev/skills/execute-feature/WORKTREE.md`
 - Create: `docs/adr/NNNN-worktree-overlay-pattern.md` (next free number)
 
-- [ ] **Step 1 (create the overlay):** create
+- [x] **Step 1 (create the overlay):** create
       `plugins/cogniva-dev/skills/execute-feature/WORKTREE.md` with EXACTLY:
 
   ```markdown
@@ -281,10 +281,10 @@ of the skill handles exactly one shape.
      detail; do not retry blindly.
   ```
 
-- [ ] **Step 2 (write ADR):** scan `docs/adr/` for the next number and write
+- [x] **Step 2 (write ADR):** scan `docs/adr/` for the next number and write
       ADR-C2 verbatim to `docs/adr/NNNN-worktree-overlay-pattern.md` per the adr
       skill's ADR-FORMAT.
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/WORKTREE.md docs/adr/` then
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/WORKTREE.md docs/adr/` then
       `git commit -m "feat(cogniva-dev): execute-feature worktree overlay"`
 
 ## Task 3: Workflow template — workspace arg + optional statePath
@@ -292,24 +292,24 @@ of the skill handles exactly one shape.
 **Files:**
 - Modify: `plugins/cogniva-dev/templates/execute-feature.workflow.js`
 
-- [ ] **Step 1 (read it):** read the template top-to-bottom before editing; the
+- [x] **Step 1 (read it):** read the template top-to-bottom before editing; the
       steps below name anchors, not line numbers.
-- [ ] **Step 2 (workspace alias):** where the script reads `args.worktree`
+- [x] **Step 2 (workspace alias):** where the script reads `args.worktree`
       (destructuring or direct access), accept both:
       `const workspace = args.workspace ?? args.worktree;` and use `workspace`
       everywhere the worktree path was used. Update the header comment's args
       documentation accordingly (`workspace` primary, `worktree` legacy alias).
-- [ ] **Step 3 (optional statePath):** every instruction the script emits that
+- [x] **Step 3 (optional statePath):** every instruction the script emits that
       references `statePath` (the per-task state-log append) must be emitted
       ONLY when `args.statePath` is set — same pattern the tick instruction
       already uses for `taskPlanPath` (`taskPlanPath ? … : null`). A missing
       `statePath` must produce no state-log instruction and no error.
-- [ ] **Step 4 (tick guard):** confirm the tick instruction is emitted only when
+- [x] **Step 4 (tick guard):** confirm the tick instruction is emitted only when
       the task has a `planPath` (it already is — the `taskPlanPath ? … : null`
       pattern); if any other line assumes `planPath` is always set, guard it the
       same way.
-- [ ] **Step 5 (syntax check):** `node --check plugins/cogniva-dev/templates/execute-feature.workflow.js` → exit 0.
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/templates/execute-feature.workflow.js` then
+- [x] **Step 5 (syntax check):** `node --check plugins/cogniva-dev/templates/execute-feature.workflow.js` → exit 0.
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/templates/execute-feature.workflow.js` then
       `git commit -m "feat(cogniva-dev): workflow template takes workspace arg, statePath optional"`
 
 ## Task 4: check-adrs.ps1 — lean -Workspace/-Since parameter set
@@ -318,9 +318,9 @@ of the skill handles exactly one shape.
 - Modify: `plugins/cogniva-dev/scripts/check-adrs.ps1`
 - Test:   `plugins/cogniva-dev/tests/check-adrs/` (extend the existing suite in its own style)
 
-- [ ] **Step 1 (read it):** read the script and the existing tests under
+- [x] **Step 1 (read it):** read the script and the existing tests under
       `plugins/cogniva-dev/tests/check-adrs/` to match their conventions.
-- [ ] **Step 2 (parameter set):** add a second parameter set alongside the
+- [x] **Step 2 (parameter set):** add a second parameter set alongside the
       existing `-Worktree`/`-TargetBranch` pair: `-Workspace <path>` +
       `-Since <commit-ish>`. In that mode the examined change set is
       `git -C <Workspace> diff --name-only <Since>..HEAD` (plus the same
@@ -329,10 +329,10 @@ of the skill handles exactly one shape.
       (duplicate ADR number vs the rest of the repo at HEAD; leaked `ADR-Cn`
       labels; the `check-adrs-ignore-file` opt-out) run unchanged over that
       set. Exit codes keep their meaning (0 clean / 1 problems / 2 usage).
-- [ ] **Step 3 (tests):** add at least: one case where `-Since` mode flags a
+- [x] **Step 3 (tests):** add at least: one case where `-Since` mode flags a
       duplicate number introduced after the since-commit, one where it flags a
       leaked `ADR-Cn`, and one clean pass. Run the suite the same way the
       existing check-adrs tests are run (see the test folder's runner/README) →
       all green.
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/scripts/check-adrs.ps1 plugins/cogniva-dev/tests/check-adrs/` then
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/scripts/check-adrs.ps1 plugins/cogniva-dev/tests/check-adrs/` then
       `git commit -m "feat(cogniva-dev): check-adrs lean -Workspace/-Since mode"`
