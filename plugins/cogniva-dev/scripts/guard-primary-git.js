@@ -1,11 +1,13 @@
-// PreToolUse guard (Bash): in the PRIMARY checkout of an opted-in repo, block git
+// PreToolUse guard (Bash): in the PRIMARY checkout of a clone running in worktree
+// mode, block git
 // commands that move/create/delete branches (switch, checkout, branch -d/-m/... or
 // create). The shared primary is pinned to the user's branch and shared with parallel
 // sessions; switching or checking out there disrupts their tree. Feature work runs in
 // a git worktree that new-feature-worktree.ps1 creates already on feature/<slug>.
 //
 // ALWAYS ALLOWED: non-branch-moving commands; linked worktrees (Claude's sandbox);
-// repos not opted in (no .claude/cogniva-dev/ marker). Contract: only ever DENY; on
+// clones not in worktree mode (no .claude/cogniva-dev.local.json with worktrees: true)
+// - lean mode is the default. Contract: only ever DENY; on
 // any uncertainty or error, ALLOW (never hard-fail a tool because of this hook).
 const { execSync } = require('child_process');
 const path = require('path');
@@ -20,6 +22,15 @@ function deny(reason) {
     hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason },
   }));
   process.exit(0);
+}
+// Worktree mode is a per-clone opt-in: untracked .claude/cogniva-dev.local.json
+// with {"worktrees": true}. Absent/false/unreadable => lean mode => this hook
+// stands down (contract: on any uncertainty, allow).
+function worktreesOn(topo) {
+  try {
+    const cfg = JSON.parse(fs.readFileSync(path.join(topo, '.claude', 'cogniva-dev.local.json'), 'utf8'));
+    return !!cfg && cfg.worktrees === true;
+  } catch (e) { return false; }
 }
 
 // Branch-moving git ops: switch, checkout (any), and branch create/delete/move/copy.
@@ -52,8 +63,8 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
     // Linked worktree => git-dir differs from common-dir => ALLOW (Claude's sandbox).
     if (path.resolve(gitDir).toLowerCase() !== path.resolve(commonAbs).toLowerCase()) return allow();
 
-    // Opt-in: only enforce in repos wired with the cogniva worktree workflow.
-    if (!fs.existsSync(path.join(topo, '.claude', 'cogniva-dev'))) return allow();
+    // Opt-in: only enforce in clones running in worktree mode.
+    if (!worktreesOn(topo)) return allow();
 
     return deny(
       'Blocked: do not switch/checkout or create/delete/move branches in the shared PRIMARY checkout ' +
