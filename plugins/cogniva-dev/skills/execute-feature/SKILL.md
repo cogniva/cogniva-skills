@@ -36,16 +36,32 @@ worked on is the one you were invoked from.
 Flags may be passed alongside the plan argument, e.g.
 `/cogniva-dev:execute-feature <Module>/<Feature> commits=final plan=persisted`.
 
-- `commits=none|task|final` — `none`: never stage or commit; the final
-  handoff reports the uncommitted diff. `task`: one checkpoint commit per
-  task; **tick the task's plan checkboxes BEFORE the task commit so the
-  commit SHA represents the completed task state**; checkpoint commits never
-  imply approval. `final`: leave work uncommitted until all tasks and gates
-  pass, then one implementation commit. Any git failure under `task`/`final`
+**`commits=` is the SOLE authority over committing.** No later step, other
+flag, ride-along, ADR correction, or repo obligation may create a commit the
+policy forbids. `plan=` decides only where plan state lives and whether it
+is durable — it never authorizes a commit on its own.
+
+- `commits=none|task|final` — `none`: never stage or commit ANYTHING —
+  implementation, plans (even persisted ones), ride-alongs, ADR and
+  whitespace fixes, repo-obligation output all stay uncommitted in the tree;
+  the final handoff reports the uncommitted diff. `task`: one checkpoint
+  commit per task; **tick the task's plan checkboxes BEFORE the task commit
+  so the commit SHA represents the completed task state**; checkpoint
+  commits never imply approval. `final`: leave ALL run-produced changes
+  uncommitted until every task and every landing gate has passed, then
+  exactly ONE implementation commit (Step 4.7) — never an earlier or
+  intermediate one. Any git failure under `task`/`final`
   → the task stops `BLOCKED` with the git error as the note; no retry loops,
   no special-casing of specific git errors.
+- `tasks=one` — execute only the FIRST not-yet-done task, then land (Step 4)
+  and hand off. The handoff names the slice that ran and the tasks remaining
+  — never present the feature as complete while tasks remain. Re-run the
+  skill for the next slice (resume skips ticked tasks). Default: all
+  remaining tasks. Lean mode only — INVALID in worktree mode; reject with
+  one clear line and stop.
 - `plan=ephemeral|persisted` — `persisted`: current behavior (plan lives
-  under `docs/plans/...`, committed). `ephemeral`: Step 0a writes the pasted
+  under `docs/plans/...`, tracked-eligible; committed only where `commits=`
+  allows — see Steps 0a/1). `ephemeral`: Step 0a writes the pasted
   plan (and Step 1 any converted `.tasks.md`) under
   `.plans-staging/<Module>/<Feature>/` instead of `docs/plans/`, NEVER
   commits it, and first ensures `.plans-staging/` is ignored by appending it
@@ -79,8 +95,10 @@ The argument is one of two things. Decide by SHAPE, before anything else:
      `## Flags`). Never trim, reword, or "improve" it on the way in —
      Step 1 is where shaping happens, and an intact original is what
      makes a bad conversion diagnosable afterwards.
-  3. Commit it (persisted plans only — an ephemeral plan is never
-     committed), then continue exactly as if it had been a reference.
+  3. Commit it only under `commits=task` with a persisted plan. Under
+     `commits=none|final` even a persisted plan stays uncommitted (under
+     `final` it rides the one Step 4.7 commit); an ephemeral plan is never
+     committed. Then continue exactly as if it had been a reference.
 
 Never execute pasted text straight from the prompt. Landing it on disk
 first is what gives every later step — normalization, checkboxes, resume,
@@ -113,9 +131,10 @@ step per task. Plans carrying old-style `### Task N:` headings are
 normalized to `## Task N:` during this conversion rather than rejected —
 in-flight plans in consuming repos predate this standardization. Derive the
 tasks faithfully from the document; invent nothing
-it doesn't ask for. Commit the converted file (persisted plans only — under
-`plan=ephemeral` it is written beside the scratch plan and never committed),
-tell the user in one line,
+it doesn't ask for. Commit the converted file only under `commits=task` with
+a persisted plan (under `commits=none|final` it stays uncommitted like
+everything else this run produces; under `plan=ephemeral` it is written
+beside the scratch plan and never committed), tell the user in one line,
 and execute THAT file from here on. Conversion is what buys tracking: every
 run — even from a freeform plan — gets checkboxes, so an interrupted run can
 resume.
@@ -152,6 +171,9 @@ numbers restart per sub-plan — key by `(subplan, n)`).
 Resume = re-running this skill: fully-ticked tasks come back `done` and are
 skipped.
 
+Under `tasks=one`, truncate the ordered array to the FIRST not-`done` task
+before dispatch — both backends. Landing (Step 4) still runs for that slice.
+
 ## Step 3 — run the Workflow (background)
 
 Run `<plugin>/templates/execute-feature.workflow.js` via
@@ -175,46 +197,60 @@ checkpoint — e.g. "confirm the destructive migration before dependent tasks"
 backlog gate; STOP. The user resolves it and re-runs this skill to continue.
 ⟦worktree⟧
 
-## Step 4 — land (all tasks done — in this order, green gate LAST before
-the handoff)
+## Step 4 — land (all dispatched tasks done — in this order; under
+`commits=final` the ONE commit comes AFTER the green gate, never before)
 
 1. **Tree / workspace consistency** — depends on the commit policy. Under
    `commits=task`: `git status --porcelain` empty; commit leftovers on
-   `BRANCH`. Under `commits=final`: this is where the ONE implementation
-   commit happens — stage the run's files and commit them on `BRANCH`,
-   leaving the tree empty. Under `commits=none`: stage and commit NOTHING;
-   instead record `git status --porcelain` and `git diff --stat` for the
-   handoff. Whenever the policy commits, never gate a dirty tree: a green
-   gate over uncommitted changes is a lie.
+   `BRANCH` — never gate a dirty tree there: a green gate over uncommitted
+   changes is a lie. Under `commits=none|final`: stage and commit NOTHING
+   here; record `git status --porcelain` and `git diff --stat` for the
+   handoff — the gates below legitimately run over the uncommitted tree,
+   which IS the artifact under review (and, under `final`, exactly what
+   Step 4.7 commits).
 2. **Ride-along gate** — only when a `clear` followup passes Test 3 of
    `CAPTURE-BAR.md` (in the `backlog` skill's directory): present the
-   three-section gate, one commit per confirmed ride-along. Depth-1, once
-   per run.
+   three-section gate; one commit per confirmed ride-along under
+   `commits=task` ONLY — under `none|final` the ride-along edits stay
+   uncommitted in the tree (under `final` they ride the Step 4.7 commit).
+   Depth-1, once per run.
 3. **Repo obligations** — honour any `### before-integrate` block under the
    target repo CLAUDE.md's `## Cogniva-dev workflow instructions`; commit
-   what it produces.
+   what it produces under `commits=task` only, otherwise its output stays in
+   the tree. Under Codex, honour only the substantive gate such a block
+   expresses — see the CLAUDE.md-inheritance rule in `CODEX.md`; a repo
+   block never re-enables committing, worktrees, or integration that the
+   active policy forbids.
 4. **ADR check** —
    `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Workspace "<WORKSPACE>" -Since START` ⟦worktree⟧
    It flags, in what this run added: an ADR number the repo already uses
    (renumber the file, heading, and every reference) and a plan-candidate
    label (`ADR-Cn`) shipped into code or an ADR heading (replace with the
-   assigned number). Exit 1 → fix, commit, re-run until clean.
+   assigned number). Exit 1 → fix and re-run until clean; commit the fix
+   under `commits=task` only.
 5. **`git diff --check`** — run it. Whitespace errors or conflict markers →
-   fix them (respecting the commit policy: under `commits=task|final` the fix
-   is committed, under `commits=none` it stays in the tree), then re-run until
+   fix them (respecting the commit policy: under `commits=task` the fix is
+   committed, under `none|final` it stays in the tree), then re-run until
    it is clean. Record the result for the handoff. Worktree mode keeps its
    integration landing (`WORKTREE.md`) — `git diff --check` applies there too,
    in this same position.
 6. **Green gate** (mandatory, no shortcuts) — read
    `.claude/cogniva-dev/green-gate.json`; run its `commands` in order, each
-   must exit 0. First failure → report the command
-   and its output, STOP (the commits stay on `BRANCH`; say so plainly).
-   File absent → one line: "No green-gate.json — skipping the gate." Empty
-   `commands` → intentional, skip silently.
-7. **Done — the handoff.** ⟦worktree⟧ Emit the full `READY FOR REVIEW`
+   must exit 0. First failure → report the command and its output, STOP —
+   under `commits=task` the checkpoint commits stay on `BRANCH`; under
+   `final` NO commit is made and the work stays uncommitted in the tree; say
+   which plainly. File absent → one line: "No green-gate.json — skipping the
+   gate." Empty `commands` → intentional, skip silently.
+7. **The `commits=final` commit** (that policy only) — every gate above is
+   green: NOW stage the run's produced files (implementation, plan when
+   persisted, ride-alongs, ADR/whitespace/obligation output) and create
+   exactly ONE commit on `BRANCH`. A git failure → report it as `BLOCKED`
+   with the git error; no retry loops. The handoff reports this SHA.
+8. **Done — the handoff.** ⟦worktree⟧ Emit the full `READY FOR REVIEW`
    handoff per `HANDOFF.md` beside this file — every section, none dropped —
    as the final text of the turn, then the backlog gate if `followups` is
-   non-empty.
+   non-empty. Under `tasks=one` the handoff covers the executed slice and
+   lists the tasks remaining.
 
 ## ADRs during execution
 
@@ -222,7 +258,9 @@ If the plan carries a `## Candidate ADRs` section ("Write with: Task N"),
 that task's agent materializes the confirmed candidate VERBATIM to
 `docs/adr/NNNN-<slug>.md` — next free number by scanning `docs/adr/` at
 write time, per the adr skill's `ADR-FORMAT.md` — committed with that task's
-files. Never invent, reword, or add ADRs the plan didn't list. Candidate
+files under `commits=task`; under `none|final` it stays in the tree like
+every other run-produced file. Never invent, reword, or add ADRs the plan
+didn't list. Candidate
 labels (`ADR-Cn`) never ship — dereference every mention to the assigned
 number (Step 4.4 enforces this). Existing ADRs are settled — a task that
 can't proceed without reopening one BLOCKS and surfaces it (see `/adr`).

@@ -11,6 +11,16 @@ host — only the executor backend differs, and only where it has to.
   (Codex) side by side. Both point at the same `plugins/cogniva-dev/skills/`
   directory; the Codex manifest does it explicitly with `"skills": "./skills/"`,
   a plugin-root-relative path.
+- **Verified against OpenAI's docs (2026-08-19).** The manifest location
+  (`.codex-plugin/plugin.json`), the `"skills": "./skills/"` key with
+  `./`-prefixed plugin-root-relative paths, marketplace-based install, the
+  Codex CLI `/plugins` browser, and new-session skill visibility all match the
+  official plugin docs: https://developers.openai.com/codex/plugins/build and
+  https://learn.chatgpt.com/docs/build-plugins (the canonical docs domain the
+  former redirects to). Two refinements from those docs: marketplaces can also
+  be registered non-interactively with `codex plugin marketplace add
+  <owner/repo | ./path>`, and loose `.agents/skills` skills hot-reload while
+  plugin-bundled skills need a fresh session.
 - **Never duplicate skill content per host.** There is no `skills-codex/` and
   never will be. Host-specific behaviour lives in an *overlay* file beside the
   skill it modifies (for example `execute-feature/CODEX.md`), which the skill
@@ -69,17 +79,60 @@ Under Codex, runs are **lean mode** — work happens directly on the branch you
 already have checked out.
 
 - **Defaults:** `commits=none` and `plan=ephemeral`.
+- **`commits=` is the sole commit authority.** Under `commits=none` the run
+  commits NOTHING — implementation, plans (even persisted ones), ride-alongs,
+  ADR fixes, and repo-obligation output all stay uncommitted in the tree.
+  Under `commits=final` the run makes exactly ONE commit, only after every
+  landing gate (including the green gate) has passed. No plan flag, repo
+  CLAUDE.md block, or later step overrides this.
 - **No integration, no push.** A lean run never merges into another branch and
   never touches a remote.
+- **Single-slice execution.** `execute-feature ... tasks=one` runs the next
+  not-done task, lands it, and hands off listing the tasks remaining — the
+  low-autonomy, review-per-slice option. Whole-plan execution stays the
+  default and the explicitly higher-autonomy choice.
+- **`plan-feature` does not commit by default.** In lean mode the generated
+  plan folder is left uncommitted for the user to review; committing it is
+  opt-in (`commits=final`). Worktree mode is unchanged.
 - **`READY FOR REVIEW` finish.** The run ends by emitting the detailed handoff
   defined in `skills/execute-feature/HANDOFF.md` — what changed, what was
   checked, what was skipped, what is still dirty. `READY FOR REVIEW` means the
-  implementation is complete on this branch; it does not mean approved,
-  integrated, or ready to push.
+  executed scope (the whole feature, or the completed slice under `tasks=one`)
+  is complete on this branch; it does not mean approved, integrated, or ready
+  to push.
 - **Worktree mode is Claude-only and unchanged.** It requires the Workflow
   runtime, keeps mandatory per-task commits and persisted plans, and integrates
   by fast-forward. If worktree mode is on and the Workflow tool is absent, the
   skill stops and says so rather than degrading silently.
+
+## Repository CLAUDE.md under Codex
+
+A target repo's CLAUDE.md stays authoritative for **substantive constraints**:
+safety rules, architecture/dependency boundaries, domain invariants,
+data-integrity rules, UI constraints, diagnostics requirements, testing
+restrictions, review-blocking requirements, and ADR/documentation rules that
+constrain what is safe or valid.
+
+**Claude-specific operating mechanics are NOT inherited** merely because
+CLAUDE.md describes them: Workflow-runtime mechanics, worktree
+creation/integration conventions, Claude-specific hooks or control-console
+behaviour, automatic staging/committing, branch/worktree lifecycle machinery,
+and Claude-specific model/tool preferences. A `### before-integrate` block that
+expresses a substantive repository gate is honoured as a gate; the Claude
+lifecycle mechanics around it (commits, worktrees, integration) are not
+imported — and nothing in a repo's CLAUDE.md ever overrides `commits=`.
+The full rule lives in `skills/execute-feature/CODEX.md`.
+
+## Lifecycle skills are explicit-invocation-only under Codex
+
+The presence of a skill never authorizes a lifecycle operation. Under Codex,
+mutation and lifecycle skills — `plan-feature`, `execute-feature`, `quick-fix`,
+ADR writes, backlog writes, cleanup/integration operations, and any branch or
+worktree operation — run only on explicit user invocation or unambiguous user
+intent, never auto-selected because a task description resembles a skill
+description. Read-only status and diagnostic skills (`feature-status`,
+`module-status`, `repo-status`, `workflow-status`) may still be selected
+automatically when appropriate.
 
 ## Resume under Codex
 

@@ -86,8 +86,17 @@ Promotion: if this plan fulfills a backlog item, tick its line and append
 `→ planned: <Module>/<Feature>`; a stub folder gets the plan written into
 it.
 
-Then commit the plan folder as ONE commit — honour any `### before-integrate`
-CLAUDE.md block first so its output rides along:
+Then land the plan by commit policy. plan-feature reuses execute-feature's
+`commits=` vocabulary; only `none|final` apply here (there is at most ONE
+commit to make). Honour any `### before-integrate` CLAUDE.md block first so
+its output lands with the plan (under Codex honour only the block's
+substantive gate — see `../execute-feature/CODEX.md`):
+
+- **Lean mode default: `commits=none`** — leave the plan folder (and the
+  before-integrate output) UNCOMMITTED so the user can review the plan
+  first; say so in one line. Never stage or commit on your own.
+- **Explicit `commits=final` (opt-in), and worktree mode (unchanged):**
+  commit the plan folder as ONE commit:
 
 ```bash
 git add -- "docs/plans/<Module>/<Feature>"
@@ -102,4 +111,6 @@ The user does not read or approve the plan — it is executor input. End with
 downstream consequence in one clause), then the plan path and "Run
 `/execute-feature <Module>/<Feature>` when ready." Exclude anything already
 discussed, defaults, step lists, file inventories, and UI tweaks. Present
-one feature even when decomposed — sub-plans are an executor detail.
+one feature even when decomposed — sub-plans are an executor detail. Under
+the lean `commits=none` default, also state that the plan is uncommitted
+awaiting review.

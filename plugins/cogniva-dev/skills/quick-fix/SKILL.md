@@ -20,6 +20,9 @@ work directly on the user's checkout and current branch.
 this session (Codex or any non-Claude host), read
 `../execute-feature/CODEX.md` NOW — its sequential subagent loop replaces
 Step 1 (the Workflow dispatch), driven by the task list synthesized there.
+Quick-fix tasks are PLANLESS — no `planPath`, nothing ticks checkboxes, no
+plan resume — and after the loop the run lands at Step 2 BELOW, not at
+execute-feature's Step 4.
 Worktree mode requires the Claude Workflow runtime; under any other host
 only lean mode is supported — if worktree mode is ON and the Workflow tool
 is absent, STOP and say so.
@@ -58,7 +61,8 @@ relitigation if non-default — see `/adr`) and get an explicit
 yes/amend/drop BEFORE dispatching. Fold each confirmed candidate into the
 task body as a final step — "write ADR `NNNN-<slug>.md` (next number by
 scanning `docs/adr/`) with this exact content" — so it is written during
-execution and committed with the fix.
+execution and lands with the fix (committed only where the commit policy
+commits; under `commits=none|final` it stays in the tree with the fix).
 
 ## Step 1 — make the change (background Workflow)
 
@@ -76,12 +80,16 @@ Same order as execute-feature's Land step, for the same reasons:
 tree consistent with the commit policy → ride-along gate (`CAPTURE-BAR.md`
 Test 3; depth-1 — a genuine second round is another
 `/cogniva-dev:quick-fix`, which is cheap and the whole point of this skill)
-→ `### before-integrate` CLAUDE.md block → ADR check
+→ `### before-integrate` CLAUDE.md block (under Codex honour only its
+substantive gate — see `../execute-feature/CODEX.md`) → ADR check
 (`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Workspace "<WORKSPACE>" -Since START` ⟦worktree⟧)
 → `git diff --check` (whitespace errors or conflict markers → fix them,
 respecting the commit policy, and re-run until clean; record the result)
 → GREEN GATE (`.claude/cogniva-dev/green-gate.json`; absent → skip with one
-line) → done ⟦worktree⟧.
+line) → under `commits=final`, NOW the single implementation commit —
+exactly one, only after the green gate; a git failure → `BLOCKED`, no
+retries → done ⟦worktree⟧. `commits=` stays the sole commit authority
+through every one of these steps, exactly as execute-feature defines it.
 
 In lean mode "done" IS the handoff: emit it in full per
 `../execute-feature/HANDOFF.md` as the final text of the turn. A short fix

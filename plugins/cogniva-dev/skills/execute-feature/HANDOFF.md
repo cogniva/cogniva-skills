@@ -1,6 +1,6 @@
 # READY FOR REVIEW — lean-mode handoff format
 
-Read this when a lean-mode run reaches its finish (`SKILL.md` Step 4.7, and
+Read this when a lean-mode run reaches its finish (`SKILL.md` Step 4.8, and
 the same finish in `quick-fix`). Lean mode does not integrate and does not
 push, so the handoff IS the deliverable: it has to tell a reviewer
 everything they would otherwise have to reconstruct by hand. Emit it as the
@@ -22,7 +22,9 @@ lines. A section with nothing to report says `none` — never drop it. An
 absent section is indistinguishable from a forgotten one, which is exactly
 what this format exists to prevent.
 
-- **Summary** — the feature and the tasks that ran, in 2–4 sentences.
+- **Summary** — the feature and the tasks that ran, in 2–4 sentences. Under
+  `tasks=one`, name the task slice that ran and list the tasks remaining —
+  never present the feature as complete while tasks remain.
 - **Files changed** — one line per path: the path, then what changed in it.
 - **Files read** — only the ones where it is non-obvious why they were
   read; skip the incidental ones.
@@ -48,5 +50,8 @@ what this format exists to prevent.
 
 Close with this semantics line, verbatim:
 
-READY FOR REVIEW means implementation complete on this branch — NOT
+READY FOR REVIEW means the executed scope is complete on this branch — NOT
 approved, NOT integrated, NOT ready to push.
+
+(The executed scope is the whole feature, or under `tasks=one` the completed
+slice the Summary named.)
