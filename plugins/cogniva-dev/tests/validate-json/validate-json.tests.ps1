@@ -11,6 +11,21 @@ function Check($label, $cond) {
     else { Write-Host "  FAIL  $label"; $script:failures += $label }
 }
 
+# Windows PowerShell 5.1 turns ANY native-command stderr write into a terminating
+# NativeCommandError while $ErrorActionPreference is 'Stop' - and 2>$null does not
+# prevent it. validate-json.ps1 reports failures on stderr by design, so every
+# negative case killed this suite before its Check ever ran. Drop to 'Continue'
+# for the duration of the child call and report the exit code instead.
+function Invoke-ValidateJson {
+    param([Parameter(ValueFromRemainingArguments)][string[]]$Files)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $script @Files 2>$null | Out-Null
+        return $LASTEXITCODE
+    } finally { $ErrorActionPreference = $prev }
+}
+
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("vj-test-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $tmp | Out-Null
 try {
@@ -19,17 +34,17 @@ try {
     Set-Content -LiteralPath $good -Value '{ "a": 1, "b": [2, 3] }'
     Set-Content -LiteralPath $bad  -Value '{ this is : not json'
 
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $script $good 2>$null
-    Check 'exit 0 for a single valid file' ($LASTEXITCODE -eq 0)
+    $code = Invoke-ValidateJson $good
+    Check 'exit 0 for a single valid file' ($code -eq 0)
 
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $script $bad 2>$null
-    Check 'exit 1 for an invalid file' ($LASTEXITCODE -eq 1)
+    $code = Invoke-ValidateJson $bad
+    Check 'exit 1 for an invalid file' ($code -eq 1)
 
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $script $good $bad 2>$null
-    Check 'exit 1 when any file is invalid' ($LASTEXITCODE -eq 1)
+    $code = Invoke-ValidateJson $good $bad
+    Check 'exit 1 when any file is invalid' ($code -eq 1)
 
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $script (Join-Path $tmp 'missing.json') 2>$null
-    Check 'exit 1 for a missing file' ($LASTEXITCODE -eq 1)
+    $code = Invoke-ValidateJson (Join-Path $tmp 'missing.json')
+    Check 'exit 1 for a missing file' ($code -eq 1)
 }
 finally {
     Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
