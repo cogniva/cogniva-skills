@@ -26,10 +26,13 @@ committing it would flip the mode for everyone.
 
 - **Skills** — plan-feature, execute-feature and quick-fix read their sibling
   `WORKTREE.md` overlay only when the switch is on. cleanup-work /
-  cleanup-allwork short-circuit when it is off ("Worktree mode is off in this
-  repo — nothing to clean.").
+  cleanup-allwork short-circuit when it is off — they clean only what the
+  worktree ledger tracks, and lean mode writes no ledger records. Branches you
+  create yourself in lean mode are your own to prune.
 - **Hooks** — `guard-primary-edit.js`, `guard-primary-git.js`, and
   `nudge-backlog-commit.js` allow everything when the switch is off or absent.
+  All three read the switch through the shared `scripts/worktree-mode.js`
+  predicate, so the mode check cannot drift between hooks.
 
 ## What `.claude/cogniva-dev/` means now
 

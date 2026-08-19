@@ -42,6 +42,8 @@ Honour any `### before-planning` block under the target repo CLAUDE.md's
    provenance, relitigation only if it differs from the provenance
    default). Nothing is written to `docs/adr/` during design. Provenance is
    *Suggested by agent* only once the human explicitly approves your idea.
+   For ADRs coming from humans, err toward *Suggested by human*; ask before
+   *Required by human*.
 
 ## Handoff pass (once, when the design is settled)
 

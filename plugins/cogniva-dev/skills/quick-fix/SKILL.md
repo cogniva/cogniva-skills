@@ -56,7 +56,7 @@ line) → done ⟦worktree⟧: report the fix in 1–2 sentences.
 
 ## Rules
 
-- Never push to a remote; never switch the user's branch.
+- Never push to a remote; never switch the user's branch uninvited.
 - Keep it small — a fix growing into a real feature → stop and suggest
   `/cogniva-dev:plan-feature`.
 - Follow-ups: the workflow returns `followups`; run the backlog gate

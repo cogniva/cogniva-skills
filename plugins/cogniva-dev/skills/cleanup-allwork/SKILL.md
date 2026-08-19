@@ -19,8 +19,9 @@ Invoke: `/cleanup-allwork`
 ## Mode check (first)
 
 If the target repo's `.claude/cogniva-dev.local.json` is absent or its
-`"worktrees"` is not `true`, reply "Worktree mode is off in this repo —
-nothing to clean." and STOP.
+`"worktrees"` is not `true`, reply "Worktree mode is off in this repo — no
+ledger-tracked worktrees to clean (in lean mode, branch hygiene stays with
+you)." and STOP.
 
 ## Scope note - surface before running
 

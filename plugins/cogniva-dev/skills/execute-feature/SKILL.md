@@ -128,8 +128,9 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
    (renumber the file, heading, and every reference) and a plan-candidate
    label (`ADR-Cn`) shipped into code or an ADR heading (replace with the
    assigned number). Exit 1 → fix, commit, re-run until clean.
-5. **Green gate** — read `.claude/cogniva-dev/green-gate.json`; run its
-   `commands` in order, each must exit 0. First failure → report the command
+5. **Green gate** (mandatory, no shortcuts) — read
+   `.claude/cogniva-dev/green-gate.json`; run its `commands` in order, each
+   must exit 0. First failure → report the command
    and its output, STOP (the commits stay on `BRANCH`; say so plainly).
    File absent → one line: "No green-gate.json — skipping the gate." Empty
    `commands` → intentional, skip silently.
@@ -157,5 +158,5 @@ tables as the final text of the turn.
 
 ## Rules
 
-- Never push to a remote; never switch the user's branch.
+- Never push to a remote; never switch the user's branch uninvited.
 - One agent per task; no reviewer fan-out. Keep the console lean.

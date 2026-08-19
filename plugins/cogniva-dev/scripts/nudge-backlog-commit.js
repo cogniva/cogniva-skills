@@ -29,15 +29,12 @@ function nudge(message) {
   }));
   process.exit(0);
 }
-// Worktree mode is a per-clone opt-in: untracked .claude/cogniva-dev.local.json
-// with {"worktrees": true}. Absent/false/unreadable => lean mode => this hook
-// stands down (contract: on any uncertainty, allow).
-function worktreesOn(topo) {
-  try {
-    const cfg = JSON.parse(fs.readFileSync(path.join(topo, '.claude', 'cogniva-dev.local.json'), 'utf8'));
-    return !!cfg && cfg.worktrees === true;
-  } catch (e) { return false; }
-}
+// Worktree-mode predicate is shared (scripts/worktree-mode.js) so all hooks
+// read the switch identically. A missing/broken lib degrades to lean mode =>
+// this hook stands down (contract: on any uncertainty, allow).
+let worktreesOn;
+try { ({ worktreesOn } = require(path.join(__dirname, 'worktree-mode.js'))); }
+catch (e) { worktreesOn = () => false; }
 
 let raw = '';
 process.stdin.on('data', d => (raw += d)).on('end', () => {
