@@ -39,6 +39,12 @@ Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins:
 | `plugins/cogniva-dev/hooks/` | Session hooks |
 | `plugins/cogniva-dev/templates/` | Repo scaffolding templates and workflow scripts |
 
+cogniva-dev's workflow skills run in two modes: **lean** (default — work
+directly on your branch; no worktrees, no state tracking) and **worktree**
+(per-clone opt-in via untracked `.claude/cogniva-dev.local.json`
+`{ "worktrees": true }` — isolated worktrees, guard hooks, auto-integration).
+See `plugins/cogniva-dev/docs/worktrees.md`.
+
 ### Install into any repo
 
 In Claude Code, from the consuming repo (GitHub, or substitute the path of a local clone):
