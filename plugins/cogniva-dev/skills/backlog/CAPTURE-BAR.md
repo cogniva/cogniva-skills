@@ -1,20 +1,43 @@
 # Capture bar
 
-What earns a backlog entry, what earns a ride-along, and how skill-initiated
-entries are proposed. Read this before capturing anything on a skill's own
-initiative. A direct `/cogniva-dev:backlog` invocation from the user only needs
-**Test 1 (coverage)** — skip the rest and write.
+How work surfaced mid-run is routed, what earns a backlog entry, and how
+skill-initiated proposals are presented. Read this before capturing anything on
+a skill's own initiative. A direct `/cogniva-dev:backlog` invocation from the
+user only needs **Test 1 (coverage)** — skip the rest and write (a `because:`
+reason is encouraged, never demanded).
 
-Three tests, all answerable from what you already have in context. None of them
-asks the human anything, and none rejects an item for being vague, small, or
-unimportant — refinement is never demanded at the moment of capture. If a one-line
-item is all anyone can manage mid-task, that is a good item.
+The governing principle (ADR: a backlog item is a planned deferral): a backlog
+entry exists only with a stated reason not to do the work now. Reason-less real
+work is routed — done now, or handed to the user as a ready-to-fire plan
+invocation — and vague-and-unimportant observations are dropped. The backlog is
+never the default sink.
 
+Order of application:
+
+- **Test 0 — introduced defect** is not routing at all: broken current work is
+  unfinished work.
 - **Test 1 — coverage** decides whether there is an item at all.
-- **Test 2 — intent** decides whether it is a **backlog candidate**, and how
+- **Test 2 — intent** decides whether it is worth the user's attention, and how
   confidently.
-- **Test 3 — ride-along** decides whether a clear-intent candidate should be done
-  *now*, as part of the current work, instead of deferred.
+- **Test 3 — route** decides what is proposed: Do now / Plan next / Defer.
+
+None of these tests asks the human anything mid-task, and none demands
+refinement at the moment of capture — a one-line item from someone mid-task is
+a good item. Importance is an axis; size never is.
+
+## Test 0 — introduced defect: did this run break it?
+
+A defect introduced by the current run's own work is NOT a candidate for any
+route — it is unfinished work (ADR: introduced defects are unfinished work).
+Fix it before the run completes, in the same workspace, no gate. Two
+exceptions, both raised IMMEDIATELY — stop and tell the user, not a row at the
+end-of-run gate:
+
+- the fix would change what the feature is, or its design;
+- the fix is big enough to warrant its own plan — propose the
+  `/cogniva-dev:plan-feature` invocation for it.
+
+An introduced defect is never backlogged and never silently dropped.
 
 ## Test 1 — coverage: is this already being handled right now?
 
@@ -43,10 +66,10 @@ Covered → do not capture. Say so in one line ("that's Task 3 of the plan" /
 "already open in `FeatureLifecycle/BACKLOG.md`") and move on. Not covered → go
 to Test 2.
 
-## Test 2 — intent: is there a receipt?
+## Test 2 — intent: is there a receipt, and does it matter?
 
-Applies only to work you surfaced yourself. An out-of-scope idea becomes a
-**backlog candidate** only when you can point at something concrete. The agent's
+Applies only to work you surfaced yourself. An out-of-scope idea earns the
+user's attention only when you can point at something concrete. The agent's
 own enthusiasm for its own idea is not evidence — this is the same rule the ADR
 provenance table enforces, where "Suggested by agent" requires explicit human
 approval or it is not an ADR.
@@ -67,120 +90,95 @@ How an out-of-scope moment ends decides what happens:
 | Outcome | Looks like | Result |
 |---|---|---|
 | **Declined** | "no", "we're not doing that", "wrong approach" | Nothing, ever. Not a candidate, not a maybe. |
-| **Deferred with intent** | a stated receipt, or an unambiguous observed fact | Candidate, `clear` — eligible for Test 3 |
-| **Ambiguous** | engaged but did not clearly defer; a lukewarm "hm, maybe"; a passing observation with a weak receipt | Candidate, `ambiguous` — never a ride-along |
+| **Deferred with intent** | a stated receipt, or an unambiguous observed fact | Candidate, `clear` — route it in Test 3 |
+| **Ambiguous** | engaged but did not clearly defer; a lukewarm "hm, maybe"; a passing observation with a weak receipt | Candidate, `ambiguous` — presented under Needs a decision; never Do now |
 | **Raised and dropped** | you floated it and the user did not engage — no reply, changed the subject | Nothing. **Silence is not deferral.** |
+| **Vague AND unimportant** | a passing thought with no receipt and nothing broken; "would be nice"; polish nobody asked for | Dropped — one throwaway line in the report ("noticed X — dropped; say the word to keep it"), no table row, no backlog. (ADR: vague-and-unimportant is dropped, amending ADR 0017.) |
 
-Horizon is not the axis. A long-range item with a real receipt ("we definitely
-want that eventually") is a candidate; a next-sprint item nobody responded to is
-not. Timeframe was only ever a proxy for intent — use intent.
+Importance, not size: a small item that matters — a real bug, a wrong doc, a
+broken command — is never "unimportant". When you genuinely cannot tell whether
+it matters, it is `ambiguous`, not dropped: a Needs-a-decision row costs the
+user one keystroke; a silent suppression is unrecoverable.
 
-When you genuinely cannot tell whether a receipt is strong or weak, mark it
-`ambiguous`. Dropping a candidate at the gate costs one keystroke; suppressing a
-real one is silent and unrecoverable.
+Horizon is not the axis either. A long-range item with a real receipt ("we
+definitely want that eventually") is a candidate; a next-sprint item nobody
+responded to is not. Timeframe was only ever a proxy for intent — use intent.
 
-## Test 3 — ride-along: is doing it now cheaper than doing it later?
+## Test 3 — route: what happens to it?
 
-Applies ONLY to candidates that already passed Tests 1 and 2 at `clear` strength.
-An `ambiguous` candidate is never a ride-along: if you cannot tell whether the user
-wants the work at all, you certainly cannot argue for doing it this minute.
+Every candidate that survives Tests 1–2 at `clear` strength is proposed with
+exactly one route. An `ambiguous` candidate takes no route from you: it goes to
+**Needs a decision** and the user picks.
 
-A **ride-along** is a backlog candidate promoted into the current work — done in
-the same worktree, riding the same merge. It is a *promotion*, not a separate kind
-of item: a ride-along the user declines falls through to the backlog like any other
-candidate, so proposing one can never lose work.
+### Do now — the assumed preference
 
-All four criteria must hold.
+Do now means done as part of the current work — same workspace, same landing.
+(The glossary calls this a ride-along; the gate says "Do now".) It is a
+promotion of a candidate, never a separate species (ADR 0020): one the user
+declines is re-routed at the gate, so proposing it can never lose work. Propose
+it when ALL of these hold:
 
-**1. The context is already paid for — name the path.**
-Not the same *files*; the same *understanding*. A ride-along may touch a file the
-current work never changed, provided this work has already opened it. What it may
-not do is reach for a file nobody has looked at, on the grounds that it is probably
-similar.
+1. **The context is in hand — name the path.** One of: a path in this run's
+   diff; the path in the candidate's own receipt; a path you read while doing
+   this work (the design reads of a `plan-feature` session, where there is no
+   diff yet). "The surrounding code" and "files like the ones I changed" are
+   not paths — if you cannot name one, route Plan next.
+2. **Any open decision is small and posable in the gate row** — at most two
+   across the item, none ADR-worthy (hard to reverse / surprising without
+   context / a real trade-off ⇒ a design conversation, not a gate row).
+3. **It does not change what the current work is.** The Goal statement — or,
+   for a planless fix, its one-line description — still describes the result
+   afterwards.
+4. **It is not plan-sized.** Work big enough to earn its own plan goes to Plan
+   next, however in-hand it is.
 
-Name the path. It must be one of:
+Tie-breaker: when a reason-less `clear` candidate could honestly go either way
+between Do now and Plan next, propose **Do now** — the observed failure mode is
+deferring current-session work, not bloated runs.
 
-- a path in **this run's diff**;
-- a path in **the candidate's own receipt** — a receipt is already required to be a
-  located fact, so the file that raised the candidate is named by definition;
-- a path **you read while doing this work** — the design reads of a `plan-feature`
-  session, where there is no diff yet.
+Anti-bloat guards:
 
-"The surrounding code" and "files like the ones I changed" are not paths. If you
-cannot name one, you are estimating rather than observing — send it to the backlog.
+> **The Do-now set together must be smaller than the work it rides on.** If it
+> is not, you did not ride anything along — you built a second feature onto the
+> end of the first one. Cut the set until that is true and route the rest.
 
-**2. Any open decision is small, and you can pose it right here.**
-A ride-along may carry one or two unresolved decisions — and often the best ones
-do. A candidate that raises a question is usually the one sitting closest to what
-the user actually wanted and did not think to ask for; refusing those keeps only
-the boring ones.
+More than about three Do-now proposals in one run means the bar is being read
+too loosely — re-apply criteria 3 and 4 before presenting.
 
-The bar is not "no decisions". It is that you can state each one as a concrete fork
-**in the gate table itself**, with its options, so that approving the ride-along and
-settling its decisions is a single exchange. If you would have to go and explore
-before you could even pose the question, it is not a ride-along — you do not yet
-know what you are proposing.
+**Depth-1:** a run offers Do now exactly once — once the gate has been
+presented, that run has no second offer, whatever happens next. Work admitted
+as a Do now can itself only produce Plan-next / Defer / drop outcomes, never
+another Do now. This is structural, not a matter of judgment. A genuine second
+round is a fresh `/cogniva-dev:quick-fix`.
 
-Two hard limits. At most **two** open decisions across the whole ride-along; a
-third means you are designing, not riding along. And none of them ADR-worthy —
-apply the adr skill's test (hard to reverse, surprising without context, the result of a
-real trade-off). A decision that meets it earns a design conversation, not a line
-at the end of a run when attention is at its lowest. Send it to the backlog and say
-which criterion it tripped.
+**If a Do now turns out bigger than you said:** you misjudged the bar. Stop,
+revert its changes, route it Plan next with a one-line note on what you got
+wrong, and carry on with the rest of the run. Do not design your way out of it
+mid-flight.
 
-**3. It does not move the goal.**
-The current work's Goal statement — or, for a planless fix, its one-line
-description — still describes the result afterwards. Scope that changes what the
-work *is* is a separate feature, however small it looks.
+### Plan next — a ready-to-fire invocation
 
-**4. There is a nameable saving.**
-State in one clause what doing it later costs *extra*: "re-reads the same parser",
-"a second pass over the same six skill files", "needs the worktree that is about to
-be removed". "It is important" is not a saving — that is a backlog argument. If you
-cannot name the saving, there isn't one.
+For real, wanted work that is not in hand or is plan-sized. Propose the EXACT
+invocation the user can fire — `/cogniva-dev:quick-fix "<one-line
+description>"` or `/cogniva-dev:plan-feature <Module>/<Feature>` — with a
+one-line rationale. Never auto-run it and never write anything for it: the
+proposal in the gate is the artifact.
 
-Fails any → it stays a plain backlog candidate, presented in the ordinary tables.
-No apology, and no mention of the near-miss.
+### Defer — only with a reason
 
-### The aggregate check
-
-Per-item bars cannot catch scope bloat, because bloat is a property of the set:
-four items can each pass honestly and still triple the run. So one closing rule:
-
-> **The ride-alongs together must be smaller than the work they ride on.** If they
-> are not, you did not ride anything along — you built a second feature onto the end
-> of the first one and called it a courtesy.
-
-Cut the set until that is true and capture the rest. Relatedly: if more than about
-three candidates pass Test 3 in one run, you are reading the bar too loosely —
-re-apply criteria 3 and 4 before presenting.
-
-### Depth-1: a ride-along carries no ride-alongs
-
-- A run offers ride-alongs **exactly once**. Once the ride-along section has been
-  presented, that run has no second offer, whatever happens next.
-- Work admitted as a ride-along produces **backlog candidates only**. Anything it
-  surfaces goes to the ordinary tables in the final report and can never itself be
-  ridden along.
-
-This is structural, not a matter of judgment: do not weigh whether "just one more"
-is warranted, because the answer is no by construction. A genuine second round is a
-fresh invocation (`/cogniva-dev:quick-fix`), not a ride-along.
-
-### If a ride-along turns out bigger than you said
-
-You misjudged the bar. Stop, revert that ride-along's commits, capture it to the
-backlog with a one-line note on what you got wrong, and carry on with the rest of
-the run. Do not design your way out of it mid-flight — the whole basis for skipping
-a design conversation was that there was not one to have.
+The ONLY route that writes to a `BACKLOG.md` (or creates a stub). It requires a
+deferral reason (`because:`): blocked-on-X, sequenced-after-Y, decision
+pending, or the user's explicit "later". No reason → this route is not
+available; go back to Do now / Plan next, or drop.
 
 ## The candidate record
 
 Hold each candidate as a record until the gate. Never write to a `BACKLOG.md`
-before confirmation, and never start ride-along work before confirmation.
+before confirmation, and never start Do-now work before confirmation.
 
 ```
-{ description, module, tier, size, src, receipt, strength, rideAlong }
+{ description, module, tier, size, src, receipt, strength, route,
+  doNow?, invocation?, because? }
 ```
 
 - `description` — the one-line item text, as it would appear in `BACKLOG.md`.
@@ -191,66 +189,75 @@ before confirmation, and never start ride-along work before confirmation.
 - `src` — the `<Feature>` or fix this came out of.
 - `receipt` — the quote (stated) or the located fact (observed), verbatim and
   short. This is what the user reads at the gate.
-- `strength` — `clear` | `ambiguous`. Decides the table, and gates Test 3.
-- `rideAlong` — omitted, or `{ path, saving, questions[] }` when Test 3 passed:
-  the path that satisfied criterion 1, the one-clause saving from criterion 4, and
-  zero to two open decisions, each written as a concrete fork.
+- `strength` — `clear` | `ambiguous`. `ambiguous` ⇒ no route; Needs a decision.
+- `route` — `do-now` | `plan-next` | `defer`, for `clear` candidates.
+- `doNow` — when route is `do-now`: `{ path, questions[] }` — the in-hand path
+  from criterion 1 and zero to two open decisions, each a concrete fork.
+- `invocation` — when route is `plan-next`: the exact command line to propose.
+- `because` — when route is `defer`: the deferral reason, as it will appear in
+  the item's `because:` tag.
 
 ## The confirmation gate
 
-Present ALL candidates in ONE pass, in three sections. This **extends** the
-presentation contract of ADR 0013 / ADR 0019 rather than replacing it — the two
-backlog tables are unchanged; ride-alongs sit above them.
-
-The section headings are literal. Use these words:
+Present ALL candidates in ONE pass, route-first (ADR: the confirmation gate is
+route-first — it supersedes the two-table contract of ADR 0019; receipts,
+confidence separation, and the single gate carry forward). The section headings
+are literal. Use these words:
 
 ```markdown
-## Ride-alongs — do now, in this work
+## Do now — in this work
 
-| # | Item | Receipt | Why now is cheaper | Open question |
-|---|------|---------|--------------------|---------------|
+| # | Item | Receipt | Path in hand | Open question |
+|---|------|---------|--------------|---------------|
 
-## Backlog candidates
+## Plan next — fire when ready
 
-### Clear intent
+| # | Item | Receipt | Proposed invocation |
+|---|------|---------|---------------------|
 
-| # | Item | Receipt |
-|---|------|---------|
+## Backlog — planned deferrals
 
-### Needs a decision
+| # | Item | Receipt | Deferred because |
+|---|------|---------|------------------|
 
-| # | Item | Receipt | Why ambiguous |
-|---|------|---------|---------------|
+## Needs a decision
+
+| # | Item | Receipt | Why unclear |
+|---|------|---------|-------------|
 ```
 
-- Numbering is continuous across all three tables — ride-alongs first, then clear
-  intent, then needs-a-decision.
-- `Why now is cheaper` is the one-clause saving from criterion 4. `Open question`
-  holds the concrete fork(s) from criterion 2, or `—`.
-- Omit any section with no rows. Never print an empty heading or an empty table.
-- **Never head a table "Capture candidates".** The user-facing noun is **backlog
-  candidate**; "capture" is the verb for what happens to one.
+- Numbering is continuous across all four tables, in the order above.
+- `Open question` holds the concrete fork(s) from criterion 2, or `—`.
+- Below the tables, one throwaway line for anything Test 2 dropped:
+  "Noticed and dropped: <x>; <y> — say the word to keep any." Omit the line
+  when nothing was dropped.
+- Omit any section with no rows. Never print an empty heading or an empty
+  table. **Never head a table "Capture candidates"** — the user-facing noun is
+  **backlog candidate**.
 
 Then ask once, in these words or close to them:
 
-> Ride along by number, or none — anything not ridden along is captured to the
-> backlog instead. Answer any open question inline, or say "your call".
-> Capture the clear-intent table as-is? Needs-a-decision by number (or none).
+> Do now by number, or none — anything declined moves to Plan next or the
+> backlog as you direct. Plan-next invocations are yours to fire — nothing
+> auto-runs. Capture the Backlog table as-is? Route each Needs-a-decision item
+> by number (do now / plan next / defer because:<reason> / drop), or say "your
+> call".
 
 "Your call" is a real answer, not a deferral: pick, proceed, and state what you
 picked in the report. A question in the table is an offer, never a toll.
 
 Rules for the gate:
 
-- Deliver the tables as the FINAL text of the turn — a plain chat message with NO
-  tool call after it, the question as plain text at its end. Text emitted before
-  a tool call may not be shown to the user.
+- Deliver the tables as the FINAL text of the turn — a plain chat message with
+  NO tool call after it, the question as plain text at its end. Text emitted
+  before a tool call may not be shown to the user.
 - An empty candidate set is a real and good outcome. Say nothing rather than
   presenting an empty table, and never soften a test to produce candidates.
-- One table with no rows is simply omitted; do not print an empty heading.
 - Never fold this gate into an unrelated question. It may share a turn with a
   caller's own end-of-run confirmation (see `plan-feature`), but it stays a
   distinct, separately-answerable section.
-- Only what the user confirms happens. Write each confirmed backlog candidate per
-  `BACKLOG-FORMAT.md`, then report one line per item: tier, path, item text. Report
-  each ride-along as one line too: what changed, and its commit.
+- Only what the user confirms happens. Confirmed Do nows are done by the
+  CALLING skill in its own workspace; confirmed deferrals are written per
+  `BACKLOG-FORMAT.md`, each with its `because:` tag; Plan-next items are left
+  as proposals for the user to fire. Report one line per item: the route, the
+  path (for anything written), the item text, and each Do now's commit.
