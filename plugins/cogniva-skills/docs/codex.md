@@ -1,41 +1,29 @@
 # Dual-host — cogniva-skills under Claude Code and OpenAI Codex
 
-cogniva-skills is a **dual-host** plugin: the same toolkit installs and runs
-both under Claude Code and under OpenAI Codex.
+cogniva-skills is a **dual-host** plugin: one `skills/` tree, two manifests —
+`.claude-plugin/plugin.json` (Claude Code) and `.codex-plugin/plugin.json`
+(Codex) side by side over the same `skills/` directory. The full convention is
+recorded in ADR 0029 and `plugins/cogniva-dev/docs/codex.md`, both in the
+marketplace repo (github.com/cogniva/cogniva-skills), not shipped inside this
+plugin.
 
-## Packaging
-
-- **One `skills/` tree, two manifests** — the same convention as cogniva-dev.
-  `plugins/cogniva-skills/` ships `.claude-plugin/plugin.json` (Claude Code)
-  and `.codex-plugin/plugin.json` (Codex) side by side over the same
-  `skills/` tree. See ADR 0029
-  (`docs/adr/0029-dual-host-packaging-and-codex-overlay.md`) and
-  `plugins/cogniva-dev/docs/codex.md` for the full convention.
-- **No overlays.** All four skills — `glossary`, `reference`,
-  `project-requirement`, `project-context` — are host-neutral
-  plain-instruction skills, so no `CODEX.md` overlays exist or are needed in
-  this plugin.
+Every skill in this plugin is host-neutral plain instructions, so no `CODEX.md`
+overlays exist here and none are needed.
 
 ## Install under Codex
 
-1. Register the marketplace hosting cogniva-skills if needed
-   (`codex plugin marketplace add <owner/repo | ./path>`).
-2. Install the plugin from that marketplace with the Codex CLI's `/plugins`
+1. Register the marketplace: `codex plugin marketplace add
+   cogniva/cogniva-skills` (or a local clone path). Codex reads the manifest at
+   `.claude-plugin/marketplace.json` as a legacy-compatible marketplace
+   (verified against OpenAI's plugin docs, 2026-08-19).
+2. Install cogniva-skills from that marketplace with the Codex CLI's `/plugins`
    command.
-3. **Start a NEW Codex session.** Skills from a freshly installed plugin are
-   not visible in the session that installed them.
+3. Start a NEW Codex session — freshly installed plugin skills are not visible
+   in the session that installed them.
 
-This replaces manually copying skill folders into `~/.codex/skills`.
+This replaces manually copying skill folders into a personal Codex skills
+directory (`~/.codex/skills` or `.agents/skills`): installed as a plugin, the
+skills update through the marketplace and the version is tracked.
 
-## Version bumps
-
-The version lives in THREE files that must match:
-`plugins/cogniva-skills/.claude-plugin/plugin.json`,
-`plugins/cogniva-skills/.codex-plugin/plugin.json`, and the `cogniva-skills`
-entry in the top-level `.claude-plugin/marketplace.json`.
-`claude plugin validate .` does NOT catch a mismatch, so bump all three in one
-commit and confirm with:
-
-```
-grep -n '"version"' plugins/cogniva-skills/.claude-plugin/plugin.json plugins/cogniva-skills/.codex-plugin/plugin.json .claude-plugin/marketplace.json
-```
+Maintainers: the version-bump rule (three files, all matching) lives in the
+marketplace repo's `CLAUDE.md` under `## Rules`.

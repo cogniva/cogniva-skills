@@ -1,6 +1,6 @@
 # Cogniva — shared tooling marketplace
 
-Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins:
+Cogniva's plugin marketplace (`cogniva`) for Claude Code and OpenAI Codex — both plugins are dual-host. Two plugins:
 
 | Plugin | Purpose |
 |---|---|
@@ -13,6 +13,8 @@ Cogniva's Claude Code plugin marketplace (`cogniva`). Two plugins:
 |---|---|
 | `plugins/cogniva-skills/skills/glossary` | Glossary lookup (docs/glossary) before codebase search |
 | `plugins/cogniva-skills/skills/reference` | Shared bibliography of standards, publications, and links |
+| `plugins/cogniva-skills/skills/project-requirement` | Requirements capture, tracking, and analysis (docs/REQUIREMENTS.md) |
+| `plugins/cogniva-skills/skills/project-context` | Persistent non-technical business context for long sessions |
 | `plugins/cogniva-skills/plugin-template` | Starter template for new skills |
 | `plugins/cogniva-skills/templates/glossary` | Seeded glossary for new repos |
 
@@ -56,6 +58,17 @@ In Claude Code, from the consuming repo (GitHub, or substitute the path of a loc
 ```
 
 Then run the `repo-init` skill in an empty repo, or `add-module` in an existing one.
+
+Under OpenAI Codex:
+
+1. Register the marketplace: `codex plugin marketplace add cogniva/cogniva-skills`
+   (or a local clone path — Codex reads `.claude-plugin/marketplace.json` as a
+   legacy-compatible marketplace).
+2. Install the plugins with the Codex CLI's `/plugins` command.
+3. Start a NEW Codex session — freshly installed plugin skills are not visible
+   in the session that installed them.
+
+See `plugins/cogniva-dev/docs/codex.md` and `plugins/cogniva-skills/docs/codex.md` for details.
 
 ### Develop
 

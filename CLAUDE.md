@@ -5,7 +5,7 @@ This repo is **cogniva** — Cogniva's local Claude Code plugin marketplace. It 
 ## Layout
 
 - `.claude-plugin/marketplace.json` — the marketplace manifest (name: `cogniva`)
-- `plugins/cogniva-skills/` — general-purpose skills: `glossary` (terminology) and `reference` (bibliography) for any project; plugin template for new skills
+- `plugins/cogniva-skills/` — general-purpose skills: `glossary` (terminology), `reference` (bibliography), `project-requirement` (requirements tracking), and `project-context` (business context) for any project; plugin template for new skills
 - `plugins/cogniva-dev/` — development-specific skills: `adr`, `backlog`, `groom-backlog`, `easy-work-scan`, `repo-init`, `add-module`, `explore-idea`, `plan-feature`, `execute-feature`, `quick-fix`, `cleanup-work`, `cleanup-allwork`, `module-deps`, `feature-status`, `module-status`, `repo-status`, `workflow-status`; scripts, hooks, and repo scaffolding templates
 - `docs/glossary/README.md` — canonical glossary; use its terms and link them, e.g. [Module](docs/glossary/README.md#module)
 - `docs/strategy.md` — conventions + tooling decisions
@@ -26,8 +26,8 @@ This repo is **cogniva** — Cogniva's local Claude Code plugin marketplace. It 
   - When a change sits on the patch/minor line, offer the smaller bump and say why.
   - **A bump is THREE files, always.** The version lives in the plugin's
     `plugins/<plugin>/.claude-plugin/plugin.json`, in its
-    `plugins/<plugin>/.codex-plugin/plugin.json` (where the plugin ships one —
-    both cogniva-dev and cogniva-skills do), **and** in its entry in the top-level
+    `plugins/<plugin>/.codex-plugin/plugin.json` (where the plugin ships one),
+    **and** in its entry in the top-level
     `.claude-plugin/marketplace.json` — all of them must match. Editing only
     `plugin.json` ships a marketplace that advertises the old version, and
     `claude plugin validate .` does NOT catch the mismatch, so nothing downstream

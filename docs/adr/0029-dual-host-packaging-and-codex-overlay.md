@@ -7,4 +7,5 @@
 duplicated per host. The Codex executor is a `CODEX.md` overlay beside
 `execute-feature/SKILL.md` (extending the ADR 0028 overlay pattern), selected when
 the Workflow tool is unavailable; Claude's Workflow JS API is never emulated under
-Codex.
+Codex. `plugins/cogniva-skills/` ships the same dual-manifest layout over its own
+`skills/` tree; its skills are host-neutral, so it carries no overlay files.
