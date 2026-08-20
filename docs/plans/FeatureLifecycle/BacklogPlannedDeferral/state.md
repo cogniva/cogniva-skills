@@ -3,7 +3,7 @@
 Status: integrated
 Target branch: feature/backlog-changes
 Worktree: C:\WorkingGit\cogniva-skills-backlog-planned-deferral (branch feature/backlog-planned-deferral)
-Integration: not started
+Integration: merged into feature/backlog-changes
 
 ## Log
 

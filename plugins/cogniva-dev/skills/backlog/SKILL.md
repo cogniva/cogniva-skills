@@ -156,12 +156,12 @@ the candidate record. Where the gate happens depends on the caller's context:
 
 - **Interactive caller** (`plan-feature`, `groom-backlog`, `easy-work-scan`) —
   the caller batches candidates into its own end-of-run confirmation pass and
-  presents the three sections there. One interruption, not two.
+  presents the four route-first sections there. One interruption, not two.
 - **Non-interactive caller** (an `execute-feature` or `quick-fix` task agent
   inside a background Workflow) — there is nobody to ask. The agent returns
   candidates in its task result's `followups` array and writes nothing; the
   invoking console applies Test 3 and runs the gate while the work is still open
-  in its workspace. A task agent never proposes a ride-along itself: it cannot
+  in its workspace. A task agent never proposes a do-now itself: it cannot
   know what the console will do next, and its receipt already names the path
   criterion 1 needs.
 

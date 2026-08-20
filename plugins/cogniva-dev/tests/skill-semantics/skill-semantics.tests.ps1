@@ -35,8 +35,8 @@ Check 'Step 0a pasted-plan commit is gated on commits=task' `
     ($ef -match 'Commit it only under `commits=task`')
 Check 'Step 1 converted-plan commit is gated on commits=task' `
     ($ef -match 'Commit the converted file only under `commits=task`')
-Check 'ride-along commits are commits=task only' `
-    ($ef -match 'one commit per confirmed ride-along under\s+`commits=task` ONLY')
+Check 'do-now commits are commits=task only' `
+    ($ef -match 'one commit per confirmed do-now under\s+`commits=task` ONLY')
 Check 'repo-obligation output commits under commits=task only' `
     ($ef -match 'commit\s+what it produces under `commits=task` only')
 Check 'diff --check fixes stay in the tree under none|final' `
