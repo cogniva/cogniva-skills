@@ -319,9 +319,20 @@ try {
         # "integrated" into itself, and `worktree remove` gutted the very worktree
         # the sweep was rooted in). The common dir is <primary>/.git no matter
         # which worktree we run from, so its parent IS the primary root.
-        $commonGitDir = (@(Invoke-GitOut '.' rev-parse --path-format=absolute --git-common-dir) -join '').Trim()
+        #
+        # No `--path-format=absolute` here: it needs git >= 2.31, and on older
+        # gits rev-parse ECHOES the unknown flag as output while returning a
+        # RELATIVE .git - the joined string produced a garbage $RepoRoot, and
+        # the empty string PS 5.1 then passed to `git -C` was silently dropped
+        # ("fatal: cannot change to 'rev-parse'"). Resolve the common dir
+        # plainly and root it against cwd ourselves (same pattern as
+        # ledger-lib's Get-CommonDir).
+        $commonGitDir = (@(Invoke-GitOut '.' rev-parse --git-common-dir) -join '').Trim()
         if (-not $commonGitDir) { throw 'not inside a git repository (cannot locate the primary checkout)' }
-        $RepoRoot = Split-Path -Parent $commonGitDir
+        if (-not [System.IO.Path]::IsPathRooted($commonGitDir)) {
+            $commonGitDir = Join-Path (Get-Location).Path $commonGitDir
+        }
+        $RepoRoot = Split-Path -Parent ([System.IO.Path]::GetFullPath($commonGitDir))
     }
     # Stand in the PRIMARY checkout, never in a worktree we are about to remove.
     # This process inherits its cwd from the calling shell, and the green gate runs
