@@ -32,9 +32,11 @@ trivial fixes can go straight to /cogniva-dev:quick-fix.
   - `src:<Feature>` — the feature this was deferred from
   - `because:<reason>` — why this waits (spaces are fine inside the backticks,
     e.g. `because:blocked on IExportPort`, `because:decision pending`).
-    Encouraged on every item; REQUIRED when a skill proposed the deferral.
-    Legacy lines without one stay valid — groom-backlog flags them for
-    routing.
+    Present on every new item: REQUIRED with a concrete reason when a skill
+    proposed the deferral; a direct human capture with no stated reason is
+    written as `because:human later` — the invocation itself is the deferral
+    decision. Legacy lines without one stay valid — groom-backlog flags them
+    for routing.
   - `promoted:<Module>/<Feature>` — added on promotion (see below)
 - Keep the description to one line. No nested bullets.
 
@@ -103,7 +105,7 @@ Integration: not started
 # <Idea> — Backlog (deferred)
 
 **Depends on:** <the MVP / feature this comes after>
-**Deferred because:** <the reason this waits — required>
+**Deferred because:** <the reason this waits — required; a direct human capture with no stated reason writes `human later`>
 
 ## Deferred scope
 - <bullet>

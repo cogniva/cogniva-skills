@@ -23,7 +23,7 @@ Cogniva's plugin marketplace (`cogniva`) for Claude Code and OpenAI Codex — bo
 | Piece | Purpose |
 |---|---|
 | `plugins/cogniva-dev/skills/adr` | Record architectural decisions as ADRs (confirm-first) |
-| `plugins/cogniva-dev/skills/backlog` | Capture deferred or not-yet-planned work |
+| `plugins/cogniva-dev/skills/backlog` | Capture planned deferrals — work with a stated reason to wait |
 | `plugins/cogniva-dev/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
 | `plugins/cogniva-dev/skills/add-module` | Add a Module (vertical slice) to an existing repo |
 | `plugins/cogniva-dev/skills/explore-idea` | Brainstorm and develop an idea before any planning |

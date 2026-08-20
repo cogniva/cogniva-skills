@@ -28,9 +28,10 @@ Invoke: `/cogniva-dev:backlog [<item description>]` (omit to be asked).
 
 **Direct** — a human invoked `/cogniva-dev:backlog`. They have already consented.
 Run the coverage check (Test 1 in `CAPTURE-BAR.md`), then write, commit, and report. No
-gate, no interrogation, no request to refine the wording. If the item carries no
-deferral reason, still write it unchanged — then offer ONCE, in the report line,
-to add a "because:" tag. Never block a human capture on a reason. The one
+gate, no interrogation, no request to refine the wording. The invocation itself
+is the deferral decision, so an item with no stated reason is written with
+`because:human later` — then offer ONCE, in the report line, to replace that
+with a specific reason. Never block a human capture on a reason. The one
 exception is a tier-2 stub: confirm the tier before creating a folder.
 
 **Skill-initiated** — you surfaced the work yourself while doing something else.
@@ -47,10 +48,11 @@ route-first gate. Only what the user confirms is written or done.
 - **size** (optional) — `S` | `M` | `L`.
 - **src** (optional) — the `<Feature>` this was deferred from, if any.
 - **tier** (optional) — `loose` | `stub`. If absent, you decide (see below).
-- **because** (optional on direct human capture, REQUIRED for a
-  skill-initiated deferral) — the reason this waits: blocked-on,
-  sequenced-after, decision pending, or the user's "later". Written as a
-  `because:` tag per `BACKLOG-FORMAT.md`.
+- **because** (REQUIRED with a concrete reason for a skill-initiated
+  deferral; a direct human capture that states none defaults to
+  `human later` — the invocation is the deferral decision) — the reason this
+  waits: blocked-on, sequenced-after, decision pending, or the user's
+  "later". Written as a `because:` tag per `BACKLOG-FORMAT.md`.
 
 ## Steps
 

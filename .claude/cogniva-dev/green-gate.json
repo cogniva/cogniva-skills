@@ -1,6 +1,7 @@
 {
   "commands": [
     { "run": "claude plugin validate .", "label": "validate", "note": "This is a Claude Code plugin marketplace repo, not a .NET solution — the gate validates the plugins." },
-    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1", "label": "manifest-parity", "note": "version/description/keywords must match across each plugin's manifest pair and its marketplace entry; claude plugin validate does not check this." }
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1", "label": "manifest-parity", "note": "version/description/keywords must match across each plugin's manifest pair and its marketplace entry; claude plugin validate does not check this." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1", "label": "skill-semantics", "note": "Regression-pins the lifecycle skills' prose contracts (commit policy, route-first capture invariants); plugin validate does not check prose." }
   ]
 }

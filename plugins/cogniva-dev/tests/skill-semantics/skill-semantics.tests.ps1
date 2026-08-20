@@ -21,6 +21,8 @@ $handoff = ReadDoc 'skills\execute-feature\HANDOFF.md'
 $qf      = ReadDoc 'skills\quick-fix\SKILL.md'
 $pf      = ReadDoc 'skills\plan-feature\SKILL.md'
 $docs    = ReadDoc 'docs\codex.md'
+$bk      = ReadDoc 'skills\backlog\SKILL.md'
+$cb      = ReadDoc 'skills\backlog\CAPTURE-BAR.md'
 
 $failures = @()
 function Check($label, $cond) {
@@ -80,6 +82,14 @@ Check 'docs/codex.md: lifecycle skills are explicit-invocation-only' `
     ($docs -match '## Lifecycle skills are explicit-invocation-only under Codex')
 Check 'plan-feature lean default leaves the plan uncommitted' `
     ($pf -match 'Lean mode default: `commits=none`')
+
+# --- route-first capture invariants ------------------------------------------
+Check 'introduced defects are unfinished work, not followups' `
+    ($ef -match 'A defect a task introduced is not a\s+followup')
+Check 'skill-initiated deferrals always carry because:' `
+    ($bk -match 'A skill-initiated deferral always carries its `because:`')
+Check 'Plan-next proposals never auto-run' `
+    ($cb -match 'Never auto-run it and never write anything for it')
 
 if ($failures.Count -gt 0) {
     Write-Host ""
