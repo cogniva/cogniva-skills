@@ -3,8 +3,8 @@
 How work surfaced mid-run is routed, what earns a backlog entry, and how
 skill-initiated proposals are presented. Read this before capturing anything on
 a skill's own initiative. A direct `/cogniva-dev:backlog` invocation from the
-user only needs **Test 1 (coverage)** — skip the rest and write (a `because:`
-reason is encouraged, never demanded).
+user only needs **Test 1 (coverage)** — skip the rest and write. The human need
+not supply a reason; when none was supplied, write `because:human later`.
 
 The governing principle (ADR: a backlog item is a planned deferral): a backlog
 entry exists only with a stated reason not to do the work now. Reason-less real

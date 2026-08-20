@@ -69,7 +69,7 @@ A validated design document in `docs/superpowers/specs/` or `docs/specs/`, produ
 
 ## Backlog
 
-Planned-deferral work tracked under `docs/plans/`: an item exists only with a stated reason not to do it now (its `because:` tag — encouraged on human captures, required on skill-initiated ones). Loose one-line items in a `BACKLOG.md` (repo-level, or per-[Module](#module)), or feature-sized [Backlog stubs](#backlog-stub). Captured with the `backlog` skill, whose capture bar routes reason-less work to be done now or planned instead; surfaced by `module-status` / `repo-status`.
+Planned-deferral work tracked under `docs/plans/`: every new item carries a reason not to do it now in its `because:` tag. A direct human capture that supplies no specific reason is recorded as `because:human later`; skill-initiated deferrals require a concrete reason. Legacy entries without `because:` remain valid and may be flagged by grooming. Loose one-line items in a `BACKLOG.md` (repo-level, or per-[Module](#module)), or feature-sized [Backlog stubs](#backlog-stub). Captured with the `backlog` skill, whose capture bar routes reason-less work to be done now or planned instead; surfaced by `module-status` / `repo-status`.
 _Avoid_: todo list, icebox, wishlist
 
 ## Backlog stub

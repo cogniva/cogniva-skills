@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: Use to capture a planned deferral - work with a stated reason not to do it now ("blocked on X", "after feature Y", a decision pending, an explicit human "later") so it is not lost. Reason-less real work is done now or routed to quick-fix / plan-feature, never parked here. Directly invokable AND the routing gate for any skill that surfaces work mid-run. Direct invocation writes immediately (a because: reason is encouraged, never demanded); skill-initiated capture is proposed and confirmed first. Lightweight, append-only, no subagents. Read with module-status / repo-status.
+description: Use to capture a planned deferral - work with a stated reason not to do it now ("blocked on X", "after feature Y", a decision pending, an explicit human "later") so it is not lost. Reason-less real work is done now or routed to quick-fix / plan-feature, never parked here. Directly invokable AND the routing gate for any skill that surfaces work mid-run. Direct invocation writes immediately; if no specific reason was supplied, it writes `because:human later`. Skill-initiated capture is proposed and confirmed first. Lightweight, append-only, no subagents. Read with module-status / repo-status.
 ---
 
 # Backlog

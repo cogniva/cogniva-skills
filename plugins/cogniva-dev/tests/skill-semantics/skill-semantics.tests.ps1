@@ -88,6 +88,8 @@ Check 'introduced defects are unfinished work, not followups' `
     ($ef -match 'A defect a task introduced is not a\s+followup')
 Check 'skill-initiated deferrals always carry because:' `
     ($bk -match 'A skill-initiated deferral always carries its `because:`')
+Check 'direct human capture falls back to because:human later' `
+    ($bk -match 'no stated reason is written with\s+`because:human later`')
 Check 'Plan-next proposals never auto-run' `
     ($cb -match 'Never auto-run it and never write anything for it')
 
