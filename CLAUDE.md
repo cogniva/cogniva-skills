@@ -27,7 +27,7 @@ This repo is **cogniva** — Cogniva's local Claude Code plugin marketplace. It 
   - **A bump is THREE files, always.** The version lives in the plugin's
     `plugins/<plugin>/.claude-plugin/plugin.json`, in its
     `plugins/<plugin>/.codex-plugin/plugin.json` (where the plugin ships one —
-    cogniva-dev does), **and** in its entry in the top-level
+    both cogniva-dev and cogniva-skills do), **and** in its entry in the top-level
     `.claude-plugin/marketplace.json` — all of them must match. Editing only
     `plugin.json` ships a marketplace that advertises the old version, and
     `claude plugin validate .` does NOT catch the mismatch, so nothing downstream

@@ -1,0 +1,11 @@
+{
+  "name": "cogniva-skills",
+  "version": "0.8.0",
+  "description": "Cogniva's general-purpose toolkit: glossary (terminology), reference (bibliography), project-requirement (requirements tracking), and project-context (persistent business context) skills for any project.",
+  "author": { "name": "Cogniva" },
+  "homepage": "https://github.com/cogniva/cogniva-skills",
+  "repository": "https://github.com/cogniva/cogniva-skills",
+  "license": "MIT",
+  "keywords": ["skills", "glossary", "references", "requirements", "context"],
+  "skills": "./skills/"
+}
