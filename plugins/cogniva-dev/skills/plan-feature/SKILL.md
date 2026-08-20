@@ -50,13 +50,14 @@ Honour any `### before-planning` block under the target repo CLAUDE.md's
 Present in ONE pass, as the final text of the turn: the candidate-ADR list
 (the user confirms/amends/drops each — an unconfirmed agent idea never
 becomes a candidate; none → skip, don't invent decisions to record), then
-ride-alongs and backlog candidates in `CAPTURE-BAR.md`'s three sections
-(file in the `backlog` skill's directory). Riding along in a design session
-means amending the plan before it is committed; depth-1, offered once.
-Deferred-scope rules, in short: covered-by-the-plan is not deferred;
-declined scope is gone; deferral needs a receipt in the user's words;
-silence is not deferral. Write confirmed backlog items via
-`/cogniva-dev:backlog`. Approved ADR candidates go INTO the plan (below);
+surfaced work through `CAPTURE-BAR.md`'s route-first gate (file in the
+`backlog` skill's directory). Do now in a design session means amending the
+plan before it is committed; depth-1, offered once. Plan next is a proposed
+invocation the user fires — never auto-run. Deferred-scope rules, in short:
+covered-by-the-plan is not deferred; declined scope is gone; a deferral needs
+a receipt AND a `because:` reason; silence is not deferral;
+vague-and-unimportant is dropped with a one-line mention.
+Write confirmed backlog items via `/cogniva-dev:backlog`. Approved ADR candidates go INTO the plan (below);
 execute-feature materializes them.
 
 ## Emit the plan

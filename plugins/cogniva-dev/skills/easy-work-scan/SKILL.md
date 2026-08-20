@@ -67,12 +67,13 @@ table. This skill selects and dispatches; it never writes feature code itself.
    branch. Worktree mode only: end with the close-out pointer "validate, then
    `/cogniva-dev:cleanup-work`". Lean mode has no cleanup step — each run
    simply finished with its report. Anything the dispatch surfaced but did not do
-   is a backlog CANDIDATE, not a write: drop what is already covered by an open
-   item or a dispatched fix, then present the rest in the sections from
-   `CAPTURE-BAR.md` (in the `backlog` skill's directory) and write only what the
-   user confirms, via `/cogniva-dev:backlog`. Nothing surviving → say nothing.
-   This scan never rides anything along — it dispatches through `quick-fix` /
-   `plan-feature`, and those runs own their own ride-along gates.
+   is routed, never written silently: drop what is already covered by an open
+   item or a dispatched fix, then present the rest through the route-first
+   gate in `CAPTURE-BAR.md` (in the `backlog` skill's directory) — deferrals
+   only with a `because:` — and write only what the user confirms, via
+   `/cogniva-dev:backlog`. Nothing surviving → say nothing.
+   This scan never does surfaced work itself — it dispatches through
+   `quick-fix` / `plan-feature`, and those runs own their own do-now gates.
 
 ## Rules
 

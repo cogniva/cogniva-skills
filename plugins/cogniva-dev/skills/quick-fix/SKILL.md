@@ -77,7 +77,7 @@ nothing and leaves the change in the working tree.
 ## Step 2 — land it
 
 Same order as execute-feature's Land step, for the same reasons:
-tree consistent with the commit policy → ride-along gate (`CAPTURE-BAR.md`
+tree consistent with the commit policy → do-now gate (`CAPTURE-BAR.md`
 Test 3; depth-1 — a genuine second round is another
 `/cogniva-dev:quick-fix`, which is cheap and the whole point of this skill)
 → `### before-integrate` CLAUDE.md block (under Codex honour only its
@@ -102,7 +102,8 @@ report saying `none`. Worktree mode ends by integrating, unchanged.
 - Keep it small — a fix growing into a real feature → stop and suggest
   `/cogniva-dev:plan-feature`.
 - Follow-ups: the workflow returns `followups`; run the backlog gate
-  exactly as execute-feature defines it (CAPTURE-BAR; write only confirmed
-  items via `/cogniva-dev:backlog`). A fix that resolved a loose
+  exactly as execute-feature defines it (CAPTURE-BAR's route-first gate;
+  write only confirmed deferrals, each with its `because:`, via
+  `/cogniva-dev:backlog`). A fix that resolved a loose
   `BACKLOG.md` item: tick it and append `→ done` — a closure, not a
   capture, no gate needed.

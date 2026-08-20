@@ -85,12 +85,14 @@ The user decides if and when an exploration becomes something else. When - and o
 when - they ask, you can:
 - **Plan it:** hand the relevant `.explore/<slug>/` material to `/plan-feature` as
   design input.
-- **Park it:** drop a `/backlog` item or stub so the thread is not lost. This is
+- **Park it:** drop a `/backlog` item or stub so the thread is not lost —
+  parking is a planned deferral, so give it a `because:` (usually
+  `because:exploration parked until <X>`). This is
   the ONLY point at which an exploration writes to the backlog, and only because
   the user asked for it. Never capture side-ideas mid-exploration: an active
   `.explore/<slug>/` thread covers everything raised inside it (Test 1 in
   `CAPTURE-BAR.md`), and an idea you floated that the user did not engage with is
-  not deferred work — it is just a thing you said. Exploration has no ride-along
+  not deferred work — it is just a thing you said. Exploration has no do-now
   tier either: an idea worth acting on simply becomes part of the exploration.
 - **Persist it:** move/copy the doc into a tracked location (e.g. `docs/specs/` or
   `docs/plans/<Module>/<Idea>/`) so it becomes committed repo content.
