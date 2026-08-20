@@ -69,7 +69,7 @@ A validated design document in `docs/superpowers/specs/` or `docs/specs/`, produ
 
 ## Backlog
 
-Deferred or not-yet-planned work tracked under `docs/plans/`: loose one-line items in a `BACKLOG.md` (repo-level, or per-[Module](#module)), or feature-sized [Backlog stubs](#backlog-stub). Captured with the `backlog` skill; surfaced by `module-status` / `repo-status`.
+Planned-deferral work tracked under `docs/plans/`: every new item carries a reason not to do it now in its `because:` tag. A direct human capture that supplies no specific reason is recorded as `because:human later`; skill-initiated deferrals require a concrete reason. Legacy entries without `because:` remain valid and may be flagged by grooming. Loose one-line items in a `BACKLOG.md` (repo-level, or per-[Module](#module)), or feature-sized [Backlog stubs](#backlog-stub). Captured with the `backlog` skill, whose capture bar routes reason-less work to be done now or planned instead; surfaced by `module-status` / `repo-status`.
 _Avoid_: todo list, icebox, wishlist
 
 ## Backlog stub
@@ -94,7 +94,7 @@ _Avoid_: easy work, low-hanging fruit, quick win
 
 ## Ride-along
 
-Work surfaced during planning or execution that is done as part of the current work rather than deferred to the [Backlog](#backlog): a backlog candidate promoted at the confirmation gate because doing it now is cheaper than doing it later — the context is already paid for, the goal is unchanged, and any open decision is small enough to pose in the gate table. Named for the merge it rides. Offered once per run and never recursive: a ride-along carries no ride-alongs of its own.
+Work surfaced during planning or execution that is done as part of the current work rather than deferred to the [Backlog](#backlog) — presented as **Do now** in the route-first confirmation gate, and the assumed preference when the context is in hand (a named path), the goal is unchanged, the work is not plan-sized, and any open decision is small enough to pose in the gate table. Named for the merge it rides. Offered once per run and never recursive: a ride-along carries no ride-alongs of its own.
 _Avoid_: fold-in, tag-along, scope creep
 
 ## Status

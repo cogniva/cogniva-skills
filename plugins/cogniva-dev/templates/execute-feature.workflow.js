@@ -38,7 +38,7 @@ const TASK_RESULT = {
     note: { type: 'string', description: 'If BLOCKED: exactly what is missing or needed.' },
     followups: {
       type: 'array',
-      description: 'Backlog CANDIDATES only — never written to any BACKLOG.md by this agent. Omit or leave empty unless the task surfaced work that is genuinely not covered by this plan or an open plan folder, AND you can point at a concrete observed fact for it. Speculation and "it would be nice if" do not qualify.',
+      description: 'Route CANDIDATES only — never written to any BACKLOG.md by this agent. Omit or leave empty unless the task surfaced work that is genuinely not covered by this plan or an open plan folder, AND you can point at a concrete observed fact for it. Speculation and "it would be nice if" do not qualify. A bug introduced by THIS task is never a followup — fix it before returning DONE.',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -48,6 +48,7 @@ const TASK_RESULT = {
           receipt: { type: 'string', description: 'The concrete observed fact, with a location: "same off-by-one at handler.ts:88", "blocked needing IExportPort, which the plan never defines".' },
           strength: { type: 'string', enum: ['clear', 'ambiguous'], description: 'clear = the fact is unambiguous; ambiguous = a passing observation. When unsure, use ambiguous.' },
           size: { type: 'string', enum: ['S', 'M', 'L'] },
+          because: { type: 'string', description: 'Deferral reason ONLY if this work genuinely must wait (blocked on something, sequenced after another feature, decision pending). Omit for work that could simply be done or planned next.' },
         },
       },
     },
@@ -99,7 +100,7 @@ for (let i = 0; i < tasks.length; i++) {
         ]),
     statePath ? `Append one short line to ${statePath}: created/modified paths, key decisions, and the commit SHA.` : null,
     `If you cannot finish cleanly, return status BLOCKED with a precise note and do NOT leave a partial commit.`,
-    `NEVER write to any BACKLOG.md. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console gates it with the user. No receipt, no followup.`,
+    `NEVER write to any BACKLOG.md. Fix any bug YOUR changes introduced before returning DONE — an introduced defect is unfinished work, not a followup. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console routes it with the user (do now / plan next / defer with a reason). No receipt, no followup.`,
     ``,
     `=== TASK ${t.n}: ${t.title} ===`,
     t.body,

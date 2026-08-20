@@ -1,6 +1,6 @@
 # Backlog format
 
-Deferred and not-yet-planned work lives under `docs/plans/`. Two tiers.
+Planned deferrals live under `docs/plans/` — work with a stated reason to wait. Two tiers.
 
 ## Tier 1 — loose items (`BACKLOG.md`)
 
@@ -13,7 +13,7 @@ A flat checklist. One file per scope:
 ```markdown
 # <Module> — Backlog
 
-Loose & deferred work, not yet planned. Promote with /cogniva-dev:plan-feature;
+Planned deferrals — work with a stated reason to wait (`because:` tag). Promote with /cogniva-dev:plan-feature;
 trivial fixes can go straight to /cogniva-dev:quick-fix.
 ```
 
@@ -22,7 +22,7 @@ trivial fixes can go straight to /cogniva-dev:quick-fix.
 ### Item line grammar
 
 ```markdown
-- [ ] <description>  `size:S` `area:UI` `src:CreateOrder`
+- [ ] <description>  `size:S` `area:UI` `src:CreateOrder` `because:after ModelUiFoundation`
 ```
 
 - `- [ ]` = open, `- [x]` = resolved. The status skills parse these.
@@ -30,6 +30,13 @@ trivial fixes can go straight to /cogniva-dev:quick-fix.
   - `size:S` | `size:M` | `size:L`
   - `area:<x>` — a free-form area label (e.g. `area:UI`)
   - `src:<Feature>` — the feature this was deferred from
+  - `because:<reason>` — why this waits (spaces are fine inside the backticks,
+    e.g. `because:blocked on IExportPort`, `because:decision pending`).
+    Present on every new item: REQUIRED with a concrete reason when a skill
+    proposed the deferral; a direct human capture with no stated reason is
+    written as `because:human later` — the invocation itself is the deferral
+    decision. Legacy lines without one stay valid — groom-backlog flags them
+    for routing.
   - `promoted:<Module>/<Feature>` — added on promotion (see below)
 - Keep the description to one line. No nested bullets.
 
@@ -44,6 +51,10 @@ Pick-up verbs (written by `plan-feature` / `quick-fix` when work starts):
 - [x] Whole-facet picker → planned: C3Data/ModelUiFoundation  `2026-06-13`
 - [x] Status-bar misalignment → done  `2026-06-13`
 ```
+
+When an item's `because:` reason has cleared — the blocker landed, the awaited
+feature merged, the pending decision was made — groom-backlog flags it
+actionable-now with a ready invocation; the pick-up verbs above then apply.
 
 Grooming verbs (written when a review finds the item no longer needs doing —
 always with a receipt: the feature, commit, or decision that justifies the
@@ -94,6 +105,7 @@ Integration: not started
 # <Idea> — Backlog (deferred)
 
 **Depends on:** <the MVP / feature this comes after>
+**Deferred because:** <the reason this waits — required; a direct human capture with no stated reason writes `human later`>
 
 ## Deferred scope
 - <bullet>

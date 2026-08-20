@@ -60,15 +60,24 @@ picks the survivor.
 ## Flags (report-only — never an edit)
 
 ### actionable-now
-A stub whose `Depends on:` has landed, or a loose item whose blocker is gone.
-Report with the evidence the dependency landed; suggest
-`/cogniva-dev:plan-feature` (feature-sized) or `/cogniva-dev:quick-fix`
-(small). Grooming never starts the work.
+A stub whose `Depends on:` has landed, a loose item whose blocker is gone, or
+an item whose `because:` reason has cleared (the awaited feature merged, the
+pending decision was made).
+**Receipt:** the evidence the dependency landed / the reason cleared.
+Suggest the exact `/cogniva-dev:plan-feature` (feature-sized) or
+`/cogniva-dev:quick-fix` (small) invocation. Grooming never starts the work.
 
 ### cryptic
 The item cannot be understood well enough to judge ANY verdict. Ask the user.
 Once explained: reword in place (confirmed) so it stays actionable, or close
 `→ wont-do: <decision>` if the user shrugs.
+
+### reason-less
+
+An open item with no `because:` tag (legacy, or captured without a reason).
+Not a closure: offer a route — do or plan it now (name the exact invocation),
+add a `because:` via confirmed in-place reword, or close `→ wont-do:`. Low
+priority; batch these.
 
 ### stale-refs
 The item is still valid but its anchors rotted — `src:` names a renamed

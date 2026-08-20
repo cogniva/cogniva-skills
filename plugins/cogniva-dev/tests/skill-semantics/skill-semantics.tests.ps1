@@ -21,6 +21,8 @@ $handoff = ReadDoc 'skills\execute-feature\HANDOFF.md'
 $qf      = ReadDoc 'skills\quick-fix\SKILL.md'
 $pf      = ReadDoc 'skills\plan-feature\SKILL.md'
 $docs    = ReadDoc 'docs\codex.md'
+$bk      = ReadDoc 'skills\backlog\SKILL.md'
+$cb      = ReadDoc 'skills\backlog\CAPTURE-BAR.md'
 
 $failures = @()
 function Check($label, $cond) {
@@ -35,8 +37,8 @@ Check 'Step 0a pasted-plan commit is gated on commits=task' `
     ($ef -match 'Commit it only under `commits=task`')
 Check 'Step 1 converted-plan commit is gated on commits=task' `
     ($ef -match 'Commit the converted file only under `commits=task`')
-Check 'ride-along commits are commits=task only' `
-    ($ef -match 'one commit per confirmed ride-along under\s+`commits=task` ONLY')
+Check 'do-now commits are commits=task only' `
+    ($ef -match 'one commit per confirmed do-now under\s+`commits=task` ONLY')
 Check 'repo-obligation output commits under commits=task only' `
     ($ef -match 'commit\s+what it produces under `commits=task` only')
 Check 'diff --check fixes stay in the tree under none|final' `
@@ -80,6 +82,16 @@ Check 'docs/codex.md: lifecycle skills are explicit-invocation-only' `
     ($docs -match '## Lifecycle skills are explicit-invocation-only under Codex')
 Check 'plan-feature lean default leaves the plan uncommitted' `
     ($pf -match 'Lean mode default: `commits=none`')
+
+# --- route-first capture invariants ------------------------------------------
+Check 'introduced defects are unfinished work, not followups' `
+    ($ef -match 'A defect a task introduced is not a\s+followup')
+Check 'skill-initiated deferrals always carry because:' `
+    ($bk -match 'A skill-initiated deferral always carries its `because:`')
+Check 'direct human capture falls back to because:human later' `
+    ($bk -match 'no stated reason is written with\s+`because:human later`')
+Check 'Plan-next proposals never auto-run' `
+    ($cb -match 'Never auto-run it and never write anything for it')
 
 if ($failures.Count -gt 0) {
     Write-Host ""

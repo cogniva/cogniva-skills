@@ -208,10 +208,10 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
    handoff — the gates below legitimately run over the uncommitted tree,
    which IS the artifact under review (and, under `final`, exactly what
    Step 4.7 commits).
-2. **Ride-along gate** — only when a `clear` followup passes Test 3 of
-   `CAPTURE-BAR.md` (in the `backlog` skill's directory): present the
-   three-section gate; one commit per confirmed ride-along under
-   `commits=task` ONLY — under `none|final` the ride-along edits stay
+2. **Do-now gate** — only when a `clear` followup routes to Do now under
+   Test 3 of `CAPTURE-BAR.md` (in the `backlog` skill's directory): present
+   the route-first gate; one commit per confirmed do-now under
+   `commits=task` ONLY — under `none|final` the do-now edits stay
    uncommitted in the tree (under `final` they ride the Step 4.7 commit).
    Depth-1, once per run.
 3. **Repo obligations** — honour any `### before-integrate` block under the
@@ -267,11 +267,15 @@ can't proceed without reopening one BLOCKS and surfaces it (see `/adr`).
 
 ## Backlog gate
 
-Never silently write or drop `followups`. Apply `CAPTURE-BAR.md`: drop
-covered items, present survivors under `## Backlog candidates`
-(`### Clear intent` / `### Needs a decision`), ask once, write only
-confirmed items via `/cogniva-dev:backlog`. Empty → say nothing. Deliver the
-tables as the final text of the turn.
+Never silently write or drop `followups`. A defect a task introduced is not a
+followup — it is unfinished work: fix it before landing (Test 0 of
+`CAPTURE-BAR.md`). Apply `CAPTURE-BAR.md` to the rest: drop covered items,
+route survivors through the route-first gate (`## Do now — in this work` /
+`## Plan next — fire when ready` / `## Backlog — planned deferrals` /
+`## Needs a decision`), ask once, write only confirmed deferrals — each with
+its `because:` — via `/cogniva-dev:backlog`. Plan-next items are proposals the
+user fires; never auto-run them. Empty → say nothing. Deliver the tables as
+the final text of the turn.
 
 ## Rules
 
