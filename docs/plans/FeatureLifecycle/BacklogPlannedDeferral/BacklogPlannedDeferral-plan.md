@@ -71,7 +71,7 @@ A bug the current run's own work introduced is fixed before the run completes, i
 - Modify: `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`
 - Create: three ADRs under `docs/adr/` (see steps)
 
-- [ ] **Step 1 (replace CAPTURE-BAR.md):** overwrite `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` with EXACTLY this content:
+- [x] **Step 1 (replace CAPTURE-BAR.md):** overwrite `plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md` with EXACTLY this content:
 
 ````markdown
 # Capture bar
@@ -339,11 +339,11 @@ Rules for the gate:
   path (for anything written), the item text, and each Do now's commit.
 ````
 
-- [ ] **Step 2 (backlog SKILL.md — description):** in `plugins/cogniva-dev/skills/backlog/SKILL.md`, replace the frontmatter `description:` line (currently beginning `description: Use to capture deferred or not-yet-planned work`) with:
+- [x] **Step 2 (backlog SKILL.md — description):** in `plugins/cogniva-dev/skills/backlog/SKILL.md`, replace the frontmatter `description:` line (currently beginning `description: Use to capture deferred or not-yet-planned work`) with:
 ```
 description: Use to capture a planned deferral - work with a stated reason not to do it now ("blocked on X", "after feature Y", a decision pending, an explicit human "later") so it is not lost. Reason-less real work is done now or routed to quick-fix / plan-feature, never parked here. Directly invokable AND the routing gate for any skill that surfaces work mid-run. Direct invocation writes immediately (a because: reason is encouraged, never demanded); skill-initiated capture is proposed and confirmed first. Lightweight, append-only, no subagents. Read with module-status / repo-status.
 ```
-- [ ] **Step 3 (backlog SKILL.md — intent):** replace the line `Park work somewhere durable instead of in prose or in your head. Two tiers:` with:
+- [x] **Step 3 (backlog SKILL.md — intent):** replace the line `Park work somewhere durable instead of in prose or in your head. Two tiers:` with:
 ```
 Park work that must WAIT somewhere durable instead of in prose or in your
 head. A backlog item is a **planned deferral**: it exists only with a stated
@@ -351,16 +351,16 @@ reason not to do it now (its `because:`). Reason-less real work is done now or
 handed off as a ready-to-fire plan invocation — see `CAPTURE-BAR.md`'s
 route-first tests. Two tiers:
 ```
-- [ ] **Step 4 (backlog SKILL.md — direct mode):** in the `## Two modes` section, after the sentence ending `No gate, no interrogation, no request to refine the wording.` insert: `If the item carries no deferral reason, still write it unchanged — then offer ONCE, in the report line, to add a "because:" tag. Never block a human capture on a reason.` (keep the following sentence about the tier-2 stub exception unchanged).
-- [ ] **Step 5 (backlog SKILL.md — skill-initiated mode):** in the same section, replace `qualify each candidate against all three tests, hold them as candidate records, and present them in the three-section gate.` with `route each candidate through the tests (0–3), hold them as candidate records, and present them in the route-first gate.`
-- [ ] **Step 6 (backlog SKILL.md — inputs):** in `## Inputs`, after the `- **tier**` bullet, add:
+- [x] **Step 4 (backlog SKILL.md — direct mode):** in the `## Two modes` section, after the sentence ending `No gate, no interrogation, no request to refine the wording.` insert: `If the item carries no deferral reason, still write it unchanged — then offer ONCE, in the report line, to add a "because:" tag. Never block a human capture on a reason.` (keep the following sentence about the tier-2 stub exception unchanged).
+- [x] **Step 5 (backlog SKILL.md — skill-initiated mode):** in the same section, replace `qualify each candidate against all three tests, hold them as candidate records, and present them in the three-section gate.` with `route each candidate through the tests (0–3), hold them as candidate records, and present them in the route-first gate.`
+- [x] **Step 6 (backlog SKILL.md — inputs):** in `## Inputs`, after the `- **tier**` bullet, add:
 ```
 - **because** (optional on direct human capture, REQUIRED for a
   skill-initiated deferral) — the reason this waits: blocked-on,
   sequenced-after, decision pending, or the user's "later". Written as a
   `because:` tag per `BACKLOG-FORMAT.md`.
 ```
-- [ ] **Step 7 (backlog SKILL.md — Step 2 of Steps):** replace the entire numbered step that begins `2. **Skill-initiated only — qualify intent, then test for a ride-along.**` (through `...that was itself a ride-along (depth-1).`) with:
+- [x] **Step 7 (backlog SKILL.md — Step 2 of Steps):** replace the entire numbered step that begins `2. **Skill-initiated only — qualify intent, then test for a ride-along.**` (through `...that was itself a ride-along (depth-1).`) with:
 ```
 2. **Skill-initiated only — qualify and route.** Apply the tests in
    `CAPTURE-BAR.md` in order. Test 0: a defect this run introduced is
@@ -376,7 +376,7 @@ route-first tests. Two tiers:
    workspace — and never offers one from inside work that was itself a do-now
    (depth-1).
 ```
-- [ ] **Step 8 (backlog SKILL.md — Step 5 of Steps):** replace the numbered step that begins `5. **Skill-initiated only — the gate.**` (through `...An empty candidate set → say nothing.`) with:
+- [x] **Step 8 (backlog SKILL.md — Step 5 of Steps):** replace the numbered step that begins `5. **Skill-initiated only — the gate.**` (through `...An empty candidate set → say nothing.`) with:
 ```
 5. **Skill-initiated only — the gate.** Present every candidate in ONE pass,
    in the four route-first sections defined in `CAPTURE-BAR.md` — `## Do now —
@@ -388,8 +388,8 @@ route-first tests. Two tiers:
    the turn with no tool call after it. Nothing is written or done before the
    reply. An empty candidate set → say nothing.
 ```
-- [ ] **Step 9 (backlog SKILL.md — Step 6 of Steps):** in the step `6. **Write the item(s)**`, replace the Loose bullet's parenthetical `(`size:`, `area:`, `src:`)` with `(`size:`, `area:`, `src:`, `because:`)` and append to that bullet: `A skill-initiated deferral always carries its `because:`.` Then in the Stub bullet, replace `(deferred scope, contracts/requests to use, acceptance criteria,` with `(a "Deferred because" line, deferred scope, contracts/requests to use, acceptance criteria,`.
-- [ ] **Step 10 (backlog SKILL.md — Rules):** replace the rule beginning `- A ride-along is a promotion of a backlog candidate,` (through `...the calling skill does the work.`) with:
+- [x] **Step 9 (backlog SKILL.md — Step 6 of Steps):** in the step `6. **Write the item(s)**`, replace the Loose bullet's parenthetical `(`size:`, `area:`, `src:`)` with `(`size:`, `area:`, `src:`, `because:`)` and append to that bullet: `A skill-initiated deferral always carries its `because:`.` Then in the Stub bullet, replace `(deferred scope, contracts/requests to use, acceptance criteria,` with `(a "Deferred because" line, deferred scope, contracts/requests to use, acceptance criteria,`.
+- [x] **Step 10 (backlog SKILL.md — Rules):** replace the rule beginning `- A ride-along is a promotion of a backlog candidate,` (through `...the calling skill does the work.`) with:
 ```
 - A do-now (ride-along) is a promotion of a backlog candidate, never a
   separate species: one the user declines is re-routed at the gate (plan next
@@ -397,7 +397,7 @@ route-first tests. Two tiers:
   routes; the calling skill does the work.
 ```
   and in the rule beginning `- Never demand refinement at capture time.`, replace `the tests filter for coverage and intent, never for quality.` with `the tests filter for coverage, intent, and importance — never for wording quality.`
-- [ ] **Step 11 (BACKLOG-FORMAT.md — header + grammar):** in `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`:
+- [x] **Step 11 (BACKLOG-FORMAT.md — header + grammar):** in `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`:
   - Replace `Deferred and not-yet-planned work lives under `docs/plans/`. Two tiers.` with `Planned deferrals live under `docs/plans/` — work with a stated reason to wait. Two tiers.`
   - In the lazy-create header template, replace `Loose & deferred work, not yet planned. Promote with /cogniva-dev:plan-feature;` with `Planned deferrals — work with a stated reason to wait (`because:` tag). Promote with /cogniva-dev:plan-feature;`
   - Replace the item-grammar example line ``- [ ] <description>  `size:S` `area:UI` `src:CreateOrder` `` with ``- [ ] <description>  `size:S` `area:UI` `src:CreateOrder` `because:after ModelUiFoundation` ``
@@ -409,12 +409,12 @@ route-first tests. Two tiers:
     Legacy lines without one stay valid — groom-backlog flags them for
     routing.
 ```
-- [ ] **Step 12 (BACKLOG-FORMAT.md — grooming note + stub template):**
+- [x] **Step 12 (BACKLOG-FORMAT.md — grooming note + stub template):**
   - After the pick-up verbs code block (the one showing `→ planned:` and `→ done`), add the paragraph: `When an item's `because:` reason has cleared — the blocker landed, the awaited feature merged, the pending decision was made — groom-backlog flags it actionable-now with a ready invocation; the pick-up verbs above then apply.`
   - In the tier-2 `backlog.md` template, directly after the line `**Depends on:** <the MVP / feature this comes after>`, add a line: `**Deferred because:** <the reason this waits — required>`
-- [ ] **Step 13 (write ADRs):** scan `docs/adr/` for the next free number, then write these three ADRs (in this order, consecutive numbers) per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`, each verbatim from `## Candidate ADRs` above: ADR-C1 → `docs/adr/NNNN-backlog-item-is-a-planned-deferral.md`; ADR-C3 → `docs/adr/NNNN-confirmation-gate-is-route-first.md`; ADR-C4 → `docs/adr/NNNN-vague-and-unimportant-is-dropped.md`. Each file: `# <title>` heading, `**Provenance:** Suggested by human`, then the body sentences.
-- [ ] **Step 14 (verify):** `grep -n "route-first" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md plugins/cogniva-dev/skills/backlog/SKILL.md` → at least one hit in each file. `grep -c "because:" plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md` → 4 or more. `grep -n "not-yet-planned" plugins/cogniva-dev/skills/backlog/SKILL.md plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md` → no matches. `ls docs/adr | grep -c "planned-deferral\|route-first\|vague-and-unimportant"` → 3.
-- [ ] **Step 15 (commit):** `git add plugins/cogniva-dev/skills/backlog docs/adr` then `git commit -m "feat(backlog): backlog is a planned deferral - route-first capture bar with because: reasons"`
+- [x] **Step 13 (write ADRs):** scan `docs/adr/` for the next free number, then write these three ADRs (in this order, consecutive numbers) per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`, each verbatim from `## Candidate ADRs` above: ADR-C1 → `docs/adr/NNNN-backlog-item-is-a-planned-deferral.md`; ADR-C3 → `docs/adr/NNNN-confirmation-gate-is-route-first.md`; ADR-C4 → `docs/adr/NNNN-vague-and-unimportant-is-dropped.md`. Each file: `# <title>` heading, `**Provenance:** Suggested by human`, then the body sentences.
+- [x] **Step 14 (verify):** `grep -n "route-first" plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md plugins/cogniva-dev/skills/backlog/SKILL.md` → at least one hit in each file. `grep -c "because:" plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md` → 4 or more. `grep -n "not-yet-planned" plugins/cogniva-dev/skills/backlog/SKILL.md plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md` → no matches. `ls docs/adr | grep -c "planned-deferral\|route-first\|vague-and-unimportant"` → 3.
+- [x] **Step 15 (commit):** `git add plugins/cogniva-dev/skills/backlog docs/adr` then `git commit -m "feat(backlog): backlog is a planned deferral - route-first capture bar with because: reasons"`
 
 ## Task 2: Re-point the callers (execute-feature, workflow template, quick-fix, easy-work-scan, plan-feature, explore-idea)
 
@@ -427,7 +427,7 @@ route-first tests. Two tiers:
 - Modify: `plugins/cogniva-dev/skills/explore-idea/SKILL.md`
 - Create: one ADR under `docs/adr/` (see steps)
 
-- [ ] **Step 1 (execute-feature — Do-now gate):** in `plugins/cogniva-dev/skills/execute-feature/SKILL.md`, in the Step 4 land list, replace the block:
+- [x] **Step 1 (execute-feature — Do-now gate):** in `plugins/cogniva-dev/skills/execute-feature/SKILL.md`, in the Step 4 land list, replace the block:
 ```
 2. **Ride-along gate** — only when a `clear` followup passes Test 3 of
    `CAPTURE-BAR.md` (in the `backlog` skill's directory): present the
@@ -445,7 +445,7 @@ with:
    uncommitted in the tree (under `final` they ride the Step 4.7 commit).
    Depth-1, once per run.
 ```
-- [ ] **Step 2 (execute-feature — backlog gate section):** in the same file, replace the whole `## Backlog gate` section body (currently `Never silently write or drop `followups`. Apply `CAPTURE-BAR.md`: drop covered items, present survivors under `## Backlog candidates` (`### Clear intent` / `### Needs a decision`), ask once, write only confirmed items via `/cogniva-dev:backlog`. Empty → say nothing. Deliver the tables as the final text of the turn.` — allow for line wraps) with:
+- [x] **Step 2 (execute-feature — backlog gate section):** in the same file, replace the whole `## Backlog gate` section body (currently `Never silently write or drop `followups`. Apply `CAPTURE-BAR.md`: drop covered items, present survivors under `## Backlog candidates` (`### Clear intent` / `### Needs a decision`), ask once, write only confirmed items via `/cogniva-dev:backlog`. Empty → say nothing. Deliver the tables as the final text of the turn.` — allow for line wraps) with:
 ```
 Never silently write or drop `followups`. A defect a task introduced is not a
 followup — it is unfinished work: fix it before landing (Test 0 of
@@ -457,13 +457,13 @@ its `because:` — via `/cogniva-dev:backlog`. Plan-next items are proposals the
 user fires; never auto-run them. Empty → say nothing. Deliver the tables as
 the final text of the turn.
 ```
-- [ ] **Step 3 (workflow template — followups schema):** in `plugins/cogniva-dev/templates/execute-feature.workflow.js`:
+- [x] **Step 3 (workflow template — followups schema):** in `plugins/cogniva-dev/templates/execute-feature.workflow.js`:
   - Replace the `followups` array `description` string (currently beginning `'Backlog CANDIDATES only — never written to any BACKLOG.md by this agent.`) with: `'Route CANDIDATES only — never written to any BACKLOG.md by this agent. Omit or leave empty unless the task surfaced work that is genuinely not covered by this plan or an open plan folder, AND you can point at a concrete observed fact for it. Speculation and "it would be nice if" do not qualify. A bug introduced by THIS task is never a followup — fix it before returning DONE.'`
   - In the followup item `properties`, after the `size: { type: 'string', enum: ['S', 'M', 'L'] },` line, add:
 ```javascript
           because: { type: 'string', description: 'Deferral reason ONLY if this work genuinely must wait (blocked on something, sequenced after another feature, decision pending). Omit for work that could simply be done or planned next.' },
 ```
-- [ ] **Step 4 (workflow template — prompt line):** in the same file, replace the prompt line:
+- [x] **Step 4 (workflow template — prompt line):** in the same file, replace the prompt line:
 ```
     `NEVER write to any BACKLOG.md. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console gates it with the user. No receipt, no followup.`,
 ```
@@ -471,10 +471,10 @@ with:
 ```
     `NEVER write to any BACKLOG.md. Fix any bug YOUR changes introduced before returning DONE — an introduced defect is unfinished work, not a followup. If this task surfaced real work outside the plan, return it in "followups" with a concrete receipt (a located fact) — the console routes it with the user (do now / plan next / defer with a reason). No receipt, no followup.`,
 ```
-- [ ] **Step 5 (quick-fix):** in `plugins/cogniva-dev/skills/quick-fix/SKILL.md`:
+- [x] **Step 5 (quick-fix):** in `plugins/cogniva-dev/skills/quick-fix/SKILL.md`:
   - In Step 2, replace `→ ride-along gate (`CAPTURE-BAR.md`` with `→ do-now gate (`CAPTURE-BAR.md``
   - In Rules, in the Follow-ups bullet, replace the fragment `(CAPTURE-BAR; write only confirmed items via `/cogniva-dev:backlog`).` (allow for the line wrap) with `(CAPTURE-BAR's route-first gate; write only confirmed deferrals, each with its `because:`, via `/cogniva-dev:backlog`).`
-- [ ] **Step 6 (easy-work-scan):** in `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`, in Step 6 (**Report.**), replace the passage from `Anything the dispatch surfaced but did not do` through `those runs own their own ride-along gates.` with:
+- [x] **Step 6 (easy-work-scan):** in `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`, in Step 6 (**Report.**), replace the passage from `Anything the dispatch surfaced but did not do` through `those runs own their own ride-along gates.` with:
 ```
 Anything the dispatch surfaced but did not do
    is routed, never written silently: drop what is already covered by an open
@@ -485,7 +485,7 @@ Anything the dispatch surfaced but did not do
    This scan never does surfaced work itself — it dispatches through
    `quick-fix` / `plan-feature`, and those runs own their own do-now gates.
 ```
-- [ ] **Step 7 (plan-feature):** in `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, in `## Handoff pass`, replace the passage from `then` + `ride-alongs and backlog candidates in `CAPTURE-BAR.md`'s three sections` through `silence is not deferral.` (allow for line wraps) with:
+- [x] **Step 7 (plan-feature):** in `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, in `## Handoff pass`, replace the passage from `then` + `ride-alongs and backlog candidates in `CAPTURE-BAR.md`'s three sections` through `silence is not deferral.` (allow for line wraps) with:
 ```
 then
 surfaced work through `CAPTURE-BAR.md`'s route-first gate (file in the
@@ -497,10 +497,10 @@ a receipt AND a `because:` reason; silence is not deferral;
 vague-and-unimportant is dropped with a one-line mention.
 ```
   (keep the surrounding sentences — the candidate-ADR list before it and `Write confirmed backlog items via` after it — unchanged.)
-- [ ] **Step 8 (explore-idea):** in `plugins/cogniva-dev/skills/explore-idea/SKILL.md`, replace `- **Park it:** drop a `/backlog` item or stub so the thread is not lost.` with `- **Park it:** drop a `/backlog` item or stub so the thread is not lost — parking is a planned deferral, so give it a `because:` (usually `because:exploration parked until <X>`).` (keep the rest of that bullet unchanged). In the same bullet, replace the fragment `Exploration has no ride-along` with `Exploration has no do-now` (the rest of that sentence stays).
-- [ ] **Step 9 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C2 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-introduced-defects-are-unfinished-work.md` (`# <title>`, `**Provenance:** Suggested by human`, body).
-- [ ] **Step 10 (verify):** `grep -rn "ride-along gate\|Ride-along gate" plugins/cogniva-dev/skills` → no matches. `grep -n "Do-now gate\|do-now gate" plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/quick-fix/SKILL.md` → at least one hit in each. `grep -n "because" plugins/cogniva-dev/templates/execute-feature.workflow.js` → hits in both the schema property and the prompt line. `grep -n "introduced" plugins/cogniva-dev/templates/execute-feature.workflow.js` → 2 hits (description + prompt).
-- [ ] **Step 11 (commit):** `git add plugins/cogniva-dev/skills/execute-feature plugins/cogniva-dev/skills/quick-fix plugins/cogniva-dev/skills/easy-work-scan plugins/cogniva-dev/skills/plan-feature plugins/cogniva-dev/skills/explore-idea plugins/cogniva-dev/templates/execute-feature.workflow.js docs/adr` then `git commit -m "feat(backlog): callers route followups - do-now gate, because field, introduced-defect rule"`
+- [x] **Step 8 (explore-idea):** in `plugins/cogniva-dev/skills/explore-idea/SKILL.md`, replace `- **Park it:** drop a `/backlog` item or stub so the thread is not lost.` with `- **Park it:** drop a `/backlog` item or stub so the thread is not lost — parking is a planned deferral, so give it a `because:` (usually `because:exploration parked until <X>`).` (keep the rest of that bullet unchanged). In the same bullet, replace the fragment `Exploration has no ride-along` with `Exploration has no do-now` (the rest of that sentence stays).
+- [x] **Step 9 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C2 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-introduced-defects-are-unfinished-work.md` (`# <title>`, `**Provenance:** Suggested by human`, body).
+- [x] **Step 10 (verify):** `grep -rn "ride-along gate\|Ride-along gate" plugins/cogniva-dev/skills` → no matches. `grep -n "Do-now gate\|do-now gate" plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/quick-fix/SKILL.md` → at least one hit in each. `grep -n "because" plugins/cogniva-dev/templates/execute-feature.workflow.js` → hits in both the schema property and the prompt line. `grep -n "introduced" plugins/cogniva-dev/templates/execute-feature.workflow.js` → 2 hits (description + prompt).
+- [x] **Step 11 (commit):** `git add plugins/cogniva-dev/skills/execute-feature plugins/cogniva-dev/skills/quick-fix plugins/cogniva-dev/skills/easy-work-scan plugins/cogniva-dev/skills/plan-feature plugins/cogniva-dev/skills/explore-idea plugins/cogniva-dev/templates/execute-feature.workflow.js docs/adr` then `git commit -m "feat(backlog): callers route followups - do-now gate, because field, introduced-defect rule"`
 
 ## Task 3: Grooming, ADR housekeeping, glossary, backlog headers
 
@@ -513,7 +513,7 @@ vague-and-unimportant is dropped with a one-line mention.
 - Modify: `docs/glossary/README.md`
 - Modify: `docs/plans/BACKLOG.md`, `docs/plans/FeatureLifecycle/BACKLOG.md`
 
-- [ ] **Step 1 (GROOMING-CRITERIA.md):** in `plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md`:
+- [x] **Step 1 (GROOMING-CRITERIA.md):** in `plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md`:
   - Replace the `### actionable-now` body (from `A stub whose `Depends on:` has landed,` through `Grooming never starts the work.`) with:
 ```
 A stub whose `Depends on:` has landed, a loose item whose blocker is gone, or
@@ -532,7 +532,7 @@ Not a closure: offer a route — do or plan it now (name the exact invocation),
 add a `because:` via confirmed in-place reword, or close `→ wont-do:`. Low
 priority; batch these.
 ```
-- [ ] **Step 2 (groom-backlog SKILL.md):** in Step 3 of `plugins/cogniva-dev/skills/groom-backlog/SKILL.md`, replace the flags bullet (from `- **Flags — no edit proposed:** `actionable-now` items (dependency landed —` through ``cryptic` items (ask the user what they meant).`) with:
+- [x] **Step 2 (groom-backlog SKILL.md):** in Step 3 of `plugins/cogniva-dev/skills/groom-backlog/SKILL.md`, replace the flags bullet (from `- **Flags — no edit proposed:** `actionable-now` items (dependency landed —` through ``cryptic` items (ask the user what they meant).`) with:
 ```
    - **Flags — no edit proposed:** `actionable-now` items (dependency landed
      or `because:` reason cleared — point at the exact
@@ -540,16 +540,16 @@ priority; batch these.
      `reason-less` items (no `because:` tag — offer a route), and `cryptic`
      items (ask the user what they meant).
 ```
-- [ ] **Step 3 (ADR 0017 amendment note):** find the ADR file written by Task 1 whose name contains `vague-and-unimportant` and note its number. Append to `docs/adr/0017-backlog-capture-coverage-and-intent.md` (blank line, then):
+- [x] **Step 3 (ADR 0017 amendment note):** find the ADR file written by Task 1 whose name contains `vague-and-unimportant` and note its number. Append to `docs/adr/0017-backlog-capture-coverage-and-intent.md` (blank line, then):
 ```
 **Amended by ADR <number> (2026-08-20):** importance is now an axis — a vague AND unimportant observation is dropped with a one-line mention rather than captured. The coverage and intent tests, and the no-wording-bar rule, are unchanged.
 ```
-- [ ] **Step 4 (ADR 0019 superseded):** find the ADR file written by Task 1 whose name contains `route-first` and note its number. In `docs/adr/0019-capture-candidates-two-tables.md`, insert directly under the `**Provenance:**` line:
+- [x] **Step 4 (ADR 0019 superseded):** find the ADR file written by Task 1 whose name contains `route-first` and note its number. In `docs/adr/0019-capture-candidates-two-tables.md`, insert directly under the `**Provenance:**` line:
 ```
 **Status:** superseded by ADR <number> — the gate is now route-first; receipts, confidence separation, and the single gate carry forward.
 ```
-- [ ] **Step 5 (ADR 0020 re-route wording):** in `docs/adr/0020-ride-along-promotes-a-backlog-candidate.md`, replace `a ride-along the user declines falls through to the backlog rather than being lost` with `a ride-along (presented as "Do now" in the route-first gate) the user declines is re-routed at the gate — plan next, or the backlog with a `because:` — rather than being lost`, and replace `context already paid for (a named path), unchanged goal, a nameable saving, and at most two open decisions` with `context already paid for (a named path), unchanged goal, not plan-sized, and at most two open decisions`.
-- [ ] **Step 6 (glossary):** in `docs/glossary/README.md`:
+- [x] **Step 5 (ADR 0020 re-route wording):** in `docs/adr/0020-ride-along-promotes-a-backlog-candidate.md`, replace `a ride-along the user declines falls through to the backlog rather than being lost` with `a ride-along (presented as "Do now" in the route-first gate) the user declines is re-routed at the gate — plan next, or the backlog with a `because:` — rather than being lost`, and replace `context already paid for (a named path), unchanged goal, a nameable saving, and at most two open decisions` with `context already paid for (a named path), unchanged goal, not plan-sized, and at most two open decisions`.
+- [x] **Step 6 (glossary):** in `docs/glossary/README.md`:
   - Replace the `## Backlog` entry body (the paragraph beginning `Deferred or not-yet-planned work tracked under`) with:
 ```
 Planned-deferral work tracked under `docs/plans/`: an item exists only with a stated reason not to do it now (its `because:` tag — encouraged on human captures, required on skill-initiated ones). Loose one-line items in a `BACKLOG.md` (repo-level, or per-[Module](#module)), or feature-sized [Backlog stubs](#backlog-stub). Captured with the `backlog` skill, whose capture bar routes reason-less work to be done now or planned instead; surfaced by `module-status` / `repo-status`.
@@ -559,9 +559,9 @@ Planned-deferral work tracked under `docs/plans/`: an item exists only with a st
 Work surfaced during planning or execution that is done as part of the current work rather than deferred to the [Backlog](#backlog) — presented as **Do now** in the route-first confirmation gate, and the assumed preference when the context is in hand (a named path), the goal is unchanged, the work is not plan-sized, and any open decision is small enough to pose in the gate table. Named for the merge it rides. Offered once per run and never recursive: a ride-along carries no ride-alongs of its own.
 ```
   (keep both entries' `_Avoid_:` lines unchanged.)
-- [ ] **Step 7 (backlog headers):** in BOTH `docs/plans/BACKLOG.md` and `docs/plans/FeatureLifecycle/BACKLOG.md`, replace the header line `Loose & deferred work, not yet planned. Promote with /cogniva-dev:plan-feature;` with `Planned deferrals — work with a stated reason to wait (`because:` tag). Promote with /cogniva-dev:plan-feature;` (leave every item line untouched).
-- [ ] **Step 8 (verify):** `grep -rn "not-yet-planned" plugins/cogniva-dev/skills docs/glossary/README.md` → no matches. `grep -n "not yet planned" docs/plans/BACKLOG.md docs/plans/FeatureLifecycle/BACKLOG.md` → no matches. `grep -n "reason-less" plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md plugins/cogniva-dev/skills/groom-backlog/SKILL.md` → at least one hit in each. `grep -n "Amended by" docs/adr/0017-backlog-capture-coverage-and-intent.md` → one hit. `grep -n "superseded by" docs/adr/0019-capture-candidates-two-tables.md` → one hit.
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog docs/adr/0017-backlog-capture-coverage-and-intent.md docs/adr/0019-capture-candidates-two-tables.md docs/adr/0020-ride-along-promotes-a-backlog-candidate.md docs/glossary/README.md docs/plans/BACKLOG.md docs/plans/FeatureLifecycle/BACKLOG.md` then `git commit -m "feat(backlog): grooming reason-cleared flags, ADR amendments, glossary planned-deferral"`
+- [x] **Step 7 (backlog headers):** in BOTH `docs/plans/BACKLOG.md` and `docs/plans/FeatureLifecycle/BACKLOG.md`, replace the header line `Loose & deferred work, not yet planned. Promote with /cogniva-dev:plan-feature;` with `Planned deferrals — work with a stated reason to wait (`because:` tag). Promote with /cogniva-dev:plan-feature;` (leave every item line untouched).
+- [x] **Step 8 (verify):** `grep -rn "not-yet-planned" plugins/cogniva-dev/skills docs/glossary/README.md` → no matches. `grep -n "not yet planned" docs/plans/BACKLOG.md docs/plans/FeatureLifecycle/BACKLOG.md` → no matches. `grep -n "reason-less" plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md plugins/cogniva-dev/skills/groom-backlog/SKILL.md` → at least one hit in each. `grep -n "Amended by" docs/adr/0017-backlog-capture-coverage-and-intent.md` → one hit. `grep -n "superseded by" docs/adr/0019-capture-candidates-two-tables.md` → one hit.
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/groom-backlog docs/adr/0017-backlog-capture-coverage-and-intent.md docs/adr/0019-capture-candidates-two-tables.md docs/adr/0020-ride-along-promotes-a-backlog-candidate.md docs/glossary/README.md docs/plans/BACKLOG.md docs/plans/FeatureLifecycle/BACKLOG.md` then `git commit -m "feat(backlog): grooming reason-cleared flags, ADR amendments, glossary planned-deferral"`
 
 ## Task 4: Version bump and validation
 
@@ -570,7 +570,7 @@ Work surfaced during planning or execution that is done as part of the current w
 - Modify: `plugins/cogniva-dev/.codex-plugin/plugin.json`
 - Modify: `.claude-plugin/marketplace.json`
 
-- [ ] **Step 1 (bump):** change `"version": "0.7.0"` to `"version": "0.7.1"` in `plugins/cogniva-dev/.claude-plugin/plugin.json`, `plugins/cogniva-dev/.codex-plugin/plugin.json`, and in the **cogniva-dev entry only** of `.claude-plugin/marketplace.json` (the marketplace also lists cogniva-skills at 0.8.0 — do NOT touch that entry). Patch bump, user-approved: this fixes the backlog toolkit's implementation to match its intended behavior without changing what the toolkit is. If cogniva-dev's version is no longer 0.7.0 when this task runs, bump patch from whatever it currently is (all three files identical) and note the actual numbers in the task summary.
-- [ ] **Step 2 (confirm parity):** `grep -n "\"version\"" plugins/cogniva-dev/.claude-plugin/plugin.json plugins/cogniva-dev/.codex-plugin/plugin.json .claude-plugin/marketplace.json` → the two plugin.json files and the cogniva-dev marketplace entry all read the new version; the cogniva-skills entry is untouched.
-- [ ] **Step 3 (validate):** `claude plugin validate .` → exits 0 / reports valid. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1` → passes (manifest parity across each plugin's manifest pair and its marketplace entry).
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/.claude-plugin/plugin.json plugins/cogniva-dev/.codex-plugin/plugin.json .claude-plugin/marketplace.json` then `git commit -m "chore(cogniva-dev): bump version - backlog planned-deferral refocus"`
+- [x] **Step 1 (bump):** change `"version": "0.7.0"` to `"version": "0.7.1"` in `plugins/cogniva-dev/.claude-plugin/plugin.json`, `plugins/cogniva-dev/.codex-plugin/plugin.json`, and in the **cogniva-dev entry only** of `.claude-plugin/marketplace.json` (the marketplace also lists cogniva-skills at 0.8.0 — do NOT touch that entry). Patch bump, user-approved: this fixes the backlog toolkit's implementation to match its intended behavior without changing what the toolkit is. If cogniva-dev's version is no longer 0.7.0 when this task runs, bump patch from whatever it currently is (all three files identical) and note the actual numbers in the task summary.
+- [x] **Step 2 (confirm parity):** `grep -n "\"version\"" plugins/cogniva-dev/.claude-plugin/plugin.json plugins/cogniva-dev/.codex-plugin/plugin.json .claude-plugin/marketplace.json` → the two plugin.json files and the cogniva-dev marketplace entry all read the new version; the cogniva-skills entry is untouched.
+- [x] **Step 3 (validate):** `claude plugin validate .` → exits 0 / reports valid. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1` → passes (manifest parity across each plugin's manifest pair and its marketplace entry).
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/.claude-plugin/plugin.json plugins/cogniva-dev/.codex-plugin/plugin.json .claude-plugin/marketplace.json` then `git commit -m "chore(cogniva-dev): bump version - backlog planned-deferral refocus"`
