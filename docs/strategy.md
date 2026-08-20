@@ -43,7 +43,9 @@ skills in `cogniva-dev`. The authoritative per-plugin roster is CLAUDE.md's
   rule in CLAUDE.md `## Rules` — the plugin's `.claude-plugin/plugin.json`, its
   `.codex-plugin/plugin.json`, and its entry in the top-level
   `.claude-plugin/marketplace.json`, all matching, in one commit; consuming
-  repos pick it up via plugin update.
+  repos pick it up via plugin update. The green gate now runs
+  `scripts/check-plugin-manifests.ps1` to catch version/description/keyword
+  drift between manifest pairs and the marketplace.
 
 ## Repo-scoped workflow instructions
 

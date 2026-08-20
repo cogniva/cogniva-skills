@@ -1,5 +1,6 @@
 {
   "commands": [
-    { "run": "claude plugin validate .", "label": "validate", "note": "This is a Claude Code plugin marketplace repo, not a .NET solution — the gate validates the plugins." }
+    { "run": "claude plugin validate .", "label": "validate", "note": "This is a Claude Code plugin marketplace repo, not a .NET solution — the gate validates the plugins." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1", "label": "manifest-parity", "note": "version/description/keywords must match across each plugin's manifest pair and its marketplace entry; claude plugin validate does not check this." }
   ]
 }
