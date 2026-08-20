@@ -39,9 +39,11 @@ it is deliberately lazy-loaded so ordinary sessions never pay for it.
    - **Table 2 — needs a decision** (confidence `inferred`): numbering
      continues from Table 1; item, proposed verdict, the reasoning, and the
      open question (e.g. which of a conflicting pair survives).
-   - **Flags — no edit proposed:** `actionable-now` items (dependency landed —
-     point at `/cogniva-dev:plan-feature` or `/cogniva-dev:quick-fix`) and
-     `cryptic` items (ask the user what they meant).
+   - **Flags — no edit proposed:** `actionable-now` items (dependency landed
+     or `because:` reason cleared — point at the exact
+     `/cogniva-dev:plan-feature` or `/cogniva-dev:quick-fix` invocation),
+     `reason-less` items (no `because:` tag — offer a route), and `cryptic`
+     items (ask the user what they meant).
    Then ask once: apply Table 1 as-is? Table 2 by number. Nothing is edited
    before this reply.
 
