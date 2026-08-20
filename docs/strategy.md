@@ -26,14 +26,10 @@ copying files).
 
 ## Tooling inventory
 
-All tools ship in the `cogniva-skills` plugin:
-
-| Tool | Type | Trigger |
-|---|---|---|
-| repo-init | skill | user starts a new repo |
-| add-module | skill | user adds a vertical slice |
-| glossary | skill | unrecognized terminology (docs/glossary lookup) |
-| adr | skill | architectural decisions during design/planning |
+Tools ship across two plugins: general-purpose skills in `cogniva-skills`
+(glossary, reference, project-requirement, project-context); development-specific
+skills in `cogniva-dev`. The authoritative per-plugin roster is CLAUDE.md's
+`## Layout` section — it is not duplicated here.
 
 ## Consuming in a new repo
 
@@ -43,9 +39,13 @@ All tools ship in the `cogniva-skills` plugin:
 
 ## Maintenance
 
-- Change skills/templates/scripts here, bump `version` in
-  `plugins/cogniva-skills/.claude-plugin/plugin.json`, commit; consuming repos
-  pick it up via plugin update.
+- Change skills/templates/scripts here, then bump `version` per the three-file
+  rule in CLAUDE.md `## Rules` — the plugin's `.claude-plugin/plugin.json`, its
+  `.codex-plugin/plugin.json`, and its entry in the top-level
+  `.claude-plugin/marketplace.json`, all matching, in one commit; consuming
+  repos pick it up via plugin update. The green gate now runs
+  `scripts/check-plugin-manifests.ps1` to catch version/description/keyword
+  drift between manifest pairs and the marketplace.
 
 ## Repo-scoped workflow instructions
 

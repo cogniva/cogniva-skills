@@ -5,6 +5,8 @@
 > integration and target-repo-prerequisite sections describe **worktree mode
 > only** — a lean run commits straight to the branch you are already on, has no
 > `state.md`, and never integrates. See `WORKTREE.md` beside this file.
+> It also describes the CLAUDE backend: under Codex the Workflow runtime does
+> not exist and `CODEX.md` beside this file defines the executor loop instead.
 
 ## Why a Workflow (not an orchestrator skill)
 The control loop is plain JS → ~0 model tokens, deterministic task order, and
@@ -13,6 +15,14 @@ manual `/clear` and no reviewer fan-out (the thing that previously dominated tok
 usage). Compare: a single continuous session would avoid subagents but grow
 context across all tasks; an orchestrator skill would spend model tokens reasoning
 each iteration. The Workflow gives lean + cheap + deterministic at once.
+
+Note: `*.workflow.js` files cannot be syntax-checked with `node --check` — the
+DSL body has top-level `return`/`await`. Verify with an AsyncFunction compile
+instead:
+
+```
+node -e "new (Object.getPrototypeOf(async function(){}).constructor)(require('fs').readFileSync(process.argv[1],'utf8').replace(/^export /gm,''))" <file>
+```
 
 ## Sequential, one shared worktree
 All task-agents operate in the SAME feature worktree on `feature/<slug>`, in

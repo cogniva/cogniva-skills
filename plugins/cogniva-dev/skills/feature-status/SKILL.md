@@ -18,7 +18,7 @@ Invoke: `/feature-status [<Module>]` (omit `<Module>` to scan all).
    `deferred` with the one-line summary from its `backlog.md`; do not treat it as a
    zero-task plan.
 2. For each feature with a plan, compute task progress by counting task
-   headings (`### Task N` / `### ⛔ Task N`) and whether each task's checkboxes are
+   headings (`## Task N` / `## ⛔ Task N`) and whether each task's checkboxes are
    all `- [x]`:
    - done = tasks fully checked, total = task count,
    - **next actionable** = first task not fully checked,

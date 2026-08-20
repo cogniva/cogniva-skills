@@ -61,7 +61,7 @@ Record `Target branch` / `Worktree` / `branch` in the feature's `state.md`
 - ADR check, worktree form:
   `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Worktree "<WORKSPACE>" -TargetBranch "<TARGET>"`
 
-## Replaces Step 4.6 "Done" — landing = integration
+## Replaces Step 4.7 "Done" — landing = integration
 
 1. If a `state.md` exists: set `Status: integrated` and commit it on the
    feature branch so the merge carries it.

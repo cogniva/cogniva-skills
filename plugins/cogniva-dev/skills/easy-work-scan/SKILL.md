@@ -51,15 +51,22 @@ table. This skill selects and dispatches; it never writes feature code itself.
    before a tool call may not be shown to the user.
 
 5. **Dispatch — approved items only, ONE AT A TIME.** Route each item per the
-   table in `EASY-WORK-CRITERIA.md`, in shortlist order. Wait for each to reach
+   table in `EASY-WORK-CRITERIA.md`, in shortlist order. Mode check: worktree
+   mode is ON iff the target repo's `.claude/cogniva-dev.local.json` has
+   `"worktrees": true`. Worktree mode → wait for each item to reach
    `INTEGRATED` on the user's branch before starting the next — concurrent
    worktrees racing to fast-forward one branch is how `QUEUED_DIRTY` and
-   conflicts happen. If an item comes back `CONFLICT`, `ERROR`, or `BLOCKED`,
-   stop dispatching, report it, and ask before continuing down the list.
+   conflicts happen. Lean mode → wait for each dispatched run's final report
+   on the current branch before starting the next — concurrent runs editing
+   one checkout conflict just as badly. In either mode, if an item comes back
+   `CONFLICT`, `ERROR`, or `BLOCKED`, stop dispatching, report it, and ask
+   before continuing down the list.
 
-6. **Report.** One line per dispatched item — what it did and its integration
-   status — then the close-out pointer: "validate, then
-   `/cogniva-dev:cleanup-work`". Anything the dispatch surfaced but did not do
+6. **Report.** One line per dispatched item — what it did and, in worktree
+   mode, its integration status; in lean mode, what landed on the current
+   branch. Worktree mode only: end with the close-out pointer "validate, then
+   `/cogniva-dev:cleanup-work`". Lean mode has no cleanup step — each run
+   simply finished with its report. Anything the dispatch surfaced but did not do
    is a backlog CANDIDATE, not a write: drop what is already covered by an open
    item or a dispatched fix, then present the rest in the sections from
    `CAPTURE-BAR.md` (in the `backlog` skill's directory) and write only what the

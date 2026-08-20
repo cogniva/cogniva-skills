@@ -20,12 +20,20 @@ Scaffold a new Module-architecture .NET repo. Templates live at
 2. `git init` (then `git symbolic-ref HEAD refs/heads/main` if git < 2.28).
 3. Copy from the plugin `templates/repo/` into the repo root:
    `CLAUDE.md`, `.gitignore`, `.editorconfig`, `.gitattributes`, and the whole
-   `.claude/` folder. The `.claude/cogniva-dev/` marker is what **opts this repo
-   into the worktree guards** (`guard-primary-edit` / `guard-primary-git` only
-   enforce where that dir exists); `.claude/settings.json` denies primary-checkout
-   branch switches as a node-independent backstop. The `.gitignore` already ignores
-   the AI's scratch dirs (`.explore/`, `.plans-staging/`). (The guards require
-   `node` on PATH; without it they fail open — allow.)
+   `.claude/` folder. The tracked `.claude/cogniva-dev/` directory is repo
+   **config** (`green-gate.json`), NOT a mode switch. Lean mode is the default —
+   skills work directly on the checkout. Worktree mode (isolated-worktree
+   execution + the `guard-primary-edit` / `guard-primary-git` guards) is a
+   per-clone opt-in: an untracked `.claude/cogniva-dev.local.json` containing
+   `{ "worktrees": true }`; absent/false/unreadable means lean.
+   `.claude/settings.json` carries no unconditional branch-switch denies —
+   primary-checkout branch protection is the mode-aware `guard-primary-git`
+   hook the plugin registers, which allows everything in lean mode. An optional
+   `.claude/cogniva-dev/policy.json` can require a development-branch prefix in
+   lean mode (see the template README); it is absent by default. The
+   `.gitignore` already ignores the AI's scratch dirs (`.explore/`,
+   `.plans-staging/`). (The guards require `node` on PATH; without it they fail
+   open — allow.)
 4. Copy `templates/glossary/README.md` to `docs/glossary/README.md`.
 5. Create empty dirs: `docs/plans/`, `docs/superpowers/specs/`, `docs/superpowers/plans/`. Drop a `.gitkeep` file in each so git tracks them.
 6. Create the solution and shared build props:

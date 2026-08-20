@@ -5,6 +5,11 @@ description: Read-only status of background Workflow runs (execute-feature, code
 
 # workflow-status
 
+> **Scope — Claude Workflow journals only.** Under Codex (or any host with no
+> Workflow runtime) there are no journals to read and nothing here is tracked:
+> report plainly "Claude Workflow runs only — Codex runs are not tracked here"
+> rather than implying full coverage of everything that ran.
+
 The on-disk equivalent of the terminal `/workflows` view, usable from anywhere
 (IDE, chat). Workflow runs persist their state to disk under the orchestrating
 session, so any session can read another session's runs. This skill is the
