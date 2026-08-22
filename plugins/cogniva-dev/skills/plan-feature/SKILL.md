@@ -25,8 +25,10 @@ there, but never treat that checkout as the subject of the feature.
 
 ## Design loop
 
-Honour any `### before-planning` block under the target repo CLAUDE.md's
-`## Cogniva-dev workflow instructions` first.
+Run `powershell -NoProfile -ExecutionPolicy Bypass -File
+"<plugin>/scripts/resolve-workflow-obligations.ps1" -Repo "<repo>" -Phase
+"before-planning"` and honour its reported block first. It resolves AGENTS.md
+first with a per-phase CLAUDE.md fallback.
 
 1. Explore the repo enough to design well — reuse existing code; respect
    its architecture rules.
@@ -89,8 +91,9 @@ it.
 
 Then land the plan by commit policy. plan-feature reuses execute-feature's
 `commits=` vocabulary; only `none|final` apply here (there is at most ONE
-commit to make). Honour any `### before-integrate` CLAUDE.md block first so
-its output lands with the plan (under Codex honour only the block's
+commit to make). Run the shared `resolve-workflow-obligations.ps1` with
+`-Phase "before-integrate"` and honour its reported block so its output lands
+with the plan (under Codex honour only the block's
 substantive gate — see `../execute-feature/CODEX.md`):
 
 - **Lean mode default: `commits=none`** — leave the plan folder (and the

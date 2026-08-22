@@ -23,6 +23,9 @@ $pf      = ReadDoc 'skills\plan-feature\SKILL.md'
 $docs    = ReadDoc 'docs\codex.md'
 $bk      = ReadDoc 'skills\backlog\SKILL.md'
 $cb      = ReadDoc 'skills\backlog\CAPTURE-BAR.md'
+$ar      = ReadDoc 'skills\applicable-rules\SKILL.md'
+$fc      = ReadDoc 'skills\feature-check\SKILL.md'
+$gc      = ReadDoc 'skills\gate-check\SKILL.md'
 
 $failures = @()
 function Check($label, $cond) {
@@ -92,6 +95,28 @@ Check 'direct human capture falls back to because:human later' `
     ($bk -match 'no stated reason is written with\s+`because:human later`')
 Check 'Plan-next proposals never auto-run' `
     ($cb -match 'Never auto-run it and never write anything for it')
+
+# --- composable workflow-neutral guardrails ---------------------------------
+Check 'applicable-rules delegates discovery to the canonical resolver' `
+    ($ar -match 'resolve-applicable-rules\.ps1')
+Check 'feature-check delegates preflight to applicable-rules' `
+    ($fc -match 'Delegate to `applicable-rules`')
+Check 'feature-check delegates readiness mechanics to gate-check' `
+    ($fc -match 'delegate mechanical validation to `gate-check`')
+Check 'gate-check delegates mechanics to the canonical runner' `
+    ($gc -match 'run-gate-check\.ps1')
+Check 'applicable-rules blocks automatic conclusions on REVIEW_REQUIRED' `
+    ($ar -match 'Decision` is `REVIEW_REQUIRED`')
+Check 'heavyweight lifecycle skills consume the shared phase resolver' `
+    ($ef -match 'resolve-workflow-obligations\.ps1' -and $qf -match 'resolve-workflow-obligations\.ps1' -and $pf -match 'resolve-workflow-obligations\.ps1')
+Check 'workflow-neutral skills contain no git lifecycle command' `
+    ((($ar + $fc + $gc) -notmatch '(?im)^\s*git\s+(add|commit|merge|push|switch|checkout|branch|worktree)\b'))
+Check 'heavyweight execute-feature consumes the shared green-gate runner' `
+    ($ef -match 'run-green-gate\.ps1')
+Check 'heavyweight quick-fix consumes the shared green-gate runner' `
+    ($qf -match 'run-green-gate\.ps1')
+Check 'heavyweight defaults remain lean and non-committing under Codex' `
+    ($ef -match 'Defaults:\*\* lean mode .+`commits=none`')
 
 if ($failures.Count -gt 0) {
     Write-Host ""

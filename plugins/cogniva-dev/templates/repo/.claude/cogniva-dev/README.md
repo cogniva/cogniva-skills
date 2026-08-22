@@ -53,6 +53,10 @@ repo's decision, declared here:
 Every `commands[].run` runs **in order, in the worktree**; each must exit 0. The first
 non-zero exit fails the gate — the change is reported and NOT integrated.
 
+The plugin's shared `scripts/run-green-gate.ps1` is the canonical runner. Any
+agent can run the complete read-only readiness set through `gate-check`; it
+does not take branch, commit, integration, or cleanup authority.
+
 - **No `green-gate.json`** → the gate is **skipped** (with a one-line note) and the
   change integrates anyway. This is expected for docs-only or early-stage repos; a
   missing gate is never a nuisance. Add the file when you have something to gate.

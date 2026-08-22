@@ -214,13 +214,13 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
    `commits=task` ONLY — under `none|final` the do-now edits stay
    uncommitted in the tree (under `final` they ride the Step 4.7 commit).
    Depth-1, once per run.
-3. **Repo obligations** — honour any `### before-integrate` block under the
-   target repo CLAUDE.md's `## Cogniva-dev workflow instructions`; commit
-   what it produces under `commits=task` only, otherwise its output stays in
-   the tree. Under Codex, honour only the substantive gate such a block
-   expresses — see the CLAUDE.md-inheritance rule in `CODEX.md`; a repo
-   block never re-enables committing, worktrees, or integration that the
-   active policy forbids.
+3. **Repo obligations** — run
+   `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/resolve-workflow-obligations.ps1" -Repo "<WORKSPACE>" -Phase "before-integrate"`.
+   It resolves AGENTS.md first and then CLAUDE.md for a phase block AGENTS.md
+   lacks. Honour the reported block, then commit what it produces under `commits=task` only; otherwise its output stays in the tree.
+   Under Codex, honour only the substantive gate such a block expresses — see
+   the CLAUDE.md-inheritance rule in `CODEX.md`; a repo block never re-enables
+   committing, worktrees, or integration that the active policy forbids.
 4. **ADR check** —
    `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Workspace "<WORKSPACE>" -Since START` ⟦worktree⟧
    It flags, in what this run added: an ADR number the repo already uses
@@ -234,13 +234,14 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
    it is clean. Record the result for the handoff. Worktree mode keeps its
    integration landing (`WORKTREE.md`) — `git diff --check` applies there too,
    in this same position.
-6. **Green gate** (mandatory, no shortcuts) — read
-   `.claude/cogniva-dev/green-gate.json`; run its `commands` in order, each
-   must exit 0. First failure → report the command and its output, STOP —
-   under `commits=task` the checkpoint commits stay on `BRANCH`; under
-   `final` NO commit is made and the work stays uncommitted in the tree; say
-   which plainly. File absent → one line: "No green-gate.json — skipping the
-   gate." Empty `commands` → intentional, skip silently.
+6. **Green gate** (mandatory, no shortcuts) — run the canonical shared
+   implementation:
+   `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/run-green-gate.ps1" -Repo "<WORKSPACE>"`.
+   Exit `0` is green or a legitimate skip (absent config or an empty command
+   list); exit `1` is red; exit `2` is a usage/config error. For either
+   non-zero result, report the output and STOP — under `commits=task` the
+   checkpoint commits stay on `BRANCH`; under `final` NO commit is made and
+   the work stays uncommitted in the tree.
 7. **The `commits=final` commit** (that policy only) — every gate above is
    green: NOW stage the run's produced files (implementation, plan when
    persisted, ride-alongs, ADR/whitespace/obligation output) and create

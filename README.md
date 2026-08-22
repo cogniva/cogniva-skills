@@ -47,6 +47,25 @@ directly on your branch; no worktrees, no state tracking) and **worktree**
 `{ "worktrees": true }` — isolated worktrees, guard hooks, auto-integration).
 See `plugins/cogniva-dev/docs/worktrees.md`.
 
+### Two supported workflows
+
+Claude-owned lifecycle automation and externally orchestrated bounded
+implementation satisfy the same repository engineering obligations. They differ
+only in who owns sequencing and lifecycle authorization.
+
+| Skill family | Responsibility | Lifecycle effect |
+|---|---|---|
+| `applicable-rules`, status skills | Authority and constraint discovery | Read-only |
+| `feature-check`, `gate-check` | Placement review and mechanical readiness evidence | Validation only |
+| `execute-feature`, `quick-fix` | Implement bounded work | Implementation; lifecycle behavior is explicit to the chosen mode |
+| `plan-feature`, ADR/backlog, cleanup skills | Design or lifecycle transitions | Mutating; explicit invocation required |
+
+For externally orchestrated work, use `applicable-rules` before implementation,
+`feature-check preflight` / `review` around the bounded diff, and
+`feature-check commit-ready` for evidence. These skills neither acquire nor
+infer authority to create branches or worktrees, mutate plans or ADRs, commit,
+integrate, push, or clean state.
+
 ### Install into any repo
 
 In Claude Code, from the consuming repo (GitHub, or substitute the path of a local clone):

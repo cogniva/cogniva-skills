@@ -2,6 +2,9 @@
   "commands": [
     { "run": "claude plugin validate .", "label": "validate", "note": "This is a Claude Code plugin marketplace repo, not a .NET solution — the gate validates the plugins." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1", "label": "manifest-parity", "note": "version/description/keywords must match across each plugin's manifest pair and its marketplace entry; claude plugin validate does not check this." },
-    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1", "label": "skill-semantics", "note": "Regression-pins the lifecycle skills' prose contracts (commit policy, route-first capture invariants); plugin validate does not check prose." }
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1", "label": "skill-semantics", "note": "Regression-pins lifecycle and workflow-neutral skill contracts; plugin validate does not check prose." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1", "label": "green-gate-runner", "note": "Exercises the single canonical green-gate implementation." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1", "label": "applicable-rules", "note": "Proves AGENTS-aware placement preflight is read-only." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1", "label": "gate-check", "note": "Proves mechanical gate orchestration is read-only and cannot certify an unresolved target." }
   ]
 }
