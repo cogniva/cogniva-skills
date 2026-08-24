@@ -49,10 +49,13 @@ skills in `cogniva-dev`. The authoritative per-plugin roster is CLAUDE.md's
 
 ## Repo-scoped workflow instructions
 
-The cogniva-dev workflow skills (plan-feature, quick-fix, execute-feature) honor
-an optional `## Cogniva-dev workflow instructions` section in a repo's CLAUDE.md.
-It is a per-repo injection point: a repo adds its own obligations to those
-generic skills without anything repo-specific being baked into the skills.
+The cogniva-dev workflow skills (plan-feature, quick-fix, execute-feature) and
+the workflow-neutral checks honor an optional `## Cogniva-dev workflow
+instructions` section in a repo's AGENTS.md first, with a per-phase-block
+fallback to CLAUDE.md. AGENTS.md is the preferred, tool-neutral home;
+CLAUDE.md remains a transitional source of substantive repository constraints.
+It is a per-repo injection point: a repo adds its own obligations to generic
+skills without anything repo-specific being baked into the skills.
 
 Inside it, each `### <phase>` block is a checkpoint. A skill that reaches a phase
 reads the matching block and follows it; a skill that never reaches that phase
@@ -67,8 +70,9 @@ ignores it; an absent section or block is a silent no-op. Phases currently wired
   is kept — its contract was always "on the worktree", not "adjacent to the merge".
 
 The vocabulary is open: add a phase by naming it in a skill checkpoint and
-listing it here. This repo's own CLAUDE.md uses `before-integrate` to fire the
-plugin version-bump offer while the worktree is still open.
+listing it here. This repo's own AGENTS.md uses `before-integrate` to fire the
+plugin version-bump offer while the worktree is still open; CLAUDE.md keeps a
+breadcrumb for older consumers.
 
 ## Roadmap (deliberately not yet)
 

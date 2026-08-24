@@ -80,13 +80,15 @@ Same order as execute-feature's Land step, for the same reasons:
 tree consistent with the commit policy → do-now gate (`CAPTURE-BAR.md`
 Test 3; depth-1 — a genuine second round is another
 `/cogniva-dev:quick-fix`, which is cheap and the whole point of this skill)
-→ `### before-integrate` CLAUDE.md block (under Codex honour only its
+→ `### before-integrate` block from
+`scripts/resolve-workflow-obligations.ps1` (under Codex honour only its
 substantive gate — see `../execute-feature/CODEX.md`) → ADR check
 (`powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/check-adrs.ps1" -Workspace "<WORKSPACE>" -Since START` ⟦worktree⟧)
 → `git diff --check` (whitespace errors or conflict markers → fix them,
 respecting the commit policy, and re-run until clean; record the result)
-→ GREEN GATE (`.claude/cogniva-dev/green-gate.json`; absent → skip with one
-line) → under `commits=final`, NOW the single implementation commit —
+→ GREEN GATE (`powershell -NoProfile -ExecutionPolicy Bypass -File
+"<plugin>/scripts/run-green-gate.ps1" -Repo "<WORKSPACE>"`; exit 0 = green or
+legitimate skip, 1 = red, 2 = config error) → under `commits=final`, NOW the single implementation commit —
 exactly one, only after the green gate; a git failure → `BLOCKED`, no
 retries → done ⟦worktree⟧. `commits=` stays the sole commit authority
 through every one of these steps, exactly as execute-feature defines it.

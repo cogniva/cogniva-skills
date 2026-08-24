@@ -46,7 +46,7 @@ the phase vocabulary.
 
 ### before-integrate
 
-- If this integration changed a plugin's skills/scripts/templates, apply the
-  version-bump rule under `## Rules` — **offer** the bump on that plugin now,
-  while the worktree is still open, so it rides the same merge.
+- This repo's phase blocks live in `AGENTS.md`. Resolve its
+  `## Cogniva-dev workflow instructions` section first and honour the
+  `### before-integrate` block there.
 

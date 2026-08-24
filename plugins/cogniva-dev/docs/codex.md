@@ -134,6 +134,19 @@ description. Read-only status and diagnostic skills (`feature-status`,
 `module-status`, `repo-status`, `workflow-status`) may still be selected
 automatically when appropriate.
 
+## Workflow-neutral guardrails for externally orchestrated work
+
+When ChatGPT or a human owns architecture, sequencing, and lifecycle approval,
+use `applicable-rules` before substantive implementation. It reports the
+applicable `AGENTS.md` and `CLAUDE.md` authority chain, placement constraints,
+and obvious Host/Contracts conflicts without changing repository state.
+
+Use `feature-check` for `preflight`, `review`, and `commit-ready` evidence. It
+delegates discovery to `applicable-rules` and mechanical validation to
+`gate-check`; neither skill stages, commits, integrates, pushes, creates a
+worktree, or mutates plans, backlogs, or ADRs. Heavy lifecycle skills remain
+available when explicitly chosen and keep their established default behavior.
+
 ## Resume under Codex
 
 Resume is checkbox-driven in both hosts: re-running the skill re-parses the plan

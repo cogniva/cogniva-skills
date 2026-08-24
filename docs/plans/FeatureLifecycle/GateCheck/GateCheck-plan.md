@@ -1,9 +1,14 @@
 # GateCheck — Feature Plan
 
-> REQUIRED EXECUTOR: /execute-feature FeatureLifecycle/GateCheck
-> Tasks contain NO git worktree/branch step — execute-feature creates the worktree
-> and the tasks commit on the feature branch they are already on. Never run
-> git switch/checkout/branch inside a task.
+> **Superseded:** The composable-workflow-guardrails implementation retains this
+> plan's shared green-gate runner and tool-neutral gate-check decisions, while
+> adding workflow-neutral placement discovery and readiness review. Its
+> task-by-task, lifecycle-owned execution steps are therefore no longer the
+> authoritative implementation plan.
+
+> **HISTORICAL DESIGN EVIDENCE ONLY — DO NOT RUN `/execute-feature` against
+> this plan.** The task and execution instructions below record the original
+> design context; they were not executed as written and must not be resumed.
 
 **Goal:** Give any AI tool (or a human with a shell) a single manual entry point —
 the `gate-check` skill — that runs the same pre-merge gate checks the cogniva-dev
