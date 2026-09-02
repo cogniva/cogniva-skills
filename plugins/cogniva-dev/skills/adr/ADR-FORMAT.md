@@ -6,6 +6,10 @@ ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`,
 `0002-slug.md`, etc. Create the `docs/adr/` directory lazily — only when the first
 confirmed ADR is written.
 
+`docs/adr/README.md` may sit alongside ADRs to document the directory policy. It is
+not an ADR, so it need not use the ADR filename or numbered-H1 convention. This
+exception is exact and case-sensitive: `readme.md` and `Readme.md` remain invalid.
+
 > **Never write an ADR without explicit human confirmation.** An ADR is a
 > constraint on all future work; it must not appear because an agent inferred one.
 > See [SKILL.md](./SKILL.md) for the confirm-first flow.

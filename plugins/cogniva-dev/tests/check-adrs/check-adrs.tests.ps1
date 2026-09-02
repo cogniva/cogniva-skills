@@ -87,6 +87,25 @@ try {
     Check 'exit 0 when docs/adr/README.md is present' ($res.code -eq 0)
     Check 'README.md is not reported as malformed' ($res.text -notmatch 'MALFORMED NAME.*README\.md')
 
+    # ------------------------------------------ README exception is case-sensitive
+    $r1bb = Join-Path $tmp 'readme-case'
+    New-Repo $r1bb
+    Add-Adr $r1bb '0001-first.md' '# ADR-0001: First'
+    Set-Content -LiteralPath (Join-Path $r1bb 'docs\adr\readme.md') -Value '# ADR policy' -Encoding UTF8
+    Commit-All $r1bb 'base with lower-case ADR policy readme'
+    $res = Run-Check $r1bb @()
+    Check 'exit 1 when docs/adr/readme.md is present' ($res.code -eq 1)
+    Check 'docs/adr/readme.md is reported as malformed' ($res.text -cmatch 'MALFORMED NAME.*readme\.md')
+
+    $r1bc = Join-Path $tmp 'readme-title-case'
+    New-Repo $r1bc
+    Add-Adr $r1bc '0001-first.md' '# ADR-0001: First'
+    Set-Content -LiteralPath (Join-Path $r1bc 'docs\adr\Readme.md') -Value '# ADR policy' -Encoding UTF8
+    Commit-All $r1bc 'base with title-case ADR policy readme'
+    $res = Run-Check $r1bc @()
+    Check 'exit 1 when docs/adr/Readme.md is present' ($res.code -eq 1)
+    Check 'docs/adr/Readme.md is reported as malformed' ($res.text -cmatch 'MALFORMED NAME.*Readme\.md')
+
     # ------------------------------------------ A: malformed ADR name remains rejected
     $r1c = Join-Path $tmp 'malformed-name'
     New-Repo $r1c

@@ -119,7 +119,7 @@ if (-not $adrPresent) {
     # Keep every other Markdown file in scope: an arbitrary malformed filename
     # must still be reported instead of being silently treated as documentation.
     $adrFiles = @(Get-ChildItem -LiteralPath $adrFull -Filter '*.md' -File |
-        Where-Object { $_.Name -ine 'README.md' } |
+        Where-Object { $_.Name -cne 'README.md' } |
         Sort-Object Name)
     if ($adrFiles.Count -eq 0) {
         Write-Output "check-adrs: $AdrDir/ is empty - skipping the number and heading checks (A, B)."
