@@ -77,6 +77,25 @@ try {
     Check 'exit 0 on a clean repo' ($res.code -eq 0)
     Check 'clean run says so' ($res.text -match 'check-adrs: clean')
 
+    # ------------------------------------------------ README is ADR directory policy, not an ADR
+    $r1b = Join-Path $tmp 'readme-policy'
+    New-Repo $r1b
+    Add-Adr $r1b '0001-first.md' '# ADR-0001: First'
+    Set-Content -LiteralPath (Join-Path $r1b 'docs\adr\README.md') -Value @('# ADR policy', '', 'This file is not an ADR.') -Encoding UTF8
+    Commit-All $r1b 'base with ADR policy readme'
+    $res = Run-Check $r1b @()
+    Check 'exit 0 when docs/adr/README.md is present' ($res.code -eq 0)
+    Check 'README.md is not reported as malformed' ($res.text -notmatch 'MALFORMED NAME.*README\.md')
+
+    # ------------------------------------------ A: malformed ADR name remains rejected
+    $r1c = Join-Path $tmp 'malformed-name'
+    New-Repo $r1c
+    Add-Adr $r1c 'not-an-adr.md' '# A malformed ADR filename'
+    Commit-All $r1c 'base with malformed ADR filename'
+    $res = Run-Check $r1c @()
+    Check 'exit 1 on a non-README malformed ADR filename' ($res.code -eq 1)
+    Check 'malformed ADR filename is named in the report' (($res.text -match 'MALFORMED NAME') -and ($res.text -match 'not-an-adr\.md'))
+
     # ------------------------------------------------- A: duplicate ADR number
     $r2 = Join-Path $tmp 'dup'
     New-Repo $r2
