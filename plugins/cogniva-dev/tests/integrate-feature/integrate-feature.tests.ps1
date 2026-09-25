@@ -70,26 +70,49 @@ try {
     if ((Invoke-Git $fastForward.Root @('log', '--format=%P', '-1', 'main')) -match ' ') { throw 'Fast-forward integration must not create a merge commit.' }
     Invoke-Git $fastForward.Root @('show-ref', '--verify', '--quiet', 'refs/heads/feature/test') | Out-Null
 
-    # Diverged histories stop before the target update and do not use a fallback merge.
-    $diverged = New-TestRepository
-    $repositories += $diverged
-    Set-Content -LiteralPath (Join-Path $diverged.Root 'main.txt') -Value 'main'
-    Invoke-Git $diverged.Root @('add', 'main.txt') | Out-Null
-    Invoke-Git $diverged.Root @('commit', '-m', 'main divergence') | Out-Null
-    Set-Content -LiteralPath (Join-Path $diverged.Feature 'feature.txt') -Value 'feature'
-    Invoke-Git $diverged.Feature @('add', 'feature.txt') | Out-Null
-    Invoke-Git $diverged.Feature @('commit', '-m', 'feature divergence') | Out-Null
-    $mainBefore = Invoke-Git $diverged.Root @('rev-parse', 'main')
-    $featureBefore = Invoke-Git $diverged.Root @('rev-parse', 'feature/test')
-    $remotesBefore = Invoke-Git $diverged.Root @('remote')
-    $integration = Invoke-Integration $diverged
-    Assert-Equal 2 $integration.ExitCode 'Diverged integration should stop with the conflict status'
-    Assert-Equal 'CONFLICT' $integration.Result.status 'Diverged integration status is incorrect'
-    if ($integration.Result.detail -notmatch 'cannot fast-forward') { throw 'Diverged integration should report why fast-forward is impossible.' }
-    Assert-Equal $mainBefore (Invoke-Git $diverged.Root @('rev-parse', 'main')) 'Diverged integration must not alter main'
-    Assert-Equal $featureBefore (Invoke-Git $diverged.Root @('rev-parse', 'feature/test')) 'Diverged integration must not alter the feature branch'
-    Assert-Equal $remotesBefore (Invoke-Git $diverged.Root @('remote')) 'Integration must not create or use a remote'
-    if ((Invoke-Git $diverged.Root @('log', '--format=%P', '-1', 'main')) -match ' ') { throw 'Diverged integration must not create a merge commit.' }
+    # Diverged histories with independent changes merge in the feature worktree,
+    # then fast-forward main to that merged feature tip.
+    $merged = New-TestRepository
+    $repositories += $merged
+    Set-Content -LiteralPath (Join-Path $merged.Root 'main.txt') -Value 'main'
+    Invoke-Git $merged.Root @('add', 'main.txt') | Out-Null
+    Invoke-Git $merged.Root @('commit', '-m', 'main divergence') | Out-Null
+    $mainCommit = Invoke-Git $merged.Root @('rev-parse', 'main')
+    Set-Content -LiteralPath (Join-Path $merged.Feature 'feature.txt') -Value 'feature'
+    Invoke-Git $merged.Feature @('add', 'feature.txt') | Out-Null
+    Invoke-Git $merged.Feature @('commit', '-m', 'feature divergence') | Out-Null
+    $featureCommit = Invoke-Git $merged.Root @('rev-parse', 'feature/test')
+    $integration = Invoke-Integration $merged
+    Assert-Equal 0 $integration.ExitCode 'Cleanly diverged integration should succeed'
+    Assert-Equal 'INTEGRATED' $integration.Result.status 'Cleanly diverged integration status is incorrect'
+    $mergedTip = Invoke-Git $merged.Root @('rev-parse', 'feature/test')
+    Assert-Equal $mergedTip (Invoke-Git $merged.Root @('rev-parse', 'main')) 'main should fast-forward to the merged feature tip'
+    if ((Invoke-Git $merged.Root @('log', '--format=%P', '-1', 'feature/test')) -notmatch ' ') { throw 'Cleanly diverged integration must create its merge commit in the feature worktree.' }
+    Invoke-Git $merged.Root @('merge-base', '--is-ancestor', $mainCommit, $mergedTip) | Out-Null
+    Invoke-Git $merged.Root @('merge-base', '--is-ancestor', $featureCommit, $mergedTip) | Out-Null
+    Assert-Equal '' (Invoke-Git $merged.Root @('remote')) 'Integration must not create or use a remote'
+    Invoke-Git $merged.Root @('show-ref', '--verify', '--quiet', 'refs/heads/feature/test') | Out-Null
+
+    # A real merge conflict aborts in the feature worktree before any local push.
+    $conflicted = New-TestRepository
+    $repositories += $conflicted
+    Set-Content -LiteralPath (Join-Path $conflicted.Root 'shared.txt') -Value 'main'
+    Invoke-Git $conflicted.Root @('add', 'shared.txt') | Out-Null
+    Invoke-Git $conflicted.Root @('commit', '-m', 'main conflict') | Out-Null
+    Set-Content -LiteralPath (Join-Path $conflicted.Feature 'shared.txt') -Value 'feature'
+    Invoke-Git $conflicted.Feature @('add', 'shared.txt') | Out-Null
+    Invoke-Git $conflicted.Feature @('commit', '-m', 'feature conflict') | Out-Null
+    $mainBefore = Invoke-Git $conflicted.Root @('rev-parse', 'main')
+    $featureBefore = Invoke-Git $conflicted.Root @('rev-parse', 'feature/test')
+    $remotesBefore = Invoke-Git $conflicted.Root @('remote')
+    $integration = Invoke-Integration $conflicted
+    Assert-Equal 2 $integration.ExitCode 'Conflicted integration should stop with the conflict status'
+    Assert-Equal 'CONFLICT' $integration.Result.status 'Conflicted integration status is incorrect'
+    if ($integration.Result.detail -notmatch 'merging main into feature/test conflicts') { throw 'Conflicted integration should report the pre-merge conflict.' }
+    Assert-Equal $mainBefore (Invoke-Git $conflicted.Root @('rev-parse', 'main')) 'Conflicted integration must not alter main'
+    Assert-Equal $featureBefore (Invoke-Git $conflicted.Root @('rev-parse', 'feature/test')) 'Conflicted integration must restore the feature branch'
+    Assert-Equal $remotesBefore (Invoke-Git $conflicted.Root @('remote')) 'Conflicted integration must not create or use a remote'
+    Assert-Equal '' (Invoke-Git $conflicted.Feature @('status', '--porcelain')) 'Conflicted integration must abort the worktree merge'
 
     Write-Output 'integrate-feature tests passed'
 }

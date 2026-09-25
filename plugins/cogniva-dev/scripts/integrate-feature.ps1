@@ -22,23 +22,14 @@ try {
     $gitDir = (git -C $RepoRoot rev-parse --git-common-dir).Trim()
     if (-not [System.IO.Path]::IsPathRooted($gitDir)) { $gitDir = Join-Path $RepoRoot $gitDir }
 
-    # 1. Advance the feature to the target only when that is a fast-forward.
-    #    A divergent target must stop here; never manufacture a merge commit or
-    #    fall back to another integration strategy.
-    $preMergeErrorPath = Join-Path ([System.IO.Path]::GetTempPath()) "cogniva-integrate-$([guid]::NewGuid()).stderr"
-    try {
-        $preMergePreference = $ErrorActionPreference
-        $ErrorActionPreference = 'Continue'
-        $preMergeOutput = (git -C $WorktreePath merge --ff-only $TargetBranch 2> $preMergeErrorPath)
-        $preMergeExit = $LASTEXITCODE
-        $preMerge = @($preMergeOutput) + @(Get-Content -LiteralPath $preMergeErrorPath -ErrorAction SilentlyContinue) -join "`n"
-    }
-    finally {
-        $ErrorActionPreference = $preMergePreference
-        Remove-Item -LiteralPath $preMergeErrorPath -Force -ErrorAction SilentlyContinue
-    }
-    if ($preMergeExit -ne 0) {
-        [pscustomobject]@{ status = 'CONFLICT'; detail = "cannot fast-forward $FeatureBranch to $TargetBranch; integration stopped: $preMerge" } | ConvertTo-Json -Compress
+    # 1. Pre-merge target into the feature inside the isolated worktree. This
+    #    deliberately permits a clean merge commit so the later local push is
+    #    still a fast-forward. A conflicted attempt is aborted: neither branch
+    #    is left changed and no integration push is attempted.
+    git -C $WorktreePath merge --no-edit $TargetBranch *>$null
+    if ($LASTEXITCODE -ne 0) {
+        git -C $WorktreePath merge --abort *>$null
+        [pscustomobject]@{ status = 'CONFLICT'; detail = "merging $TargetBranch into $FeatureBranch conflicts; resolve in $WorktreePath then re-run" } | ConvertTo-Json -Compress
         exit 2
     }
 
