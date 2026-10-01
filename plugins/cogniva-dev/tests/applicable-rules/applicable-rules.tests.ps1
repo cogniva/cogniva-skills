@@ -43,6 +43,47 @@ try {
     Check 'phase resolution falls back to CLAUDE.md when AGENTS lacks the phase' ($phaseExitCode -eq 0 -and $phase.Source -eq 'CLAUDE.md (fallback)' -and $phase.Lines -match 'CLAUDE fallback planning obligation')
     Check 'conflicting authority produces REVIEW_REQUIRED' ($conflictExitCode -eq 0 -and $conflictReport.Targets[0].Decision -eq 'REVIEW_REQUIRED' -and -not $conflictReport.Targets[0].CanProceedAutomatically -and $conflictReport.Targets[0].ReviewReasons.Count -gt 0)
     Check 'resolver leaves repository status unchanged' (($before -join "`n") -eq ($after -join "`n"))
+
+    # Windows paths are case-insensitive: a case-variant spelling of the repo is still the repo.
+    # (The Linux counterpart lives in the pwsh 7 architecture-profile suite.)
+    $variantJson = & powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $root -Target (Join-Path $root.ToUpperInvariant() 'docs\readme.md') -Purpose 'documentation' -Format Json
+    $variantExitCode = $LASTEXITCODE
+    Check 'a case-variant spelling of the repo path is inside the repo on Windows' ($variantExitCode -eq 0 -and ($variantJson | ConvertFrom-Json).Targets[0].Target -match '^docs[\\/]readme\.md$')
+
+    # --- architecture profile (reported alongside, never changes an undeclared repo's decision) ---
+    Check 'undeclared repo reports an UNDECLARED architecture profile' ($report.Targets[0].ArchitectureProfile.Status -eq 'UNDECLARED' -and $null -eq $report.Targets[0].ArchitectureProfile.Profile)
+    $plain = (& powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $root -Target 'docs/readme.md' -Purpose 'documentation' -Format Json) | ConvertFrom-Json
+    Check 'undeclared profile adds no review reason' ($plain.Targets[0].Decision -eq 'SAFE_TO_PROCEED' -and $plain.Targets[0].ArchitectureProfile.Status -eq 'UNDECLARED')
+
+    New-Item -ItemType Directory -Path (Join-Path $root '.cogniva\profiles\fixture') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $root '.cogniva\profiles\fixture\profile.yml') -Encoding ASCII -Value 'description: Fixture profile.'
+    Set-Content -LiteralPath (Join-Path $root '.cogniva-profile.yml') -Encoding ASCII -Value 'profile: fixture'
+    $declared = (& powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $root -Target 'docs/readme.md' -Purpose 'documentation' -Format Json) | ConvertFrom-Json
+    Check 'declared profile is reported with where it came from' ($declared.Targets[0].ArchitectureProfile.Status -eq 'RESOLVED' -and $declared.Targets[0].ArchitectureProfile.Profile -eq 'fixture' -and $declared.Targets[0].ArchitectureProfile.Kind -eq 'repo-default' -and $declared.Targets[0].ArchitectureProfile.Source -eq '.cogniva-profile.yml')
+    Check 'a resolved profile does not change the decision' ($declared.Targets[0].Decision -eq 'SAFE_TO_PROCEED')
+    $declaredText = (& powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $root -Target 'docs/readme.md' -Purpose 'documentation') -join "`n"
+    Check 'text output names the architecture profile' ($declaredText -match 'ARCHITECTURE PROFILE: fixture \(repo-default: \.cogniva-profile\.yml\)')
+
+    Set-Content -LiteralPath (Join-Path $root '.cogniva-profile.yml') -Encoding ASCII -Value 'profile: missing'
+    $brokenJson = & powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $root -Target 'docs/readme.md' -Purpose 'documentation' -Format Json
+    $brokenExitCode = $LASTEXITCODE
+    $broken = $brokenJson | ConvertFrom-Json
+    Check 'an unresolvable profile requires review instead of crashing' ($brokenExitCode -eq 0 -and $broken.Targets[0].ArchitectureProfile.Status -eq 'ERROR' -and $broken.Targets[0].Decision -eq 'REVIEW_REQUIRED' -and ($broken.Targets[0].ReviewReasons -join ' ') -match 'Architecture profile could not be resolved')
+
+    Set-Content -LiteralPath (Join-Path $root '.cogniva-profile.yml') -Encoding ASCII -Value 'profile: fixture'
+    New-Item -ItemType Directory -Path (Join-Path $root 'broken') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $root 'broken\.cogniva-profile.yml') -Encoding ASCII -Value 'profile: absent'
+    $splitJson = & powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $root -Target 'docs/readme.md,broken/thing.md' -Purpose 'documentation' -Format Json
+    $split = $splitJson | ConvertFrom-Json
+    Check 'a profile error affects only its own target' ($split.Targets[0].ArchitectureProfile.Status -eq 'RESOLVED' -and $split.Targets[0].Decision -eq 'SAFE_TO_PROCEED' -and $split.Targets[1].ArchitectureProfile.Status -eq 'ERROR' -and $split.Targets[1].Decision -eq 'REVIEW_REQUIRED' -and ($split.Targets[1].ReviewReasons -join ' ') -match "profile 'absent'")
+
+    $savedPath = $env:PATH
+    try {
+        $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -and -not (Test-Path -LiteralPath (Join-Path $_ 'pwsh.exe')) }) -join ';'
+        $noPwsh = (& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $root -Target 'docs/readme.md' -Purpose 'documentation' -Format Json) | ConvertFrom-Json
+    }
+    finally { $env:PATH = $savedPath }
+    Check 'without pwsh the profile is UNAVAILABLE and the decision is unchanged' ($noPwsh.Targets[0].ArchitectureProfile.Status -eq 'UNAVAILABLE' -and $noPwsh.Targets[0].Decision -eq 'SAFE_TO_PROCEED')
 }
 finally {
     if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }

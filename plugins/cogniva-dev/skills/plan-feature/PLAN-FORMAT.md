@@ -10,13 +10,18 @@ a fresh subagent context — so **every task must be self-contained**.
 # <Feature> — Feature Plan
 
 > REQUIRED EXECUTOR: /execute-feature <Module>/<Feature>
-> Tasks contain NO git worktree/branch step — execute-feature sets up the workspace
-> and the tasks commit on the branch they are already on. Never run
+> Tasks contain NO git worktree/branch step — execute-feature sets up the workspace.
+> Each task's commit step applies only when the run's `commits=` policy commits
+> per task; otherwise leave the changes in the working tree. Never run
 > git switch/checkout/branch inside a task.
 
 **Goal:** <one sentence — what this feature delivers>
 
 **Architecture:** <2-4 sentences — approach, where it fits, key types>
+
+**Architecture profile:** <id> (<kind>: <marker path>) — standards applied: <standard ids>
+<!-- Only when plan-feature resolved an architecture profile; one line per
+     profile when targets were MIXED. Omit the line otherwise. -->
 
 **Read these first:** <links to spec/ADRs/related code>
 

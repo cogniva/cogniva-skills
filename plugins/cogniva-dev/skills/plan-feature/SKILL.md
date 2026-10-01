@@ -30,6 +30,21 @@ Run `powershell -NoProfile -ExecutionPolicy Bypass -File
 "before-planning"` and honour its reported block first. It resolves AGENTS.md
 first with a per-phase CLAUDE.md fallback.
 
+**Architecture profile.** As soon as you know which paths the design will
+touch (directories are enough), run `pwsh -NoProfile -File
+"<plugin>/scripts/resolve-architecture-profile.ps1" -Repo "<repo>" -Target
+"<path>,<path>"`, adding `-Profile <id>` when the user passed `profile=<id>`.
+No `pwsh` on this machine: say so in one line and plan as before. Read the
+standards index it prints, open only the standards that bear on this design,
+and honour them like existing ADRs: surface a departure, never work around
+it. `UNDECLARED`: mention any suggestion in one line and carry on without a
+profile. Adopting or declaring a profile writes files, so do it only when
+the user asks (`<plugin>/scripts/adopt-architecture-profile.ps1`, then a
+one-line `.cogniva-profile.yml`). `MIXED`: say which paths fall under which
+profile and apply each profile to its own paths. `ERROR` for a path: show the
+reason and ask the user how to proceed before designing anything there.
+Re-run when the locked file structure adds paths.
+
 1. Explore the repo enough to design well — reuse existing code; respect
    its architecture rules.
 2. Domain terms: consult `/glossary`; propose new entries before writing
@@ -74,6 +89,11 @@ following `PLAN-FORMAT.md` in this skill's directory (read it). Essentials:
   needs — never "same as Task 3"), `- [ ]` steps with exact code/commands,
   and a final commit step. Keep tasks COARSE.
 - No ⛔ gates by default — only for a genuinely irreversible mid-run action.
+- Designed under an architecture profile: add the header line
+  `**Architecture profile:** <id> (<kind>: <marker path>) — standards
+  applied: <standard ids>` (one per profile when `MIXED`). Tasks restate
+  every constraint a standard imposes, because the executing agent never
+  sees the profile, and never cite an absolute path.
 - Confirmed candidates → a `## Candidate ADRs` section (full title +
   provenance + relitigation + the 1–3 sentence body) plus an "On
   completion, write ADR: <title>" step in the task that finalizes each

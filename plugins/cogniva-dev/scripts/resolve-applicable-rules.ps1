@@ -77,18 +77,46 @@ function Get-DirectiveTopics([string]$Text) {
     return @($topics)
 }
 
+# The architecture-profile resolver is a PowerShell 7 script; this script stays
+# Windows PowerShell 5.1, so it runs the resolver as a separate pwsh process.
+# No pwsh -> the profile is reported UNAVAILABLE and nothing else changes.
+# Resolver exit 0/1 -> a per-target report (1 = some targets are ERROR);
+# exit 2 -> a usage failure that applies to every target.
+function Get-ArchitectureProfileReport([string]$RepoFull, [string[]]$Targets) {
+    $pwsh = Get-Command pwsh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $pwsh) { return [pscustomobject]@{ Available = $false; Error = $null; Report = $null } }
+    $resolver = Join-Path $PSScriptRoot 'resolve-architecture-profile.ps1'
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $lines = @(& $pwsh.Source -NoProfile -File $resolver -Repo $RepoFull -Target ($Targets -join ',') -Format Json 2>&1)
+        $code = $LASTEXITCODE
+    }
+    finally { $ErrorActionPreference = $previous }
+    $stdout = @($lines | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { [string]$_ })
+    $stderr = @($lines | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | ForEach-Object { [string]$_ })
+    if ($code -ne 0 -and $code -ne 1) { return [pscustomobject]@{ Available = $true; Error = (($stderr -join ' ').Trim()); Report = $null } }
+    return [pscustomobject]@{ Available = $true; Error = $null; Report = (($stdout -join "`n") | ConvertFrom-Json) }
+}
+
 $repoFull = [System.IO.Path]::GetFullPath($Repo)
 if (-not (Test-Path -LiteralPath $repoFull -PathType Container)) { Fail "repo not found: $Repo" }
 $repoFull = (Get-Item -LiteralPath $repoFull).FullName
+# Same rule as profile-lib.ps1 (and .NET): paths are case-sensitive on Linux,
+# insensitive on Windows and macOS. $IsLinux is undefined, so false, in 5.1.
+$pathComparison = if ($IsLinux) { [StringComparison]::Ordinal } else { [StringComparison]::OrdinalIgnoreCase }
 
 $items = @()
 $requestedTargets = @($Target | ForEach-Object {
     $_ -split ',' | ForEach-Object { $_.Trim().Trim("'").Trim('"') } | Where-Object { $_ }
 })
+$profileReport = Get-ArchitectureProfileReport $repoFull $requestedTargets
+$targetIndex = -1
 foreach ($rawTarget in $requestedTargets) {
+    $targetIndex++
     $targetFull = Get-FullPath $rawTarget $repoFull
     $prefix = $repoFull.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
-    if (-not ($targetFull -eq $repoFull -or $targetFull.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase))) {
+    if (-not ([string]::Equals($targetFull, $repoFull, $pathComparison) -or $targetFull.StartsWith($prefix, $pathComparison))) {
         Fail "target is outside repo: $rawTarget"
     }
     $directory = Get-ExistingDirectory $targetFull
@@ -128,6 +156,23 @@ foreach ($rawTarget in $requestedTargets) {
     foreach ($conflict in $conflicts) {
         if ($conflict -like 'CONFLICT:*') { $reviewReasons += $conflict }
     }
+    if (-not $profileReport.Available) {
+        $architectureProfile = [pscustomobject]@{ Status = 'UNAVAILABLE'; Profile = $null; Kind = $null; Source = $null; Suggestion = $null; Note = 'PowerShell 7 (pwsh) not found; architecture profile not checked.' }
+    }
+    elseif ($profileReport.Error) {
+        $architectureProfile = [pscustomobject]@{ Status = 'ERROR'; Profile = $null; Kind = $null; Source = $null; Suggestion = $null; Note = $profileReport.Error }
+        $reviewReasons += "Architecture profile could not be resolved: $($profileReport.Error)"
+    }
+    else {
+        $resolved = $profileReport.Report.Targets[$targetIndex]
+        $architectureProfile = [pscustomobject]@{
+            Status = $resolved.Status; Profile = $resolved.Profile
+            Kind = if ($resolved.Winner) { $resolved.Winner.Kind } else { $null }
+            Source = if ($resolved.Winner) { $resolved.Winner.Source } else { $null }
+            Suggestion = $resolved.Suggestion; Note = $resolved.Error
+        }
+        if ($resolved.Status -eq 'ERROR') { $reviewReasons += "Architecture profile could not be resolved: $($resolved.Error)" }
+    }
     $effectiveAuthority = @()
     for ($index = 0; $index -lt $agents.Count; $index++) {
         $effectiveAuthority += [pscustomobject]@{
@@ -149,6 +194,7 @@ foreach ($rawTarget in $requestedTargets) {
         Claude = @($claudes)
         EffectiveAuthority = @($effectiveAuthority)
         PrecedenceRule = 'More-specific applicable AGENTS.md adds to or overrides broader AGENTS.md only where the narrower text explicitly conflicts or overrides. A narrower file must not silently weaken broader safety or architecture guardrails. Substantive CLAUDE.md constraints remain applicable.'
+        ArchitectureProfile = $architectureProfile
         Constraints = @($constraints)
         Conflicts = @($conflicts)
         ReviewReasons = @($reviewReasons | Select-Object -Unique)
@@ -179,6 +225,14 @@ foreach ($item in $items) {
     Write-Output "  CLAUDE.md: $claudeText"
     $authorityText = ($item.EffectiveAuthority | ForEach-Object { "[$($_.Order)] $($_.Source): $($_.Path)" }) -join '; '
     Write-Output "  EFFECTIVE AUTHORITY: $authorityText"
+    $ap = $item.ArchitectureProfile
+    $profileText = switch ($ap.Status) {
+        'RESOLVED' { "$($ap.Profile) ($($ap.Kind): $($ap.Source))" }
+        'NONE' { "none ($($ap.Kind): $($ap.Source))" }
+        'UNDECLARED' { if ($ap.Suggestion) { "undeclared ($($ap.Suggestion.Status.ToLowerInvariant()): $($ap.Suggestion.Profiles -join ', '))" } else { 'undeclared' } }
+        default { "$($ap.Status.ToLowerInvariant()) - $($ap.Note)" }
+    }
+    Write-Output "  ARCHITECTURE PROFILE: $profileText"
     Write-Output "  DECISION: $($item.Decision)"
     foreach ($conflict in $item.Conflicts) { Write-Output "  PLACEMENT: $conflict" }
     foreach ($reason in $item.ReviewReasons) { Write-Output "  REVIEW_REQUIRED: $reason" }

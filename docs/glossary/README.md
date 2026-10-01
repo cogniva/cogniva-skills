@@ -101,3 +101,13 @@ _Avoid_: fold-in, tag-along, scope creep
 
 The lifecycle stage of a feature, recorded as the `Status:` line in its `state.md`: `deferred → planned → in-progress → blocked → integrated → done`. Seeded by `plan-feature`, advanced by `execute-feature`, and read by the status skills. A deferred stub can also exit the lifecycle via [Grooming](#grooming): `deferred → obsolete | superseded | wont-do`.
 _Avoid_: state, stage
+
+## Architecture profile
+
+A named set of declarative architectural standards for one kind of codebase (e.g. `dotnet`): a folder holding a `profile.yml` and Markdown files under `standards/`. It may inherit one other profile, replacing any inherited standard that has the same path. The cogniva-dev plugin ships a library of them; a repo adopts one by copying it into `.cogniva/profiles/`, and tools read only that copy. Selected per path by a [Profile marker](#profile-marker).
+_Avoid_: stack, tech profile, template
+
+## Profile marker
+
+A `.cogniva-profile.yml` file containing `profile: <id>` (or `profile: none`) that selects the [Architecture profile](#architecture-profile) for its folder and everything below it. The marker nearest a path wins; the one at the repo root is the repository default. Written only by a human decision, never inferred.
+_Avoid_: profile config, profile declaration
