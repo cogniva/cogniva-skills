@@ -1,0 +1,6 @@
+description: .NET Module (vertical-slice) architecture - Contracts, Domain, Application, Infrastructure, optional Client, and Blazor UI per Module.
+inherits: cogniva-base
+detect:
+  - "*.slnx"
+  - "*.sln"
+  - "Directory.Build.props"

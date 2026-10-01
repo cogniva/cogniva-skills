@@ -118,6 +118,22 @@ Check 'heavyweight quick-fix consumes the shared green-gate runner' `
 Check 'heavyweight defaults remain lean and non-committing under Codex' `
     ($ef -match 'Defaults:\*\* lean mode .+`commits=none`')
 
+# --- architecture profiles ----------------------------------------------------
+$pfFlat = $pf -replace '\s+', ' '
+$fmt    = ReadDoc 'skills\plan-feature\PLAN-FORMAT.md'
+Check 'plan-feature resolves the architecture profile through the shared resolver' `
+    ($pf -match 'resolve-architecture-profile\.ps1')
+Check 'plan-feature never adopts or declares a profile on its own' `
+    ($pfFlat -match 'Adopting or declaring a profile writes files, so do it only when the user asks')
+Check 'plan-feature restates standards in task bodies' `
+    ($pfFlat -match 'the executing agent never sees the profile')
+Check 'PLAN-FORMAT carries the Architecture profile header line' `
+    ($fmt -match '\*\*Architecture profile:\*\*')
+Check 'applicable-rules documents the ArchitectureProfile field' `
+    ($ar -match 'ArchitectureProfile')
+Check 'PLAN-FORMAT header defers committing to the commits= policy' `
+    ($fmt -notmatch 'tasks commit on the branch they are already on' -and ($fmt -replace '\s+', ' ') -match 'commit step applies only when the run''s .commits=. policy commits')
+
 if ($failures.Count -gt 0) {
     Write-Host ""
     Write-Host "FAILED: $($failures.Count) assertion(s)."

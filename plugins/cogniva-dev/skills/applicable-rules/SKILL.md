@@ -35,5 +35,12 @@ conclusions automatically. Stop before implementation and request a human
 architecture decision. The conservative conflict heuristic is a review aid, not
 a natural-language policy engine.
 
+Each target also reports `ArchitectureProfile`: the profile that applies there
+and the `.cogniva-profile.yml` marker it came from, or `UNDECLARED`, `NONE`,
+`UNAVAILABLE` (PowerShell 7 is not installed), or `ERROR`. An `ERROR` makes that
+target's decision `REVIEW_REQUIRED`. For a resolved profile's standards index, run
+`pwsh -NoProfile -File "<plugin>/scripts/resolve-architecture-profile.ps1" -Repo "<repo>" -Target "<target-path>"`
+and read the standards that bear on the change.
+
 For automation, add `-Format Json`; its output is a read-only handoff rather
 than a substitute for reading the authority documents.

@@ -5,11 +5,12 @@ What this repo is, the conventions it encodes, and how to consume it.
 ## Purpose
 
 `cogniva` is Cogniva's Claude Code plugin marketplace (repo:
-github.com/cogniva/cogniva-skills). Its single `cogniva-skills` plugin carries
-the team toolkit: shared skills (glossary, adr) and repo-initialization
-scaffolding (repo-init, add-module) — so every new repo starts identical and
-improvements propagate (consuming repos reinstall/update the plugin instead of
-copying files).
+github.com/cogniva/cogniva-skills). It ships two plugins: `cogniva-skills`
+(general-purpose skills such as glossary and reference) and `cogniva-dev`
+(development tooling: ADRs, the backlog, repo scaffolding with repo-init and
+add-module, and the feature lifecycle), so every new repo starts identical and
+improvements propagate: consuming repos update the plugins instead of copying
+tooling. Architecture profiles are the deliberate exception; see below.
 
 ## Conventions (canonical definitions: docs/glossary/README.md)
 
@@ -73,6 +74,18 @@ The vocabulary is open: add a phase by naming it in a skill checkpoint and
 listing it here. This repo's own AGENTS.md uses `before-integrate` to fire the
 plugin version-bump offer while the worktree is still open; CLAUDE.md keeps a
 breadcrumb for older consumers.
+
+## Architecture profiles
+
+An [Architecture profile](glossary/README.md#architecture-profile) is a set of
+declarative standards for one kind of codebase. The cogniva-dev plugin ships a
+library of them (`plugins/cogniva-dev/profiles/`); a repo adopts one by copying
+it into `.cogniva/profiles/` and selects it per path with a
+[Profile marker](glossary/README.md#profile-marker). Tools read only the repo's
+copy, so a repo's standards change only through a deliberate re-adoption.
+plan-feature designs under the resolved profile and applicable-rules reports it
+per target; executing agents see only what a plan's tasks restate. How to
+adopt, declare, and write profiles: `plugins/cogniva-dev/docs/architecture-profiles.md`.
 
 ## Roadmap (deliberately not yet)
 
