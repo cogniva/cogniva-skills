@@ -76,6 +76,22 @@ else {
         Add-Project $repo 'src\Modules\B' 'B.Application' @('B.Contracts')
         $r = Invoke-Hook $csproj
         Check 'an opted-in repo without a cycle is silent' ($r.Code -eq 0 -and -not $r.Out)
+
+        # The edited path must never pass through a shell: cmd.exe expands
+        # %OS% even inside quotes, and /bin/sh runs $(...).
+        $odd = Join-Path $root 'sh & %OS% $(echo x) ;q'
+        New-Item -ItemType Directory -Path $odd -Force | Out-Null
+        & git -C $odd init -q
+        Add-Project $odd 'src\Modules\A' 'A.Contracts' @()
+        Add-Project $odd 'src\Modules\A' 'A.Application' @('A.Contracts', 'B.Contracts')
+        Add-Project $odd 'src\Modules\B' 'B.Contracts' @()
+        Add-Project $odd 'src\Modules\B' 'B.Application' @('B.Contracts', 'A.Contracts')
+        Write-Text (Join-Path $odd '.claude\cogniva-dev\policy.json') '{ "moduleDepsCheck": true }'
+        $r = Invoke-Hook (Join-Path $odd 'src\Modules\B\B.Application\B.Application.csproj')
+        $decision = $null
+        try { $decision = $r.Out | ConvertFrom-Json } catch { }
+        Check 'a repo path with shell-significant characters still gets the -Check report' ($r.Code -eq 0 -and $decision -and $decision.decision -eq 'block' -and $decision.reason -match 'A <-> B')
+
         $loose = Join-Path $root 'loose\X.csproj'
         Write-Text $loose '<Project />'
         $r = Invoke-Hook $loose

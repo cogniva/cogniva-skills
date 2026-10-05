@@ -13,7 +13,7 @@
 // Contract: only ever return "block" on a confirmed cycle (-Check exit 1 with a report).
 // On any uncertainty or error - not a .csproj, no git, no opt-in, no
 // PowerShell, timeout, script error - exit 0 silently.
-const { execSync, execFileSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -59,7 +59,8 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
 
     let top;
     try {
-      top = execSync(`git -C "${dir}" rev-parse --show-toplevel`, {
+      // execFileSync, not execSync: the edited path must never pass through a shell.
+      top = execFileSync('git', ['-C', dir, 'rev-parse', '--show-toplevel'], {
         encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
       }).trim();
     } catch (e) { return allow(); } // not a git repo
