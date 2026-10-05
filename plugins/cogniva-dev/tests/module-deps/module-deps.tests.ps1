@@ -69,6 +69,17 @@ function Invoke-ModuleDeps([string[]]$Arguments, [string]$Shell = 'powershell', 
 }
 function Read-Utf8([string]$Path) { return [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8) }
 function Get-CommitCount([string]$Repo) { return [int]((& git -C $Repo rev-list --count HEAD) | Select-Object -First 1) }
+# Module -> tier number, read from the tiered Mermaid view of the Markdown.
+function Get-Tiers([string]$MdText) {
+    $tiers = @{}
+    $tier = $null
+    foreach ($line in ($MdText -split "`r?`n")) {
+        if ($line -match '^\s*subgraph L(\d+)\[') { $tier = [int]$matches[1]; continue }
+        if ($line -match '^\s*end\s*$') { $tier = $null; continue }
+        if ($null -ne $tier -and $line -match '^\s{4}(\S+)\s*$') { $tiers[$matches[1]] = $tier }
+    }
+    return $tiers
+}
 
 try {
     # --- -Check -------------------------------------------------------------
@@ -120,6 +131,19 @@ try {
         Check 'PowerShell 7 produces the same bytes as 5.1' ($r.Code -eq 0 -and ([Convert]::ToBase64String($firstMd) -eq [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($md))) -and ([Convert]::ToBase64String($firstHtml) -eq [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($html))))
     }
     else { Write-Host '  SKIP  cross-host determinism (pwsh not installed)' }
+
+    # A <-> B is a cycle, B also uses the leaf C, and D uses A. A cycle is one
+    # deployment unit, so its Modules share a tier: C=0, A=B=1, D=2.
+    $tiered = New-Repo 'tiers'
+    Add-Project $tiered 'src\Modules\A' 'A.Contracts' @()
+    Add-Project $tiered 'src\Modules\A' 'A.Application' @('A.Contracts', 'B.Contracts')
+    Add-Project $tiered 'src\Modules\B' 'B.Contracts' @()
+    Add-Project $tiered 'src\Modules\B' 'B.Application' @('B.Contracts', 'A.Contracts', 'C.Contracts')
+    Add-Project $tiered 'src\Modules\C' 'C.Contracts' @()
+    Add-Project $tiered 'src\Modules\D' 'D.Application' @('A.Contracts')
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tiered, '-NoCommit')
+    $tiers = Get-Tiers (Read-Utf8 (Join-Path $tiered 'docs\architecture\module-dependencies.md'))
+    Check 'Modules in one cycle share a tier, and depth is measured from that tier' ($r.Code -eq 0 -and $tiers['C'] -eq 0 -and $tiers['A'] -eq 1 -and $tiers['B'] -eq 1 -and $tiers['D'] -eq 2)
 
     # --- descriptions from the glossary -------------------------------------
     $e = [string][char]0x00E9

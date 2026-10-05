@@ -289,27 +289,40 @@ foreach ($k in @(Sort-Ordinal $edgeRoles.Keys)) {
 }
 
 # dependency depth (longest path to a leaf) -> tiers
-# Cycle-safe: a back-edge into a module already on the current recursion stack is
-# ignored for depth purposes (it would otherwise recurse forever). Cycles are
-# still surfaced separately in the "Cycles" section. Modules and their targets
-# are visited in ordinal order, so tiers are the same on every run.
-$depth = @{}
-$depthInProgress = New-Object 'System.Collections.Generic.HashSet[string]'
-function Get-Depth([string]$m) {
-    if ($script:depth.ContainsKey($m)) { return $script:depth[$m] }
-    if (-not $script:depthInProgress.Add($m)) { return 0 }   # on the stack -> cycle back-edge, skip
-    $d = 0
+# Modules in one cycle (mutually reachable in the transitive closure, i.e. one
+# strongly connected component) are one deployment unit and share a tier.
+# Each component is keyed by its ordinally-first member; depth is the longest
+# path to a leaf in the graph of components, which is acyclic, so the
+# recursion always terminates. Components and their targets are visited in
+# ordinal order, so tiers are the same on every run.
+$component = @{}       # module -> component key
+foreach ($m in $realModules) {
+    $members = @($m) + @($realModules | Where-Object { $_ -ne $m -and $closure[$m].Contains($_) -and $closure[$_].Contains($m) })
+    $component[$m] = @(Sort-Ordinal $members)[0]
+}
+$componentDeps = @{}   # component key -> other component keys it depends on
+foreach ($m in $realModules) {
+    $c = $component[$m]
+    if (-not $componentDeps.ContainsKey($c)) { $componentDeps[$c] = New-Object 'System.Collections.Generic.HashSet[string]' }
     if ($moduleDirect.ContainsKey($m)) {
-        foreach ($t in @(Sort-Ordinal $moduleDirect[$m])) {
-            $td = (Get-Depth $t) + 1
-            if ($td -gt $d) { $d = $td }
+        foreach ($t in $moduleDirect[$m]) {
+            if ($component[$t] -ne $c) { [void]$componentDeps[$c].Add($component[$t]) }
         }
     }
-    [void]$script:depthInProgress.Remove($m)
-    $script:depth[$m] = $d
+}
+$componentDepth = @{}
+function Get-ComponentDepth([string]$c) {
+    if ($script:componentDepth.ContainsKey($c)) { return $script:componentDepth[$c] }
+    $d = 0
+    foreach ($t in @(Sort-Ordinal $script:componentDeps[$c])) {
+        $td = (Get-ComponentDepth $t) + 1
+        if ($td -gt $d) { $d = $td }
+    }
+    $script:componentDepth[$c] = $d
     return $d
 }
-foreach ($m in $realModules) { [void](Get-Depth $m) }
+$depth = @{}
+foreach ($m in $realModules) { $depth[$m] = Get-ComponentDepth $component[$m] }
 $maxDepth = 0
 foreach ($m in $realModules) { if ($depth[$m] -gt $maxDepth) { $maxDepth = $depth[$m] } }
 $byTier = @{}
@@ -392,7 +405,7 @@ W '```'
 W ''
 W '### View 2 - tiered by dependency depth'
 W ''
-W 'Tiers are dependency depth (longest path to a leaf), not functional role: a Module sits higher only because it composes more layers beneath it.'
+W 'Tiers are dependency depth (longest path to a leaf), not functional role: a Module sits higher only because it composes more layers beneath it. Modules in a cycle share a tier.'
 W ''
 W '```mermaid'
 foreach ($ln in $viewTiered) { W $ln }
@@ -527,7 +540,7 @@ WH '<pre class="mermaid">'
 foreach ($ln in $viewFlat) { WH $ln }
 WH '</pre>'
 WH '<h3>View 2 &middot; Tiered by dependency depth</h3>'
-WH '<p class="note">Tiers are dependency depth (longest path to a leaf), not functional role &mdash; a Module sits higher only because it composes more layers beneath it (the most composite Module lands on top).</p>'
+WH '<p class="note">Tiers are dependency depth (longest path to a leaf), not functional role &mdash; a Module sits higher only because it composes more layers beneath it (the most composite Module lands on top). Modules in a cycle share a tier.</p>'
 WH '<pre class="mermaid">'
 foreach ($ln in $viewTiered) { WH $ln }
 WH '</pre>'
