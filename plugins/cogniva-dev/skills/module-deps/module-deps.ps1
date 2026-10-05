@@ -1,44 +1,68 @@
 # module-deps.ps1
-# Generates docs/architecture/module-dependencies.md from the .csproj graph.
-# Source of truth: ProjectReference entries. The architecture forces every
-# cross-Module read through <Name>.Contracts, so the .csproj graph IS the
-# authoritative inter-Module dependency list. No build/restore required.
+# Legacy Module-layout tool. Graphs the cross-Module dependencies of a repo laid
+# out as src/Modules/<Name>/<Name>.<Kind> projects (the layout add-module
+# scaffolds) from the .csproj ProjectReference graph, and writes
+# docs/architecture/module-dependencies.md + .html. -Check instead reports the
+# cross-Module cycles not listed in docs/architecture/allowed-cycles.txt and
+# exits 0 (none) or 1, writing nothing.
+# It reads no architecture profile and ships no project-specific data: Module
+# descriptions are display-only and come from the repo glossary's
+# "## <Name> (Module)" entries. No build/restore required.
 #
 # ASCII-only on purpose (PS 5.1 mis-tokenizes non-ASCII .ps1 source).
+# Windows PowerShell 5.1 compatible: hooks call powershell.exe.
 
 [CmdletBinding()]
 param(
     [string]$RepoRoot = $null,
     [string]$OutFile  = $null,
     [string]$HtmlFile = $null,
+    [switch]$Check,     # report disallowed cross-Module cycles and exit 0/1; writes nothing, reads no glossary
     [switch]$Open,
     [switch]$NoCommit   # by default the two generated files are auto-committed; pass -NoCommit to leave them dirty in the working tree
 )
 
 $ErrorActionPreference = 'Stop'
 
+# Ordinal sort: the same order on every machine, culture and PowerShell host
+# (PowerShell 7 randomizes string hash codes, so hashtable and hashset
+# enumeration order is not stable between runs).
+function Sort-Ordinal($items) {
+    $arr = [string[]]@($items | Where-Object { $null -ne $_ })
+    [System.Array]::Sort($arr, [System.StringComparer]::Ordinal)
+    $arr
+}
+
+function Get-FullPath([string]$path) {
+    if ([System.IO.Path]::IsPathRooted($path)) { return [System.IO.Path]::GetFullPath($path) }
+    return [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path $path))
+}
+
 if (-not $RepoRoot) {
-    $here = $PSScriptRoot
-    if (-not $here) { $here = Split-Path -Parent $MyInvocation.MyCommand.Path }
-    $RepoRoot = (Resolve-Path (Join-Path $here '..\..\..')).Path
+    $top = $null
+    try { $top = (& git rev-parse --show-toplevel 2>$null) | Select-Object -First 1 } catch { $top = $null }
+    if (-not $top) { throw 'module-deps: not inside a git repository - run it from the repo, or pass -RepoRoot <path>.' }
+    $RepoRoot = [string]$top
 }
-if (-not $OutFile) {
-    $OutFile = Join-Path $RepoRoot 'docs\architecture\module-dependencies.md'
-}
-if (-not $HtmlFile) {
-    $HtmlFile = Join-Path $RepoRoot 'docs\architecture\module-dependencies.html'
-}
+$RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path.TrimEnd('\', '/')
+if (-not $OutFile)  { $OutFile  = Join-Path $RepoRoot 'docs\architecture\module-dependencies.md' }
+if (-not $HtmlFile) { $HtmlFile = Join-Path $RepoRoot 'docs\architecture\module-dependencies.html' }
+$OutFile  = Get-FullPath $OutFile
+$HtmlFile = Get-FullPath $HtmlFile
 
 $srcRoot = Join-Path $RepoRoot 'src'
-if (-not (Test-Path $srcRoot)) { throw "src not found under $RepoRoot" }
+if (-not (Test-Path -LiteralPath $srcRoot)) { throw "src not found under $RepoRoot" }
 
 # ---- 1. discover projects -------------------------------------------------
+# src/Modules/<Name>/... is a Module; src/Hosts/... is a host; everything else
+# (shared libraries, shells, kernels, ...) is outside the graph.
 function Get-ModuleName([string]$rel) {
-    if ($rel -match 'src[\\/]+Modules[\\/]+([^\\/]+)[\\/]+') { return $matches[1] }
-    if ($rel -match 'src[\\/]+Shell[\\/]+')                  { return 'Shell' }
-    if ($rel -match 'src[\\/]+Hosts[\\/]+')                  { return 'Host'  }
+    if ($rel -match '^src[\\/]+Modules[\\/]+([^\\/]+)[\\/]+') { return $matches[1] }
+    if ($rel -match '^src[\\/]+Hosts[\\/]+')                  { return 'Host'  }
     return 'Other'
 }
+# The kind is the first dot-segment after the Module name, so qualified
+# projects (<Name>.Infrastructure.<System>, <Name>.UI.<Part>) roll up to it.
 function Get-Role([string]$proj, [string]$module) {
     if ($proj -like "$module.*") {
         $rest = $proj.Substring($module.Length + 1)
@@ -47,14 +71,14 @@ function Get-Role([string]$proj, [string]$module) {
     return $proj
 }
 
-$projFiles = Get-ChildItem -Path $srcRoot -Recurse -Filter *.csproj
+$projFiles = @(Sort-Ordinal (Get-ChildItem -LiteralPath $srcRoot -Recurse -Filter *.csproj | ForEach-Object { $_.FullName }))
 $projects  = @{}   # projName -> object
 
-foreach ($f in $projFiles) {
-    $rel  = $f.FullName.Substring($RepoRoot.Length).TrimStart('\','/')
-    $name = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
+foreach ($full in $projFiles) {
+    $rel  = $full.Substring($RepoRoot.Length).TrimStart('\','/')
+    $name = [System.IO.Path]::GetFileNameWithoutExtension($full)
     $mod  = Get-ModuleName $rel
-    [xml]$xml = Get-Content -Raw -LiteralPath $f.FullName
+    [xml]$xml = Get-Content -Raw -LiteralPath $full
     $refs = @()
     foreach ($n in $xml.SelectNodes('//ProjectReference')) {
         $inc = $n.GetAttribute('Include')
@@ -69,29 +93,8 @@ foreach ($f in $projFiles) {
     }
 }
 
-$realModules = $projects.Values | Where-Object { $_.Module -notin @('Shell','Host','Other') } |
-    Select-Object -ExpandProperty Module -Unique | Sort-Object
-
-# ---- 1b. per-Module descriptions (hand-maintained) ------------------------
-# One or two plain sentences per Module, for the human-facing "Modules" section.
-# This is the ONLY hand-maintained data in this generator; everything else is
-# derived from the .csproj graph. ASCII only (PS 5.1 mis-tokenizes non-ASCII).
-# When a NEW Module appears without an entry here, the emitted section flags it
-# so it does not silently go undocumented.
-$moduleDesc = @{
-    'Analysis' = 'Runs composable classifiers over a Document Set and stores their provenanced Claims. Owns the classifier and agent catalog, the analysis runner and results store, and the "analysis" job handler - it proposes claims but never promotes them to a document''s current properties.'
-    'C3Data' = 'Owns the shared model: the Facet taxonomy and its node trees, the thesaurus (cultures and translations), and the relationships layered over them - Product algebra, RM policies, and Contexts. The model-management core that other Modules consume through C3Data.Contracts.'
-    'Connectivity' = 'Owns Connections, Connectors, and canonical addressing (ResourceAddress), exposing crawl / structure / write capabilities per external system. The transport layer only - what to crawl and where things go is decided by consuming Modules.'
-    'Crawling' = 'Discovers and ingests documents from external systems into the DocumentStore, running as Crawl jobs on the Jobs kernel over Connectivity connections.'
-    'Destinations' = 'Mirrors an external system''s structure into a C3 Facet''s node tree and records, per synced node, the external location needed to route or migrate there. SharePoint-first.'
-    'DocumentOrchestration' = 'The orchestration pipeline that takes a Selections outcome and acts on a document through Connectivity - classifying it in place (writing the resolved properties onto the item where it lives) and routing it (writing content and metadata to a destination). Owns no store of its own.'
-    'DocumentStore' = 'Persists crawled documents so other Modules can read and update them: each is keyed by a source address, carries three property layers (Original / Current / Proposed), and has separable, lazily-loaded text and structure content.'
-    'Jobs' = 'Owns the generic long-running-job lifecycle - the Job entity, its Status/Phase state machine, JSON config, checkpoint/resume, crash recovery, and the background runner. Other Modules plug work in via handlers keyed by job type; the kernel knows nothing about crawl, analysis, or migration specifics.'
-    'Mapping' = 'Owns mappings between local identifiers and external ones; its first capability is Property Name Mapping (local name to repo name through a scope hierarchy). These mappings are first-class C3Data entities keyed by FacetId - they cascade-delete with their facet and bump the model version when written.'
-    'Migration' = 'Copies crawled documents from their source system to destination locations as three chained job stages - PreMigration, Migration, then Validation - running on the Jobs kernel. Owns a per-item migration report store.'
-    'Reasoning' = 'The LLM/model-assisted decision layer (not yet built): turns document text, evidence, and symbolic context into a classification candidate via structured prompts, behind a Contracts-only surface with replaceable, local-first model adapters. General LLM integration - cascading a Selection is one such case. Proposes; never decides or writes.'
-    'Selections' = 'Computes the consequences of a tentative Selection: the valid values per Product algebra, pinches and auto-selects, the active Contexts, and the applicable RM policy. Consumed in-loop by classification.'
-}
+$realModules = @(Sort-Ordinal ($projects.Values | Where-Object { $_.Module -notin @('Host','Other') } |
+    ForEach-Object { $_.Module } | Select-Object -Unique))
 
 # ---- 2. cross-Module edges ------------------------------------------------
 # moduleDirect[src] = hashset of target modules
@@ -111,7 +114,6 @@ foreach ($p in $projects.Values) {
     foreach ($r in $p.Refs) {
         if (-not $projects.ContainsKey($r)) { continue }
         $tgt = $projects[$r]
-        if ($tgt.Module -eq 'Shell') { continue }            # Shell is UI infra, not a Module
         if ($tgt.Module -eq $p.Module) { continue }          # intra-Module
         if ($tgt.Module -in @('Host','Other')) { continue }
         Add-Set $moduleDirect $p.Module $tgt.Module
@@ -138,6 +140,7 @@ function Get-Closure([string]$mod) {
 $closure = @{}
 foreach ($m in $realModules) { $closure[$m] = Get-Closure $m }
 
+# Every mutually reachable pair, written "A <-> B" with A before B ordinally.
 $cycles = New-Object 'System.Collections.Generic.List[string]'
 for ($i = 0; $i -lt $realModules.Count; $i++) {
     for ($j = $i + 1; $j -lt $realModules.Count; $j++) {
@@ -148,20 +151,68 @@ for ($i = 0; $i -lt $realModules.Count; $i++) {
     }
 }
 
+# ---- 3b. gate mode (-Check): report and exit, write nothing ----------------
+# Cycles listed in docs/architecture/allowed-cycles.txt are tolerated: one
+# "A <-> B" per line in either order, '#' starts a comment (a trailing
+# "# reason" is encouraged), blank lines ignored. Adding a pair is a
+# deliberate, reviewed act. -Check never reads the glossary.
+function Get-CyclePairKey([string]$a, [string]$b) {
+    $pair = @(Sort-Ordinal @($a.Trim(), $b.Trim()))
+    return "$($pair[0]) <-> $($pair[1])"
+}
+
+if ($Check) {
+    $allowFile = Join-Path $RepoRoot 'docs\architecture\allowed-cycles.txt'
+    $allowed = New-Object 'System.Collections.Generic.HashSet[string]'
+    if (Test-Path -LiteralPath $allowFile -PathType Leaf) {
+        $lineNo = 0
+        foreach ($ln in [System.IO.File]::ReadAllLines($allowFile, [System.Text.Encoding]::UTF8)) {
+            $lineNo++
+            $t = ($ln -split '#', 2)[0].Trim()
+            if (-not $t) { continue }
+            $parts = @($t -split '<->')
+            if ($parts.Count -ne 2 -or -not $parts[0].Trim() -or -not $parts[1].Trim()) {
+                Write-Host ("WARN: allowed-cycles.txt line {0} is not 'A <-> B' and allows nothing: {1}" -f $lineNo, $t)
+                continue
+            }
+            [void]$allowed.Add((Get-CyclePairKey $parts[0] $parts[1]))
+        }
+    }
+    $bad = @($cycles | Where-Object { -not $allowed.Contains($_) })
+    if ($bad.Count -eq 0) {
+        Write-Host 'module-deps check OK: no disallowed cross-Module cycles.'
+        exit 0
+    }
+    Write-Host 'module-deps check FAILED: cross-Module dependency cycle(s) detected:'
+    foreach ($c in $bad) {
+        Write-Host "  $c"
+        $pair = $c -split ' <-> '
+        foreach ($k in @("$($pair[0])|$($pair[1])", "$($pair[1])|$($pair[0])")) {
+            if ($edgeRoles.ContainsKey($k)) {
+                $p = $k -split '\|'
+                Write-Host ("    {0} -> {1} (introduced by role(s): {2})" -f $p[0], $p[1], (@(Sort-Ordinal $edgeRoles[$k]) -join ', '))
+            }
+        }
+    }
+    Write-Host 'Cross-Module references must stay acyclic.'
+    Write-Host 'Fix the ProjectReference, or - deliberate and reviewed only - add the pair to docs/architecture/allowed-cycles.txt (either order; a trailing "# reason" is encouraged).'
+    exit 1
+}
+
 # ---- 4. hosts -------------------------------------------------------------
 # $hosts[name]  = Modules the host DIRECTLY references (the "composed" set).
 # $hostClosure[name] = EXACT Module assemblies that ship in the host, computed by
 #   walking the host's actual .csproj ProjectReferences transitively project-by-
-#   project (NOT by rolling each composed Module up to its full Module closure).
-#   A host that references only the DocumentStore-free projects of a Module does
-#   NOT inherit DocumentStore - so this matches what is actually emitted to the bin.
+#   project (NOT by rolling each composed Module up to its full Module closure),
+#   so a host that references only some projects of a Module inherits only the
+#   Modules those projects reach.
 $hosts = @{}
 foreach ($p in $projects.Values | Where-Object { $_.Module -eq 'Host' }) {
     $set = New-Object 'System.Collections.Generic.HashSet[string]'
     foreach ($r in $p.Refs) {
         if ($projects.ContainsKey($r)) {
             $m = $projects[$r].Module
-            if ($m -notin @('Shell','Host','Other')) { [void]$set.Add($m) }
+            if ($m -notin @('Host','Other')) { [void]$set.Add($m) }
         }
     }
     $hosts[$p.Name] = $set
@@ -179,7 +230,7 @@ function Get-HostModuleClosure([string]$hostProjName) {
         if (-not $seenProj.Add($cur)) { continue }
         if (-not $projects.ContainsKey($cur)) { continue }   # external/package ref - ignore
         $m = $projects[$cur].Module
-        if ($m -notin @('Shell','Host','Other')) { [void]$mods.Add($m) }
+        if ($m -notin @('Host','Other')) { [void]$mods.Add($m) }
         foreach ($r in $projects[$cur].Refs) { $stack.Push($r) }
     }
     return ,$mods   # leading comma: return the HashSet itself, do not enumerate it
@@ -189,34 +240,72 @@ foreach ($p in $projects.Values | Where-Object { $_.Module -eq 'Host' }) {
     $hostClosure[$p.Name] = Get-HostModuleClosure $p.Name
 }
 
-# ---- 4b. shared graph rendering (two Mermaid views) -----------------------
-$roleAbbr = @{ 'Application' = 'A'; 'Infrastructure' = 'I'; 'UI' = 'U'; 'Client' = 'C' }
+# ---- 4b. Module descriptions (display only) ---------------------------------
+# The first paragraph under each "## <Name> (Module)" heading in the repo
+# glossary, with Markdown links reduced to their text. Display only: a missing
+# or unreadable glossary, or a missing entry, shows a placeholder and never
+# affects the graph (-Check has already exited by this point).
+$moduleDesc = @{}
+$glossaryFile = Join-Path $RepoRoot 'docs\glossary\README.md'
+if (Test-Path -LiteralPath $glossaryFile) {
+    try {
+        $gl = [System.IO.File]::ReadAllLines($glossaryFile, [System.Text.Encoding]::UTF8)
+        for ($i = 0; $i -lt $gl.Count; $i++) {
+            if ($gl[$i] -notmatch '^##\s+(\S+)\s+\(Module\)\s*$') { continue }
+            $name = $matches[1]
+            $para = @()
+            for ($j = $i + 1; $j -lt $gl.Count; $j++) {
+                $line = $gl[$j].Trim()
+                if ($line -match '^#') { break }
+                if (-not $line) { if ($para.Count) { break } else { continue } }
+                $para += $line
+            }
+            if ($para.Count -and -not $moduleDesc.ContainsKey($name)) {
+                $moduleDesc[$name] = (($para -join ' ') -replace '\[([^\]]*)\]\([^)]*\)', '$1')
+            }
+        }
+    }
+    catch { Write-Host ("WARN: could not read Module descriptions from docs/glossary/README.md: {0}" -f $_.Exception.Message) }
+}
+else { Write-Host 'NOTE: docs/glossary/README.md not found; Module descriptions are left blank.' }
+
+# ---- 4c. shared graph rendering (two Mermaid views) -----------------------
+# Short labels for the common kinds; any other kind is shown in full, so two
+# kinds can never share a label.
+$roleAbbr = @{ 'Application' = 'A'; 'Infrastructure' = 'I'; 'UI' = 'U'; 'Client' = 'Cl'; 'Contracts' = 'Co'; 'Domain' = 'D' }
 function Abbr-Label($roleSet) {
     $a = @()
     foreach ($r in $roleSet) {
-        if ($roleAbbr.ContainsKey($r)) { $a += $roleAbbr[$r] } else { $a += $r.Substring(0, 1) }
+        if ($roleAbbr.ContainsKey($r)) { $a += $roleAbbr[$r] } else { $a += $r }
     }
-    return (($a | Sort-Object -Unique) -join ',')
+    return (@(Sort-Ordinal ($a | Select-Object -Unique)) -join ',')
 }
 
 # edge lines shared by both views (abbreviated role labels)
 $edgeLines = New-Object 'System.Collections.Generic.List[string]'
-foreach ($k in ($edgeRoles.Keys | Sort-Object)) {
+foreach ($k in @(Sort-Ordinal $edgeRoles.Keys)) {
     $parts = $k -split '\|'
     $edgeLines.Add("  $($parts[0]) -->|$(Abbr-Label $edgeRoles[$k])| $($parts[1])") | Out-Null
 }
 
 # dependency depth (longest path to a leaf) -> tiers
+# Cycle-safe: a back-edge into a module already on the current recursion stack is
+# ignored for depth purposes (it would otherwise recurse forever). Cycles are
+# still surfaced separately in the "Cycles" section. Modules and their targets
+# are visited in ordinal order, so tiers are the same on every run.
 $depth = @{}
+$depthInProgress = New-Object 'System.Collections.Generic.HashSet[string]'
 function Get-Depth([string]$m) {
     if ($script:depth.ContainsKey($m)) { return $script:depth[$m] }
+    if (-not $script:depthInProgress.Add($m)) { return 0 }   # on the stack -> cycle back-edge, skip
     $d = 0
     if ($moduleDirect.ContainsKey($m)) {
-        foreach ($t in $moduleDirect[$m]) {
+        foreach ($t in @(Sort-Ordinal $moduleDirect[$m])) {
             $td = (Get-Depth $t) + 1
             if ($td -gt $d) { $d = $td }
         }
     }
+    [void]$script:depthInProgress.Remove($m)
     $script:depth[$m] = $d
     return $d
 }
@@ -250,7 +339,7 @@ $viewTiered.Add('graph TD') | Out-Null
 for ($t = $maxDepth; $t -ge 0; $t--) {
     if (-not $byTier.ContainsKey($t)) { continue }
     $viewTiered.Add("  subgraph L$t[`"$(Tier-Title $t)`"]") | Out-Null
-    foreach ($m in ($byTier[$t] | Sort-Object)) { $viewTiered.Add("    $m") | Out-Null }
+    foreach ($m in @(Sort-Ordinal $byTier[$t])) { $viewTiered.Add("    $m") | Out-Null }
     $viewTiered.Add('  end') | Out-Null
 }
 foreach ($e in $edgeLines) { $viewTiered.Add($e) | Out-Null }
@@ -261,36 +350,39 @@ function W([string]$s) { $script:L.Add($s) | Out-Null }
 
 function Join-Set($set) {
     if (-not $set -or $set.Count -eq 0) { return '-' }
-    return (($set | Sort-Object) -join ', ')
+    return (@(Sort-Ordinal $set) -join ', ')
 }
+
+$legend = 'Edge labels abbreviate the consuming project kind: **A** = .Application, **I** = .Infrastructure, **U** = .UI, **Cl** = .Client, **Co** = .Contracts, **D** = .Domain; any other kind is shown in full.'
 
 W '# Module dependency graph'
 W ''
-W '> GENERATED by the `module-deps` skill (module-deps.ps1) from the `.csproj`'
-W '> ProjectReference graph. Do not edit by hand. Regenerate with the'
+W '> GENERATED by the `module-deps` skill (legacy Module-layout tool) from the'
+W '> `.csproj` ProjectReference graph. Do not edit by hand. Regenerate with the'
 W '> `module-deps` skill (or run the script directly).'
 W ''
-W 'Cross-Module references go through `<Name>.Contracts` only, so a "depends on"'
-W 'edge means: to host the consumer you MUST also register an implementation of'
-W 'the target Module (its `.Application` in-process, or `.Client` over HTTP).'
-W 'The **transitive closure** is therefore the Module set a host must compose.'
+W 'Modules are the folders under `src/Modules/`. Cross-Module references go'
+W 'through `<Name>.Contracts`, so a "depends on" edge means: to host the consumer'
+W 'you may need to register an implementation of the target Module. The'
+W '**transitive closure** is the Module set a host must compose (an upper bound).'
 W ''
 
 W '## Modules'
 W ''
-W 'A one-line description of what each Module is responsible for.'
+W 'Descriptions come from the `## <Name> (Module)` entries in `docs/glossary/README.md`.'
 W ''
 W '| Module | What it does |'
 W '|---|---|'
 foreach ($m in $realModules) {
-    $d = if ($moduleDesc.ContainsKey($m)) { $moduleDesc[$m] } else { '_(no description yet - add one to `$moduleDesc` in module-deps.ps1)_' }
+    if ($moduleDesc.ContainsKey($m)) { $d = $moduleDesc[$m].Replace('|', '\|') }
+    else { $d = '_(no description - add a `## ' + $m + ' (Module)` entry to docs/glossary/README.md)_' }
     W "| **$m** | $d |"
 }
 W ''
 
 W '## Module graph'
 W ''
-W 'Edge labels abbreviate the consuming project role: **A** = .Application, **I** = .Infrastructure, **U** = .UI, **C** = .Client.'
+W $legend
 W ''
 W '### View 1 - dependency graph'
 W ''
@@ -321,9 +413,9 @@ W ''
 
 W '## Dependency by project role'
 W ''
-W 'Which role introduces each cross-Module dependency. This is the deployment-'
-W 'critical view: a host that ships only some roles of a Module inherits only'
-W 'those rows (e.g. an engine-only host that omits `.UI`).'
+W 'Which project kind introduces each cross-Module dependency. This is the'
+W 'deployment-critical view: a host that ships only some kinds of a Module'
+W 'inherits only those rows (e.g. a host that omits `.UI`).'
 W ''
 W '| Module | Role | Depends on |'
 W '|---|---|---|'
@@ -332,9 +424,8 @@ foreach ($m in $realModules) {
         W "| **$m** | - | - |"
         continue
     }
-    $roles = $roleDeps[$m].Keys | Sort-Object
     $first = $true
-    foreach ($role in $roles) {
+    foreach ($role in @(Sort-Ordinal $roleDeps[$m].Keys)) {
         $cell = if ($first) { "**$m**" } else { '' }
         W "| $cell | $role | $(Join-Set $roleDeps[$m][$role]) |"
         $first = $false
@@ -358,12 +449,12 @@ W ''
 W 'The **implied closure** is the EXACT set of Module assemblies that ship in the host,'
 W 'computed by walking the host''s actual `.csproj` references transitively, project by'
 W 'project (not by rolling each composed Module up to its full closure). A host that'
-W 'references only the DocumentStore-free projects of a Module does not inherit'
-W 'DocumentStore - so this column matches what is emitted to the host''s `bin`.'
+W 'references only some projects of a Module inherits only the Modules those projects'
+W 'reach, so this column matches what is emitted to the host''s `bin`.'
 W ''
 W '| Host | Modules composed | Implied closure (ships in bin) |'
 W '|---|---|---|'
-foreach ($hn in ($hosts.Keys | Sort-Object)) {
+foreach ($hn in @(Sort-Ordinal $hosts.Keys)) {
     W "| $hn | $(Join-Set $hosts[$hn]) | $(Join-Set $hostClosure[$hn]) |"
 }
 W ''
@@ -414,23 +505,23 @@ tbody tr:nth-child(even) { background:var(--zebra); }
 WH $head
 
 WH '<h1>Module dependency graph</h1>'
-WH '<p class="note">Generated by the <code>module-deps</code> skill (module-deps.ps1) from the <code>.csproj</code> ProjectReference graph. Do not edit by hand &mdash; regenerate with the <code>module-deps</code> skill.</p>'
-WH '<p>Cross-Module references go through <code>&lt;Name&gt;.Contracts</code> only, so a "depends on" edge means: to host the consumer you may need to register an implementation of the target Module (its <code>.Application</code> in-process, or <code>.Client</code> over HTTP). The <strong>transitive closure</strong> is the Module set a host must compose. This is an <em>upper bound</em>: a Contracts reference used only for DTO/enum types needs no implementation registered.</p>'
+WH '<p class="note">Generated by the <code>module-deps</code> skill (legacy Module-layout tool) from the <code>.csproj</code> ProjectReference graph. Do not edit by hand &mdash; regenerate with the <code>module-deps</code> skill.</p>'
+WH '<p>Modules are the folders under <code>src/Modules/</code>. Cross-Module references go through <code>&lt;Name&gt;.Contracts</code>, so a "depends on" edge means: to host the consumer you may need to register an implementation of the target Module. The <strong>transitive closure</strong> is the Module set a host must compose. This is an <em>upper bound</em>: a Contracts reference used only for DTO/enum types needs no implementation registered.</p>'
 
 WH '<h2>Modules</h2>'
-WH '<p class="muted">A one-line description of what each Module is responsible for.</p>'
+WH '<p class="muted">Descriptions come from the <code>## &lt;Name&gt; (Module)</code> entries in <code>docs/glossary/README.md</code>.</p>'
 WH '<table><thead><tr><th>Module</th><th>What it does</th></tr></thead><tbody>'
 foreach ($m in $realModules) {
     if ($moduleDesc.ContainsKey($m)) {
         WH "<tr><td><strong>$(He $m)</strong></td><td>$(He $moduleDesc[$m])</td></tr>"
     } else {
-        WH "<tr><td><strong>$(He $m)</strong></td><td class=""muted"">(no description yet - add one to <code>`$moduleDesc</code> in module-deps.ps1)</td></tr>"
+        WH "<tr><td><strong>$(He $m)</strong></td><td class=""muted"">(no description - add a <code>## $(He $m) (Module)</code> entry to docs/glossary/README.md)</td></tr>"
     }
 }
 WH '</tbody></table>'
 
 WH '<h2>Module graph</h2>'
-WH '<p class="muted">Edge labels abbreviate the consuming project role: <strong>A</strong> = .Application, <strong>I</strong> = .Infrastructure, <strong>U</strong> = .UI, <strong>C</strong> = .Client.</p>'
+WH '<p class="muted">Edge labels abbreviate the consuming project kind: <strong>A</strong> = .Application, <strong>I</strong> = .Infrastructure, <strong>U</strong> = .UI, <strong>Cl</strong> = .Client, <strong>Co</strong> = .Contracts, <strong>D</strong> = .Domain; any other kind is shown in full.</p>'
 WH '<h3>View 1 &middot; Dependency graph</h3>'
 WH '<pre class="mermaid">'
 foreach ($ln in $viewFlat) { WH $ln }
@@ -458,14 +549,14 @@ foreach ($m in $realModules) {
 WH '</tbody></table>'
 
 WH '<h2>Dependency by project role</h2>'
-WH '<p class="muted">Which role introduces each cross-Module dependency. A host that ships only some roles of a Module inherits only those rows (e.g. an engine-only host that omits <code>.UI</code>).</p>'
+WH '<p class="muted">Which project kind introduces each cross-Module dependency. A host that ships only some kinds of a Module inherits only those rows (e.g. a host that omits <code>.UI</code>).</p>'
 WH '<table><thead><tr><th>Module</th><th>Role</th><th>Depends on</th></tr></thead><tbody>'
 foreach ($m in $realModules) {
     if (-not $roleDeps.ContainsKey($m)) {
         WH "<tr><td><strong>$(He $m)</strong></td><td class=""muted"">-</td><td class=""muted"">-</td></tr>"
         continue
     }
-    $roles = @($roleDeps[$m].Keys | Sort-Object)
+    $roles = @(Sort-Ordinal $roleDeps[$m].Keys)
     $first = $true
     foreach ($role in $roles) {
         if ($first) {
@@ -489,9 +580,9 @@ if ($cycles.Count -eq 0) {
 }
 
 WH '<h2>Hosts (composition roots)</h2>'
-WH '<p class="muted">The <strong>implied closure</strong> is the exact set of Module assemblies that ship in the host, computed by walking the host''s actual <code>.csproj</code> references transitively, project by project (not by rolling each composed Module up to its full closure). A host that references only the DocumentStore-free projects of a Module does not inherit DocumentStore &mdash; so this column matches what is emitted to the host''s <code>bin</code>.</p>'
+WH '<p class="muted">The <strong>implied closure</strong> is the exact set of Module assemblies that ship in the host, computed by walking the host''s actual <code>.csproj</code> references transitively, project by project (not by rolling each composed Module up to its full closure). A host that references only some projects of a Module inherits only the Modules those projects reach &mdash; so this column matches what is emitted to the host''s <code>bin</code>.</p>'
 WH '<table><thead><tr><th>Host</th><th>Modules composed</th><th>Implied closure (ships in bin)</th></tr></thead><tbody>'
-foreach ($hn in ($hosts.Keys | Sort-Object)) {
+foreach ($hn in @(Sort-Ordinal $hosts.Keys)) {
     WH "<tr><td><code>$(He $hn)</code></td><td>$(He (Join-Set $hosts[$hn]))</td><td>$(He (Join-Set $hostClosure[$hn]))</td></tr>"
 }
 WH '</tbody></table>'
@@ -507,13 +598,17 @@ mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', theme: 'default'
 WH $foot
 
 # ---- 7. write -------------------------------------------------------------
-$outDir = Split-Path -Parent $OutFile
-if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Force -Path $outDir | Out-Null }
-Set-Content -LiteralPath $OutFile  -Value ($L -join "`r`n") -Encoding ASCII
-Set-Content -LiteralPath $HtmlFile -Value ($H -join "`r`n") -Encoding ASCII
+# UTF-8 without a BOM, so glossary descriptions keep their accents.
+$utf8 = New-Object System.Text.UTF8Encoding $false
+foreach ($target in @($OutFile, $HtmlFile)) {
+    $dir = Split-Path -Parent $target
+    if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+}
+[System.IO.File]::WriteAllText($OutFile,  (($L -join "`r`n") + "`r`n"), $utf8)
+[System.IO.File]::WriteAllText($HtmlFile, (($H -join "`r`n") + "`r`n"), $utf8)
 
-$htmlUri = ([System.Uri]((Resolve-Path $HtmlFile).Path)).AbsoluteUri
-$mdUri   = ([System.Uri]((Resolve-Path $OutFile).Path)).AbsoluteUri
+$htmlUri = ([System.Uri]$HtmlFile).AbsoluteUri
+$mdUri   = ([System.Uri]$OutFile).AbsoluteUri
 
 Write-Host "Wrote $OutFile"
 Write-Host "Wrote $HtmlFile"
@@ -530,7 +625,11 @@ Write-Host "Markdown: $mdUri"
 # needs a clean tree under receive.denyCurrentBranch=updateInstead). So by
 # default commit ONLY these two paths, ONLY when they changed. Never stages
 # anything else (no add -A). Best-effort: a git failure is reported, not fatal.
+# Git calls run with ErrorActionPreference Continue: under Windows PowerShell
+# 5.1 a harmless stderr line (e.g. a line-ending warning) would otherwise throw.
 if (-not $NoCommit) {
+    $previousEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     try {
         & git -C $RepoRoot add -- $OutFile $HtmlFile 2>$null
         & git -C $RepoRoot diff --cached --quiet -- $OutFile $HtmlFile 2>$null
@@ -546,13 +645,14 @@ if (-not $NoCommit) {
     catch {
         Write-Host ("Auto-commit skipped: {0}" -f $_.Exception.Message)
     }
+    finally { $ErrorActionPreference = $previousEap }
 }
 
 if ($Open) {
     # Launch a real browser explicitly. Start-Process on the .html alone honors
-    # the file association, which on this machine is an editor (Notepad++), not
-    # a browser. App-Paths names (msedge/chrome) resolve via Start-Process even
-    # when not on PATH.
+    # the file association, which may be an editor rather than a browser.
+    # App-Paths names (msedge/chrome) resolve via Start-Process even when not
+    # on PATH.
     $opened = $null
     foreach ($b in 'msedge','chrome','firefox') {
         try { Start-Process $b $htmlUri -ErrorAction Stop; $opened = $b; break } catch { }

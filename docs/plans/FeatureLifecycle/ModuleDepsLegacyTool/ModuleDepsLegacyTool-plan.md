@@ -78,7 +78,7 @@ Constraints this task must honour:
 - The SKILL.md pins in this test fail until Task 3 rewrites SKILL.md. That is
   expected: Task 1 is done when every other assertion passes.
 
-- [ ] **Step 1 (failing test):** create `plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` with exactly this content:
+- [x] **Step 1 (failing test):** create `plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` with exactly this content:
 
 ```powershell
 # Dependency-free tests for the module-deps legacy Module-layout tool: -Check,
@@ -256,9 +256,9 @@ Write-Host 'All module-deps assertions passed.'
 exit 0
 ```
 
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` → exits 1 with FAIL lines (no `-Check` parameter yet, and a cyclic graph overflows the call stack).
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` → exits 1 with FAIL lines (no `-Check` parameter yet, and a cyclic graph overflows the call stack).
 
-- [ ] **Step 3 (implement):** replace the whole of `plugins/cogniva-dev/skills/module-deps/module-deps.ps1` with exactly this content (ASCII only):
+- [x] **Step 3 (implement):** replace the whole of `plugins/cogniva-dev/skills/module-deps/module-deps.ps1` with exactly this content (ASCII only):
 
 ```powershell
 # module-deps.ps1
@@ -925,9 +925,9 @@ if ($Open) {
 }
 ```
 
-- [ ] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` → every assertion PASSES except the three `SKILL.md ...` pins (Task 3 makes those pass). If anything else fails, fix the script, not the test. (The suite's `the script source is ASCII-only` assertion is the ASCII check.)
+- [x] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` → every assertion PASSES except the three `SKILL.md ...` pins (Task 3 makes those pass). If anything else fails, fix the script, not the test. (The suite's `the script source is ASCII-only` assertion is the ASCII check.)
 
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/module-deps/module-deps.ps1 plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` then `git commit -m "feat(module-deps): -Check, cycle-safe deterministic graph, no project data"`
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/module-deps/module-deps.ps1 plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` then `git commit -m "feat(module-deps): -Check, cycle-safe deterministic graph, no project data"`
 
 ## Task 2: Opt-in PostToolUse cycle hook
 
