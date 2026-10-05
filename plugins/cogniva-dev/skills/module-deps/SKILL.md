@@ -73,14 +73,19 @@ writes). They are display-only. A missing glossary or a missing entry shows a
 placeholder and never changes the graph or `-Check`. To describe a Module, add
 or fix its glossary entry; never edit the generated files.
 
-## Blocking hook (opt-in, Claude Code)
+## Edit-time feedback hook (opt-in, Claude Code)
 
 The plugin registers a `PostToolUse` hook that runs `-Check` after Claude edits
-a `.csproj`, and blocks the edit with the report when it leaves a disallowed
-cycle. It acts only in repos whose tracked `.claude/cogniva-dev/policy.json`
-contains `"moduleDepsCheck": true`. Everywhere else it does nothing, and it
-fails open on any error. Under other hosts, run `-Check` yourself or from a git
-hook.
+a `.csproj`. When the edit leaves a disallowed cycle, the hook hands Claude the
+report and asks it to correct the reference. It cannot prevent the edit: a
+`PostToolUse` hook runs after the file has already changed, so the edit stays
+on disk until Claude fixes it. It acts only in repos whose tracked
+`.claude/cogniva-dev/policy.json` contains `"moduleDepsCheck": true`.
+Everywhere else it does nothing, and it fails open on any error.
+
+The hook is feedback, not enforcement. Where cycles must never land, run
+`-Check` in a completion gate (the repo's green gate, CI, or a git hook); that
+is also the route under other hosts.
 
 ## What to report back
 

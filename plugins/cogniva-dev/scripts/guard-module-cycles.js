@@ -1,13 +1,16 @@
 // PostToolUse (Write|Edit) adapter for `module-deps -Check`: after a .csproj
-// edit, block-with-feedback when the edit leaves a cross-Module dependency
-// cycle that docs/architecture/allowed-cycles.txt does not allow.
+// edit, return decision "block" - feedback asking Claude to correct it - when
+// the edit leaves a cross-Module dependency cycle that
+// docs/architecture/allowed-cycles.txt does not allow. PostToolUse runs after
+// the file has changed, so this cannot prevent the edit; hard enforcement is
+// -Check in a completion gate.
 //
 // OPT-IN per repo: acts only when the edited file's repo has
 // .claude/cogniva-dev/policy.json with "moduleDepsCheck": true. Every other
 // repo is untouched. `module-deps.ps1 -Check` stays callable on its own (git
 // hooks, CI, by hand); this hook is only the Claude Code adapter around it.
 //
-// Contract: only ever BLOCK on a confirmed cycle (-Check exit 1 with a report).
+// Contract: only ever return "block" on a confirmed cycle (-Check exit 1 with a report).
 // On any uncertainty or error - not a .csproj, no git, no opt-in, no
 // PowerShell, timeout, script error - exit 0 silently.
 const { execSync, execFileSync } = require('child_process');

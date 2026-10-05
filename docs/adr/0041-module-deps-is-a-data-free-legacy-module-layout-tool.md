@@ -1,4 +1,4 @@
-# module-deps is a data-free legacy Module-layout tool with opt-in enforcement
+# module-deps is a data-free legacy Module-layout tool with an opt-in cycle check
 
 **Provenance:** Suggested by human
 
@@ -7,5 +7,7 @@
 descriptions are display-only and come from the repo glossary's
 `## <Name> (Module)` entries; allowed cycles come from the repo's
 `docs/architecture/allowed-cycles.txt`. `-Check` is always callable on its own.
-Blocking enforcement is a Claude Code `PostToolUse` adapter that acts only where
-a repo opts in with `"moduleDepsCheck": true` in `.claude/cogniva-dev/policy.json`.
+Edit-time feedback is a Claude Code `PostToolUse` adapter that acts only where
+a repo opts in with `"moduleDepsCheck": true` in `.claude/cogniva-dev/policy.json`;
+it runs after the edit, so it asks for a correction rather than preventing one.
+Hard enforcement runs `-Check` in a completion gate.

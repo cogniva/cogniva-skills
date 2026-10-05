@@ -1,5 +1,5 @@
 # Dependency-free tests for the opt-in module-deps PostToolUse hook
-# (scripts/guard-module-cycles.js): it blocks only a confirmed cycle in a repo
+# (scripts/guard-module-cycles.js): it returns block feedback only for a confirmed cycle in a repo
 # that opted in, and is silent everywhere else. Windows PowerShell 5.1.
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path

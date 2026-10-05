@@ -39,17 +39,19 @@ Semantics:
 
 Optional, and off by default. For repos on the legacy Module layout
 (`src/Modules/<Name>/`), the same `policy.json` can turn on the plugin's
-blocking cycle check:
+edit-time cycle check:
 
 ```json
 { "moduleDepsCheck": true }
 ```
 
 When it is `true`, every `.csproj` edit Claude makes runs
-`module-deps.ps1 -Check`. An edit that leaves a cross-Module cycle not listed
-in `docs/architecture/allowed-cycles.txt` is blocked, with the report. Absent,
-unreadable, or anything but `true` means no check. The hook fails open on any
-error. `-Check` itself can always be run directly (see the `module-deps`
+`module-deps.ps1 -Check`. If the edit leaves a cross-Module cycle not listed
+in `docs/architecture/allowed-cycles.txt`, Claude gets the report and is asked
+to correct it. The hook runs after the edit, so it cannot prevent one; for hard
+enforcement, run `-Check` in a completion gate such as `green-gate.json` below.
+Absent, unreadable, or anything but `true` means no check. The hook fails open
+on any error. `-Check` itself can always be run directly (see the `module-deps`
 skill).
 
 ## Green gate config — `.claude/cogniva-dev/green-gate.json`
