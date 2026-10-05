@@ -195,7 +195,13 @@ Adoption-record hashes use the same normalisation.
   entry gives the profile, its ownership, and the old and new basis.
 - The amendment still applies.
 - Text output prints `NEEDS HUMAN REVIEW` under the `PROFILE:` line.
-- `applicable-rules` reports `REVIEW_REQUIRED`.
+- `applicable-rules` reports `REVIEW_REQUIRED` for a target **only when the
+  standard needing review is in that target's `MatchedStandards`**. Any other
+  review item prints as an informational `REVIEW:` line and leaves the target's
+  `Decision` unchanged, so an unrelated stale standard never stops preflight
+  (consistent with *Permission to mutate* below). This changes the
+  `applicable-rules` SKILL.md contract: `REVIEW_REQUIRED` still means stop;
+  `REVIEW:` lines do not (§4.3).
 - ERROR is reserved for the cases where resolution can't produce an answer:
   - malformed YAML or frontmatter;
   - a missing description;
@@ -264,7 +270,8 @@ The resolver JSON adds:
 Existing fields stay. The new read-only `-Show <id>` prints the effective text
 with a provenance line before each part. `applies-to` globs are
 repo-relative, with `*` matching within a path segment and `**` across
-segments.
+segments. Patterns are always quoted in YAML: an unquoted value starting with
+`*` is a YAML alias, not a string.
 
 ---
 
@@ -307,7 +314,9 @@ has no region configuration, and checks cycles only.
   - descriptions come from the glossary;
   - a malformed glossary changes neither the graph nor `-Check`;
   - the hook passes when the repo hasn't opted in or the file isn't a
-    `.csproj`, and blocks when it has;
+    `.csproj`, and returns `block` feedback when it has (a `PostToolUse` hook
+    runs after the edit, so it asks for a correction rather than preventing
+    the edit; hard enforcement is `-Check` in a completion gate);
   - the leak test passes.
 - **Compatibility:**
   - Output is unchanged, minus the NewCogniva descriptions.
@@ -363,7 +372,7 @@ has no region configuration, and checks cycles only.
 
 | Target status | Placement checks |
 |---|---|
-| `RESOLVED` | The Host message fires iff the target matches `architecture/composition-roots.md` in `MatchedStandards`. The published-surface message fires iff it matches `architecture/shared-and-published-types.md`, i.e. only where a repo child supplies `applies-to` (NewCogniva's will, for `*.Contracts`). Prints `STANDARD:` lines and review reasons. |
+| `RESOLVED` | The Host message fires iff the target matches `architecture/composition-roots.md` in `MatchedStandards`. The published-surface message fires iff it matches `architecture/shared-and-published-types.md`, i.e. only where a repo child supplies `applies-to` (NewCogniva's will, for its Contracts project directories; see §10). Prints `STANDARD:` lines and review reasons. |
 | `NONE` | none |
 | `UNDECLARED` / `UNAVAILABLE` / `ERROR` | today's regexes, unchanged |
 
@@ -373,7 +382,14 @@ has no region configuration, and checks cycles only.
   - a child with Contracts `applies-to` gives both messages;
   - `none` gives no messages;
   - legacy assertions are unchanged;
-  - a stale delta gives `REVIEW_REQUIRED`.
+  - a stale delta on a standard the target matches gives `REVIEW_REQUIRED`;
+  - a stale delta on a standard the target does not match prints a `REVIEW:`
+    line and leaves the `Decision` unchanged;
+  - both stale-delta cases are asserted through the preflight entry point
+    (`resolve-applicable-rules.ps1`, in `tests/applicable-rules`), not only
+    through the profile resolver.
+- **Also changes:** the `applicable-rules` SKILL.md contract, to say that
+  `REVIEW:` lines are informational and only `REVIEW_REQUIRED` stops work.
 
 ### 4.4 One owner per fact; cross-host context (T4)
 
@@ -540,7 +556,8 @@ lands, split T5 into its own follow-up PR (2a.1).
 - **C6** An architecture-dependent mutation requires the standards it depends
   on to be free of review items. Unrelated review items never block it.
 - **C7** (2a.0) `module-deps` ships no project data. Descriptions are
-  display-only. Blocking enforcement is opt-in.
+  display-only. The edit-time cycle hook is opt-in feedback; hard
+  enforcement is `-Check` in a completion gate.
 
 ---
 
@@ -557,7 +574,7 @@ lands, split T5 into its own follow-up PR (2a.1).
 | D5 | `@AGENTS.md` only; the cross-host path is adopted files plus skills. |
 | D6 | `net10.0` in the template; override with `tfm=`; check the SDK. |
 | D7 | Deferred to 2b. |
-| D8 | The blocking hook is opt-in. |
+| D8 | The edit-time cycle hook is opt-in. It gives feedback after the edit; it cannot prevent one. |
 | D9 | No `dotnet-modules`. Legacy topology goes to the repo's child profile. |
 | D10 | Split approved, with registration ownership, the `ProjectReference` scope, and mutation gating (§2.2, §3.4). |
 | D11 | Option (a): a new repo is the minimal skeleton in §4.5, with no speculative unit, shared-types project, engine, Module or adapter. Both default conventions are confirmed: kind-first `src/<Kind>/` with `src/Hosts/` as the fixed composition-root kind, and host-neutral Blazor UI libraries when UI is present. The shared-code wording is softened (§2.2). |
@@ -619,7 +636,9 @@ child profile. The CognivaShell evidence is noted for your decision.
      and the regions;
    - **new standards** for the Module bundle, its per-layer edges, the Module
      UI rule, foundation Modules and the jobs layer;
-   - a published-types amendment with `applies-to: *.Contracts`;
+   - a published-types amendment with quoted patterns covering the Contracts
+     project directories and their contents:
+     `applies-to: ["src/Modules/*/*.Contracts", "src/Modules/*/*.Contracts/**"]`;
    - exceptions: `allowed-cycles` plus whatever Q1/Q2 decide;
    - `accept -All`.
 3. Root marker `profile: newcogniva`, plus subtree markers for non-.NET trees.
@@ -660,7 +679,9 @@ child profile. The CognivaShell evidence is noted for your decision.
 - [ ] T2: `cogniva-base` +3; `dotnet` = principles + `project-layout` +
       `ui` + `build-settings` + 3 amendments; Stage 1 Module standards
       deleted; legacy-topology leak check and fixtures green.
-- [ ] T3: placement checks come from the profile; legacy paths unchanged.
+- [ ] T3: placement checks come from the profile; legacy paths unchanged;
+      stale deltas escalate only for matched standards, tested through the
+      preflight; SKILL.md contract updated.
 - [ ] T4: templates (`AGENTS.md`, `CLAUDE.md` shim, glossary,
       `Directory.Build.props`); this repo's glossary and strategy updated;
       tests 1–7 green.
