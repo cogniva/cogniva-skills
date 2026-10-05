@@ -281,10 +281,17 @@ segments. Patterns are always quoted in YAML: an unquoted value starting with
 ### 4.0 Stage 2a.0 — `module-deps` (separate PR, first)
 
 > **Implemented** by PR #15 (plan: `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`).
-> One change from the text below: the fork's cycle-safe depth was replaced, not
-> ported. Every Module in a cycle now shares one tier, because skipping the
-> back-edge invented a hierarchy inside the cycle. The hook is edit-time
-> feedback; hard enforcement is `-Check` in a completion gate.
+> Changes from the text below, all from review:
+> - A cycle is a strongly connected component (a set of mutually reachable
+>   Modules), reported and approved as a whole: `A -> B -> C -> A` is the one
+>   cycle `A <-> B <-> C`, and an `allowed-cycles.txt` line allows exactly the
+>   set of Modules it lists. The fork reported and approved every mutually
+>   reachable pair.
+> - The fork's cycle-safe depth was replaced, not ported: every Module in a
+>   cycle shares one tier, because skipping the back-edge invented a hierarchy
+>   inside the cycle.
+> - The hook is edit-time feedback; hard enforcement is `-Check` in a
+>   completion gate.
 
 Still worth doing first (F10). It is independent, fixes real defects (the
 plugin hangs forever on any cycle; Contracts and Client share the abbreviation
@@ -327,7 +334,10 @@ has no region configuration, and checks cycles only.
   - the leak test passes.
 - **Compatibility:**
   - Output is unchanged, minus the NewCogniva descriptions.
-  - The `allowed-cycles.txt` format is a superset of the fork's.
+  - A two-Module `allowed-cycles.txt` line means what it did in the fork. A
+    cycle of three or more Modules is one line listing all of them, where the
+    fork needed every pair; NewCogniva consolidates any such pairs when it
+    adopts the plugin tool in 2b.
   - The fork keeps working until 2b.
 
 ### 4.1 Profile core (T1)

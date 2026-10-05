@@ -1,4 +1,4 @@
-# ModuleDepsLegacyTool — Feature Plan
+ ModuleDepsLegacyTool — Feature Plan
 
 > REQUIRED EXECUTOR: /execute-feature FeatureLifecycle/ModuleDepsLegacyTool
 > Tasks contain NO git worktree/branch step — execute-feature sets up the workspace.
@@ -7,23 +7,25 @@
 > git switch/checkout/branch inside a task.
 
 > **Status: implemented** on `feature/module-deps-legacy-tool` (PR #15). This
-> plan is now the implementation record. The code blocks in the tasks below are
-> the plan as executed; review follow-ups changed the shipped files after that:
+> plan is now the implementation record. The file contents in the tasks below
+> have been updated to match the shipped files, including these changes made
+> in review after the tasks first ran:
+> - `module-deps.ps1` treats a cycle as a strongly connected component (a set
+>   of mutually reachable Modules): `-Check` reports `A -> B -> C -> A` once,
+>   as `A <-> B <-> C`, and an `allowed-cycles.txt` line allows exactly the set
+>   of Modules it lists. Every Module in a cycle shares one tier.
 > - `guard-module-cycles.js` strips a BOM from stdin as well as from
->   `policy.json` (as an ASCII `﻿` escape), resolves the git root with
->   `execFileSync` (never through a shell), and its comments describe `block`
->   as feedback.
-> - `module-deps.ps1` gives every Module in a cycle (one strongly connected
->   component) the same tier, replacing Task 1's back-edge skip; the tier notes
->   say so.
+>   `policy.json` (written as the ASCII escape `\uFEFF`), resolves the git
+>   root with `execFileSync` (never through a shell), and describes `block` as
+>   feedback.
 > - `SKILL.md`, the policy README template and ADR 0041 describe the hook as
 >   edit-time feedback that cannot prevent an edit; hard enforcement is
 >   `-Check` in a completion gate.
-> - The test suites gained a shell-significant repo path case and a
->   shared-tier case.
+> - The test suites gained 3-Module cycle, shared-tier and shell-significant
+>   repo path cases.
 >
-> Where they differ, the repository files are authoritative, not the code
-> blocks below.
+> The step narration (what each step expected to print, which assertions
+> failed first) still describes the original run.
 
 **Goal:** Stage 2a.0 of architecture profiles: make the plugin's `module-deps`
 a reusable, data-free **legacy Module-layout tool** with a `-Check` cycle gate,
@@ -33,10 +35,12 @@ fork.
 
 **Architecture:** `module-deps.ps1` stays one Windows PowerShell 5.1-compatible,
 ASCII-only script. It gains `-Check`, which computes the cross-Module graph,
-reports cycles not listed in `docs/architecture/allowed-cycles.txt` (in either
-pair order), exits 0/1 and writes nothing. Tier depth is cycle-safe: as
-shipped, every Module in a cycle shares one tier (the fork's back-edge skip,
-which Task 1 first ported, invented a hierarchy inside a cycle). Every sort is made ordinal, because PowerShell 7
+reports cycles not listed in `docs/architecture/allowed-cycles.txt`, exits 0/1
+and writes nothing. A cycle is a strongly connected component (a set of
+mutually reachable Modules), reported and allowed as a whole: one
+`allowed-cycles.txt` line per cycle, Modules in any order. Every Module in a
+cycle shares one tier (the fork's back-edge skip, which Task 1 first ported,
+invented a hierarchy inside a cycle). Every sort is made ordinal, because PowerShell 7
 randomises string hash codes and would otherwise change the output order from
 run to run. The NewCogniva-specific `$moduleDesc` table, the `Shell` bucket and
 the DocumentStore prose are removed; descriptions come only from the repo
@@ -106,7 +110,7 @@ Constraints this task must honour:
 - [x] **Step 1 (failing test):** create `plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` with exactly this content:
 
 ```powershell
-# Dependency-free tests for the module-deps legacy Module-layout tool: -Check,
+ Dependency-free tests for the module-deps legacy Module-layout tool: -Check,
 # allowed cycles, cycle-safe deterministic rendering, display-only glossary
 # descriptions, kind labels, RepoRoot default, auto-commit, and no project data.
 # Windows PowerShell 5.1. ASCII-only source.
@@ -177,6 +181,17 @@ function Invoke-ModuleDeps([string[]]$Arguments, [string]$Shell = 'powershell', 
 }
 function Read-Utf8([string]$Path) { return [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8) }
 function Get-CommitCount([string]$Repo) { return [int]((& git -C $Repo rev-list --count HEAD) | Select-Object -First 1) }
+# Module -> tier number, read from the tiered Mermaid view of the Markdown.
+function Get-Tiers([string]$MdText) {
+    $tiers = @{}
+    $tier = $null
+    foreach ($line in ($MdText -split "`r?`n")) {
+        if ($line -match '^\s*subgraph L(\d+)\[') { $tier = [int]$matches[1]; continue }
+        if ($line -match '^\s*end\s*$') { $tier = $null; continue }
+        if ($null -ne $tier -and $line -match '^\s{4}(\S+)\s*$') { $tiers[$matches[1]] = $tier }
+    }
+    return $tiers
+}
 
 try {
     # --- -Check -------------------------------------------------------------
@@ -199,6 +214,32 @@ try {
     $r = Invoke-ModuleDeps @('-RepoRoot', $cyclic, '-Check')
     Check 'a malformed allowed-cycles line allows nothing and is reported' ($r.Code -eq 1 -and $r.Out -match "WARN: allowed-cycles\.txt line 1")
     Remove-Item -LiteralPath (Join-Path $cyclic 'docs') -Recurse -Force
+
+    # A -> B -> C -> A is ONE cycle (one set of mutually reachable Modules),
+    # reported and approved as a whole, never as three pairs.
+    $tri = New-Repo 'three-cycle'
+    Add-Project $tri 'src\Modules\A' 'A.Contracts' @()
+    Add-Project $tri 'src\Modules\A' 'A.Application' @('A.Contracts', 'B.Contracts')
+    Add-Project $tri 'src\Modules\B' 'B.Contracts' @()
+    Add-Project $tri 'src\Modules\B' 'B.Application' @('B.Contracts', 'C.Contracts')
+    Add-Project $tri 'src\Modules\C' 'C.Contracts' @()
+    Add-Project $tri 'src\Modules\C' 'C.Application' @('C.Contracts', 'A.Contracts')
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'a 3-Module cycle is reported once, as the whole cycle' ($r.Code -eq 1 -and $r.Out -match '(?m)^  A <-> B <-> C\s*$' -and $r.Out -notmatch '(?m)^  A <-> C\s*$' -and $r.Out -match 'C -> A \(introduced by role\(s\): Application\)')
+    $triAllow = Join-Path $tri 'docs\architecture\allowed-cycles.txt'
+    Write-Text $triAllow "A <-> B`nB <-> C`nA <-> C`n"
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'pairs do not approve a larger cycle' ($r.Code -eq 1)
+    Write-Text $triAllow "C <-> A <-> B   # reviewed: test fixture`n"
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'a whole-cycle line approves it, members in any order' ($r.Code -eq 0)
+    Write-Text $triAllow "A <-> A`n"
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'a line repeating a Module is malformed' ($r.Code -eq 1 -and $r.Out -match 'WARN: allowed-cycles\.txt line 1')
+    Remove-Item -LiteralPath (Join-Path $tri 'docs') -Recurse -Force
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-NoCommit')
+    $triMd = Read-Utf8 (Join-Path $tri 'docs\architecture\module-dependencies.md')
+    Check 'the Cycles section lists the 3-Module cycle once' ($triMd -match '(?m)^- A <-> B <-> C\s*$' -and $triMd -notmatch '(?m)^- A <-> C\s*$')
 
     # Descriptions are display-only: an unreadable glossary changes nothing in -Check.
     $glossaryPath = Join-Path $cyclic 'docs\glossary\README.md'
@@ -228,6 +269,19 @@ try {
         Check 'PowerShell 7 produces the same bytes as 5.1' ($r.Code -eq 0 -and ([Convert]::ToBase64String($firstMd) -eq [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($md))) -and ([Convert]::ToBase64String($firstHtml) -eq [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($html))))
     }
     else { Write-Host '  SKIP  cross-host determinism (pwsh not installed)' }
+
+    # A <-> B is a cycle, B also uses the leaf C, and D uses A. A cycle is one
+    # deployment unit, so its Modules share a tier: C=0, A=B=1, D=2.
+    $tiered = New-Repo 'tiers'
+    Add-Project $tiered 'src\Modules\A' 'A.Contracts' @()
+    Add-Project $tiered 'src\Modules\A' 'A.Application' @('A.Contracts', 'B.Contracts')
+    Add-Project $tiered 'src\Modules\B' 'B.Contracts' @()
+    Add-Project $tiered 'src\Modules\B' 'B.Application' @('B.Contracts', 'A.Contracts', 'C.Contracts')
+    Add-Project $tiered 'src\Modules\C' 'C.Contracts' @()
+    Add-Project $tiered 'src\Modules\D' 'D.Application' @('A.Contracts')
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tiered, '-NoCommit')
+    $tiers = Get-Tiers (Read-Utf8 (Join-Path $tiered 'docs\architecture\module-dependencies.md'))
+    Check 'Modules in one cycle share a tier, and depth is measured from that tier' ($r.Code -eq 0 -and $tiers['C'] -eq 0 -and $tiers['A'] -eq 1 -and $tiers['B'] -eq 1 -and $tiers['D'] -eq 2)
 
     # --- descriptions from the glossary -------------------------------------
     $e = [string][char]0x00E9
@@ -286,7 +340,7 @@ exit 0
 - [x] **Step 3 (implement):** replace the whole of `plugins/cogniva-dev/skills/module-deps/module-deps.ps1` with exactly this content (ASCII only):
 
 ```powershell
-# module-deps.ps1
+ module-deps.ps1
 # Legacy Module-layout tool. Graphs the cross-Module dependencies of a repo laid
 # out as src/Modules/<Name>/<Name>.<Kind> projects (the layout add-module
 # scaffolds) from the .csproj ProjectReference graph, and writes
@@ -428,27 +482,30 @@ function Get-Closure([string]$mod) {
 $closure = @{}
 foreach ($m in $realModules) { $closure[$m] = Get-Closure $m }
 
-# Every mutually reachable pair, written "A <-> B" with A before B ordinally.
+# Cycles are strongly connected components: sets of Modules that can all
+# reach each other. Each component is keyed by its ordinally-first member; one
+# with two or more members is a cycle, written "A <-> B <-> C" with its members
+# in ordinal order. A cycle is one deployment unit, reported and approved as a
+# whole, never as the pairs inside it.
+$component        = @{}   # module -> component key
+$componentMembers = @{}   # component key -> its members, ordinal order
+foreach ($m in $realModules) {
+    $members = @(Sort-Ordinal (@($m) + @($realModules | Where-Object { $_ -ne $m -and $closure[$m].Contains($_) -and $closure[$_].Contains($m) })))
+    $component[$m] = $members[0]
+    $componentMembers[$members[0]] = $members
+}
 $cycles = New-Object 'System.Collections.Generic.List[string]'
-for ($i = 0; $i -lt $realModules.Count; $i++) {
-    for ($j = $i + 1; $j -lt $realModules.Count; $j++) {
-        $a = $realModules[$i]; $b = $realModules[$j]
-        if ($closure[$a].Contains($b) -and $closure[$b].Contains($a)) {
-            $cycles.Add("$a <-> $b") | Out-Null
-        }
-    }
+foreach ($k in @(Sort-Ordinal $componentMembers.Keys)) {
+    if ($componentMembers[$k].Count -ge 2) { $cycles.Add(($componentMembers[$k] -join ' <-> ')) | Out-Null }
 }
 
 # ---- 3b. gate mode (-Check): report and exit, write nothing ----------------
 # Cycles listed in docs/architecture/allowed-cycles.txt are tolerated: one
-# "A <-> B" per line in either order, '#' starts a comment (a trailing
-# "# reason" is encouraged), blank lines ignored. Adding a pair is a
+# cycle per line, its Modules joined by "<->" in any order ("A <-> B",
+# "A <-> B <-> C"). A line allows exactly that set of Modules: when a cycle
+# grows or shrinks, it needs a new line. '#' starts a comment (a trailing
+# "# reason" is encouraged), blank lines are ignored. Adding a line is a
 # deliberate, reviewed act. -Check never reads the glossary.
-function Get-CyclePairKey([string]$a, [string]$b) {
-    $pair = @(Sort-Ordinal @($a.Trim(), $b.Trim()))
-    return "$($pair[0]) <-> $($pair[1])"
-}
-
 if ($Check) {
     $allowFile = Join-Path $RepoRoot 'docs\architecture\allowed-cycles.txt'
     $allowed = New-Object 'System.Collections.Generic.HashSet[string]'
@@ -458,12 +515,13 @@ if ($Check) {
             $lineNo++
             $t = ($ln -split '#', 2)[0].Trim()
             if (-not $t) { continue }
-            $parts = @($t -split '<->')
-            if ($parts.Count -ne 2 -or -not $parts[0].Trim() -or -not $parts[1].Trim()) {
-                Write-Host ("WARN: allowed-cycles.txt line {0} is not 'A <-> B' and allows nothing: {1}" -f $lineNo, $t)
+            $parts = @($t -split '<->' | ForEach-Object { $_.Trim() })
+            $names = @(Sort-Ordinal ($parts | Select-Object -Unique))
+            if ($parts.Count -lt 2 -or @($parts | Where-Object { -not $_ }).Count -gt 0 -or $names.Count -ne $parts.Count) {
+                Write-Host ("WARN: allowed-cycles.txt line {0} is not 'A <-> B [<-> C ...]' with distinct Modules, and allows nothing: {1}" -f $lineNo, $t)
                 continue
             }
-            [void]$allowed.Add((Get-CyclePairKey $parts[0] $parts[1]))
+            [void]$allowed.Add(($names -join ' <-> '))
         }
     }
     $bad = @($cycles | Where-Object { -not $allowed.Contains($_) })
@@ -474,16 +532,16 @@ if ($Check) {
     Write-Host 'module-deps check FAILED: cross-Module dependency cycle(s) detected:'
     foreach ($c in $bad) {
         Write-Host "  $c"
-        $pair = $c -split ' <-> '
-        foreach ($k in @("$($pair[0])|$($pair[1])", "$($pair[1])|$($pair[0])")) {
-            if ($edgeRoles.ContainsKey($k)) {
-                $p = $k -split '\|'
+        $members = $c -split ' <-> '
+        foreach ($k in @(Sort-Ordinal $edgeRoles.Keys)) {
+            $p = $k -split '\|'
+            if ($members -ccontains $p[0] -and $members -ccontains $p[1]) {
                 Write-Host ("    {0} -> {1} (introduced by role(s): {2})" -f $p[0], $p[1], (@(Sort-Ordinal $edgeRoles[$k]) -join ', '))
             }
         }
     }
     Write-Host 'Cross-Module references must stay acyclic.'
-    Write-Host 'Fix the ProjectReference, or - deliberate and reviewed only - add the pair to docs/architecture/allowed-cycles.txt (either order; a trailing "# reason" is encouraged).'
+    Write-Host 'Fix a ProjectReference, or - deliberate and reviewed only - add the whole cycle as one line to docs/architecture/allowed-cycles.txt (Modules in any order; a trailing "# reason" is encouraged).'
     exit 1
 }
 
@@ -577,27 +635,34 @@ foreach ($k in @(Sort-Ordinal $edgeRoles.Keys)) {
 }
 
 # dependency depth (longest path to a leaf) -> tiers
-# Cycle-safe: a back-edge into a module already on the current recursion stack is
-# ignored for depth purposes (it would otherwise recurse forever). Cycles are
-# still surfaced separately in the "Cycles" section. Modules and their targets
-# are visited in ordinal order, so tiers are the same on every run.
-$depth = @{}
-$depthInProgress = New-Object 'System.Collections.Generic.HashSet[string]'
-function Get-Depth([string]$m) {
-    if ($script:depth.ContainsKey($m)) { return $script:depth[$m] }
-    if (-not $script:depthInProgress.Add($m)) { return 0 }   # on the stack -> cycle back-edge, skip
-    $d = 0
+# Modules in one cycle (one strongly connected component, section 3) are one
+# deployment unit and share a tier. Depth is the longest path to a leaf in the
+# graph of components, which is acyclic, so the recursion always terminates.
+# Components and their targets are visited in ordinal order, so tiers are the
+# same on every run.
+$componentDeps = @{}   # component key -> other component keys it depends on
+foreach ($m in $realModules) {
+    $c = $component[$m]
+    if (-not $componentDeps.ContainsKey($c)) { $componentDeps[$c] = New-Object 'System.Collections.Generic.HashSet[string]' }
     if ($moduleDirect.ContainsKey($m)) {
-        foreach ($t in @(Sort-Ordinal $moduleDirect[$m])) {
-            $td = (Get-Depth $t) + 1
-            if ($td -gt $d) { $d = $td }
+        foreach ($t in $moduleDirect[$m]) {
+            if ($component[$t] -ne $c) { [void]$componentDeps[$c].Add($component[$t]) }
         }
     }
-    [void]$script:depthInProgress.Remove($m)
-    $script:depth[$m] = $d
+}
+$componentDepth = @{}
+function Get-ComponentDepth([string]$c) {
+    if ($script:componentDepth.ContainsKey($c)) { return $script:componentDepth[$c] }
+    $d = 0
+    foreach ($t in @(Sort-Ordinal $script:componentDeps[$c])) {
+        $td = (Get-ComponentDepth $t) + 1
+        if ($td -gt $d) { $d = $td }
+    }
+    $script:componentDepth[$c] = $d
     return $d
 }
-foreach ($m in $realModules) { [void](Get-Depth $m) }
+$depth = @{}
+foreach ($m in $realModules) { $depth[$m] = Get-ComponentDepth $component[$m] }
 $maxDepth = 0
 foreach ($m in $realModules) { if ($depth[$m] -gt $maxDepth) { $maxDepth = $depth[$m] } }
 $byTier = @{}
@@ -680,7 +745,7 @@ W '```'
 W ''
 W '### View 2 - tiered by dependency depth'
 W ''
-W 'Tiers are dependency depth (longest path to a leaf), not functional role: a Module sits higher only because it composes more layers beneath it.'
+W 'Tiers are dependency depth (longest path to a leaf), not functional role: a Module sits higher only because it composes more layers beneath it. Modules in a cycle share a tier.'
 W ''
 W '```mermaid'
 foreach ($ln in $viewTiered) { W $ln }
@@ -726,7 +791,7 @@ W ''
 if ($cycles.Count -eq 0) {
     W 'None.'
 } else {
-    W 'These Modules are mutually reachable and form a single deployment unit:'
+    W 'Each line is one cycle: its Modules are mutually reachable and form a single deployment unit.'
     W ''
     foreach ($c in $cycles) { W "- $c" }
 }
@@ -815,7 +880,7 @@ WH '<pre class="mermaid">'
 foreach ($ln in $viewFlat) { WH $ln }
 WH '</pre>'
 WH '<h3>View 2 &middot; Tiered by dependency depth</h3>'
-WH '<p class="note">Tiers are dependency depth (longest path to a leaf), not functional role &mdash; a Module sits higher only because it composes more layers beneath it (the most composite Module lands on top).</p>'
+WH '<p class="note">Tiers are dependency depth (longest path to a leaf), not functional role &mdash; a Module sits higher only because it composes more layers beneath it (the most composite Module lands on top). Modules in a cycle share a tier.</p>'
 WH '<pre class="mermaid">'
 foreach ($ln in $viewTiered) { WH $ln }
 WH '</pre>'
@@ -861,7 +926,7 @@ WH '<h2>Cycles</h2>'
 if ($cycles.Count -eq 0) {
     WH '<p><span class="badge ok">none</span></p>'
 } else {
-    WH '<p>These Modules are mutually reachable and form a single deployment unit:</p>'
+    WH '<p>Each line is one cycle: its Modules are mutually reachable and form a single deployment unit.</p>'
     WH '<ul class="cycles">'
     foreach ($c in $cycles) { WH "<li>$(He $c)</li>" }
     WH '</ul>'
@@ -978,8 +1043,8 @@ Constraints this task must honour:
 - [x] **Step 1 (failing test):** create `plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` with exactly this content:
 
 ```powershell
-# Dependency-free tests for the opt-in module-deps PostToolUse hook
-# (scripts/guard-module-cycles.js): it blocks only a confirmed cycle in a repo
+ Dependency-free tests for the opt-in module-deps PostToolUse hook
+# (scripts/guard-module-cycles.js): it returns block feedback only for a confirmed cycle in a repo
 # that opted in, and is silent everywhere else. Windows PowerShell 5.1.
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -1056,6 +1121,22 @@ else {
         Add-Project $repo 'src\Modules\B' 'B.Application' @('B.Contracts')
         $r = Invoke-Hook $csproj
         Check 'an opted-in repo without a cycle is silent' ($r.Code -eq 0 -and -not $r.Out)
+
+        # The edited path must never pass through a shell: cmd.exe expands
+        # %OS% even inside quotes, and /bin/sh runs $(...).
+        $odd = Join-Path $root 'sh & %OS% $(echo x) ;q'
+        New-Item -ItemType Directory -Path $odd -Force | Out-Null
+        & git -C $odd init -q
+        Add-Project $odd 'src\Modules\A' 'A.Contracts' @()
+        Add-Project $odd 'src\Modules\A' 'A.Application' @('A.Contracts', 'B.Contracts')
+        Add-Project $odd 'src\Modules\B' 'B.Contracts' @()
+        Add-Project $odd 'src\Modules\B' 'B.Application' @('B.Contracts', 'A.Contracts')
+        Write-Text (Join-Path $odd '.claude\cogniva-dev\policy.json') '{ "moduleDepsCheck": true }'
+        $r = Invoke-Hook (Join-Path $odd 'src\Modules\B\B.Application\B.Application.csproj')
+        $decision = $null
+        try { $decision = $r.Out | ConvertFrom-Json } catch { }
+        Check 'a repo path with shell-significant characters still gets the -Check report' ($r.Code -eq 0 -and $decision -and $decision.decision -eq 'block' -and $decision.reason -match 'A <-> B')
+
         $loose = Join-Path $root 'loose\X.csproj'
         Write-Text $loose '<Project />'
         $r = Invoke-Hook $loose
@@ -1079,19 +1160,22 @@ exit 0
 - [x] **Step 3 (implement the hook):** create `plugins/cogniva-dev/scripts/guard-module-cycles.js` with exactly this content:
 
 ```javascript
-// PostToolUse (Write|Edit) adapter for `module-deps -Check`: after a .csproj
-// edit, block-with-feedback when the edit leaves a cross-Module dependency
-// cycle that docs/architecture/allowed-cycles.txt does not allow.
+/ PostToolUse (Write|Edit) adapter for `module-deps -Check`: after a .csproj
+// edit, return decision "block" - feedback asking Claude to correct it - when
+// the edit leaves a cross-Module dependency cycle that
+// docs/architecture/allowed-cycles.txt does not allow. PostToolUse runs after
+// the file has changed, so this cannot prevent the edit; hard enforcement is
+// -Check in a completion gate.
 //
 // OPT-IN per repo: acts only when the edited file's repo has
 // .claude/cogniva-dev/policy.json with "moduleDepsCheck": true. Every other
 // repo is untouched. `module-deps.ps1 -Check` stays callable on its own (git
 // hooks, CI, by hand); this hook is only the Claude Code adapter around it.
 //
-// Contract: only ever BLOCK on a confirmed cycle (-Check exit 1 with a report).
+// Contract: only ever return "block" on a confirmed cycle (-Check exit 1 with a report).
 // On any uncertainty or error - not a .csproj, no git, no opt-in, no
 // PowerShell, timeout, script error - exit 0 silently.
-const { execSync, execFileSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -1102,7 +1186,7 @@ function allow() { process.exit(0); }
 function optedIn(top) {
   try {
     const text = fs.readFileSync(path.join(top, '.claude', 'cogniva-dev', 'policy.json'), 'utf8');
-    const policy = JSON.parse(text.replace(/^﻿/, ''));
+    const policy = JSON.parse(text.replace(/^\uFEFF/, ''));
     return !!policy && policy.moduleDepsCheck === true;
   } catch (e) { return false; }
 }
@@ -1127,7 +1211,8 @@ function runCheck(top) {
 let raw = '';
 process.stdin.on('data', d => (raw += d)).on('end', () => {
   try {
-    const input = JSON.parse(raw || '{}');
+    // Windows PowerShell 5.1 can prefix piped stdin with a UTF-8 BOM.
+    const input = JSON.parse((raw || '{}').replace(/^\uFEFF/, ''));
     const fp = (input.tool_input || {}).file_path;
     if (!fp || !/\.csproj$/i.test(fp)) return allow();
 
@@ -1136,7 +1221,8 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
 
     let top;
     try {
-      top = execSync(`git -C "${dir}" rev-parse --show-toplevel`, {
+      // execFileSync, not execSync: the edited path must never pass through a shell.
+      top = execFileSync('git', ['-C', dir, 'rev-parse', '--show-toplevel'], {
         encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
       }).trim();
     } catch (e) { return allow(); } // not a git repo
@@ -1148,7 +1234,7 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
       decision: 'block',
       reason: 'This .csproj edit leaves a cross-Module dependency cycle (module-deps -Check). ' +
         'Revert or change the ProjectReference so cross-Module references stay acyclic, or - ' +
-        'deliberate and reviewed only - add the pair to docs/architecture/allowed-cycles.txt.\n\n' +
+        'deliberate and reviewed only - add the whole cycle as one line to docs/architecture/allowed-cycles.txt.\n\n' +
         report,
     }));
     process.exit(0);
@@ -1159,7 +1245,7 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
 - [x] **Step 4 (register the hook):** replace the whole of `plugins/cogniva-dev/hooks/hooks.json` with exactly this content (the existing three hooks are unchanged; the new one joins the `Write|Edit` PostToolUse entry):
 
 ```json
-{
+
   "hooks": {
     "PreToolUse": [
       {
@@ -1231,7 +1317,7 @@ Constraints this task must honour:
 - [x] **Step 1 (SKILL.md):** replace the whole of `plugins/cogniva-dev/skills/module-deps/SKILL.md` with exactly this content:
 
 ````markdown
----
+--
 name: module-deps
 description: Legacy Module-layout tool - regenerate the Module dependency graph (docs/architecture/module-dependencies.html + .md) from the .csproj ProjectReference graph of a repo laid out as src/Modules/<Name>/, or check it for cross-Module cycles with -Check. Use when the user asks for the module dependency graph/map, deployment closure, "what modules does X need", a Module cycle check, or after adding/removing/re-referencing a Module project in such a repo. Pure script run - no build, no analysis required.
 ---
@@ -1289,14 +1375,20 @@ powershell -NoProfile -File "<plugin>/skills/module-deps/module-deps.ps1" -Check
 
 `-Check` computes the graph and lists every cross-Module cycle that
 `docs/architecture/allowed-cycles.txt` does not allow, with the project kinds
-that introduce each edge. It exits `0` when there are none and `1` when there
+that introduce each edge inside it. A cycle is a set of Modules that can all
+reach each other (a strongly connected component), reported once as a whole:
+`A -> B -> C -> A` is the one cycle `A <-> B <-> C`, not three pairs. It exits `0` when there are none and `1` when there
 are. It writes nothing, commits nothing, and never reads the glossary. Any
 caller can use it: a git hook, CI, a green gate, or you.
 
 `docs/architecture/allowed-cycles.txt` is optional and repo-owned. It holds one
-`A <-> B` pair per line, in either order. `#` starts a comment; a trailing
-`# reason` is encouraged. Blank lines are ignored. A line that is not a pair is
-reported and allows nothing. Adding a pair is a deliberate, reviewed act.
+cycle per line, its Modules joined by `<->` in any order: `A <-> B`, or
+`A <-> B <-> C`. A line allows exactly that set of Modules, so a cycle that
+grows or shrinks needs a new line, and pairs never add up to approve a larger
+cycle. `#` starts a comment; a trailing `# reason` is encouraged. Blank lines
+are ignored. A line with fewer than two Modules, an empty name, or a repeated
+Module is reported and allows nothing. Adding a line is a deliberate, reviewed
+act.
 
 ## Module descriptions
 
@@ -1306,14 +1398,19 @@ writes). They are display-only. A missing glossary or a missing entry shows a
 placeholder and never changes the graph or `-Check`. To describe a Module, add
 or fix its glossary entry; never edit the generated files.
 
-## Blocking hook (opt-in, Claude Code)
+## Edit-time feedback hook (opt-in, Claude Code)
 
 The plugin registers a `PostToolUse` hook that runs `-Check` after Claude edits
-a `.csproj`, and blocks the edit with the report when it leaves a disallowed
-cycle. It acts only in repos whose tracked `.claude/cogniva-dev/policy.json`
-contains `"moduleDepsCheck": true`. Everywhere else it does nothing, and it
-fails open on any error. Under other hosts, run `-Check` yourself or from a git
-hook.
+a `.csproj`. When the edit leaves a disallowed cycle, the hook hands Claude the
+report and asks it to correct the reference. It cannot prevent the edit: a
+`PostToolUse` hook runs after the file has already changed, so the edit stays
+on disk until Claude fixes it. It acts only in repos whose tracked
+`.claude/cogniva-dev/policy.json` contains `"moduleDepsCheck": true`.
+Everywhere else it does nothing, and it fails open on any error.
+
+The hook is feedback, not enforcement. Where cycles must never land, run
+`-Check` in a completion gate (the repo's green gate, CI, or a git hook); that
+is also the route under other hosts.
 
 ## What to report back
 
@@ -1330,8 +1427,8 @@ hook.
 3. After `-Check`: relay `OK`, or the listed cycles and the kinds that
    introduce them.
 4. If a cycle is reported, mention it should be reviewed: mutually dependent
-   Modules ship as one deployment unit. Fix the reference, or allow the pair
-   deliberately.
+   Modules ship as one deployment unit. Fix a reference, or allow the whole
+   cycle deliberately.
 
 Do NOT hand-edit the generated files or recompute the graph yourself; always
 run the script. If the script errors, report the error verbatim, and do not
@@ -1346,17 +1443,19 @@ loads from a CDN); the tables render offline regardless.
 
 Optional, and off by default. For repos on the legacy Module layout
 (`src/Modules/<Name>/`), the same `policy.json` can turn on the plugin's
-blocking cycle check:
+edit-time cycle check:
 
 ```json
 { "moduleDepsCheck": true }
 ```
 
 When it is `true`, every `.csproj` edit Claude makes runs
-`module-deps.ps1 -Check`. An edit that leaves a cross-Module cycle not listed
-in `docs/architecture/allowed-cycles.txt` is blocked, with the report. Absent,
-unreadable, or anything but `true` means no check. The hook fails open on any
-error. `-Check` itself can always be run directly (see the `module-deps`
+`module-deps.ps1 -Check`. If the edit leaves a cross-Module cycle not listed
+in `docs/architecture/allowed-cycles.txt`, Claude gets the report and is asked
+to correct it. The hook runs after the edit, so it cannot prevent one; for hard
+enforcement, run `-Check` in a completion gate such as `green-gate.json` below.
+Absent, unreadable, or anything but `true` means no check. The hook fails open
+on any error. `-Check` itself can always be run directly (see the `module-deps`
 skill).
 ```
 
@@ -1364,7 +1463,7 @@ skill).
 
 ```json
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1", "label": "module-deps", "note": "Pins the legacy Module-layout tool: -Check, allowed cycles, cycle-safe deterministic output, display-only glossary descriptions, no project data." },
-    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1", "label": "module-deps-hook", "note": "Pins the opt-in PostToolUse cycle hook: blocks only a confirmed cycle in a repo with moduleDepsCheck true." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1", "label": "module-deps-hook", "note": "Pins the opt-in PostToolUse cycle hook: returns block feedback only for a confirmed cycle in a repo with moduleDepsCheck true." },
 ```
 
 Then verify that it parses: `powershell -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands.label -join ','"` → the list includes `module-deps,module-deps-hook`.
@@ -1382,7 +1481,7 @@ with
 - [x] **Step 6 (write ADR):** scan `docs/adr/` for the next free number `NNNN`, then write `docs/adr/NNNN-module-deps-is-a-data-free-legacy-module-layout-tool.md` with exactly this content (substitute only `NNNN` in the filename):
 
 ```markdown
-# module-deps is a data-free legacy Module-layout tool with an opt-in cycle check
+ module-deps is a data-free legacy Module-layout tool with an opt-in cycle check
 
 **Provenance:** Suggested by human
 
