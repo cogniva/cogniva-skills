@@ -47,7 +47,7 @@ let raw = '';
 process.stdin.on('data', d => (raw += d)).on('end', () => {
   try {
     // Windows PowerShell 5.1 can prefix piped stdin with a UTF-8 BOM.
-    const input = JSON.parse((raw || '{}').replace(/^﻿/, ''));
+    const input = JSON.parse((raw || '{}').replace(/^\uFEFF/, ''));
     const fp = (input.tool_input || {}).file_path;
     if (!fp || !/\.csproj$/i.test(fp)) return allow();
 
