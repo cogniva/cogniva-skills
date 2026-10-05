@@ -1,8 +1,9 @@
 # Architecture profiles — Stage 2a proposal (rev 3)
 
-> Status: **proposal for review**. Not an executable plan; nothing has been
-> implemented. Once approved, it becomes two `plan-feature` plans: Stage 2a.0
-> (`module-deps`) and Stage 2a.
+> Status: **Stage 2a.0 (§4.0, `module-deps`) is implemented by PR #15**, from
+> the plan in `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`. **The rest of
+> Stage 2a remains a proposal for review**: not an executable plan, and not
+> implemented. Once approved, it becomes the Stage 2a `plan-feature` plan.
 >
 > - Rev 2 recorded D1–D8 and gave CognivaShell more evidentiary weight.
 > - Rev 3.1 records D11 (option a), D12 and the softer shared-code wording.
@@ -278,6 +279,12 @@ segments. Patterns are always quoted in YAML: an unquoted value starting with
 ## 4. Work items
 
 ### 4.0 Stage 2a.0 — `module-deps` (separate PR, first)
+
+> **Implemented** by PR #15 (plan: `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`).
+> One change from the text below: the fork's cycle-safe depth was replaced, not
+> ported. Every Module in a cycle now shares one tier, because skipping the
+> back-edge invented a hierarchy inside the cycle. The hook is edit-time
+> feedback; hard enforcement is `-Check` in a completion gate.
 
 Still worth doing first (F10). It is independent, fixes real defects (the
 plugin hangs forever on any cycle; Contracts and Client share the abbreviation
@@ -663,13 +670,13 @@ child profile. The CognivaShell evidence is noted for your decision.
 ## 12. Completion checklist
 
 **2a.0**
-- [ ] `-Check`, cycle-safe deterministic depth, either-order allowed cycles,
+- [x] `-Check`, cycle-safe deterministic depth, either-order allowed cycles,
       display-only glossary descriptions, no project data, abbreviation fix,
       git-top-level `RepoRoot`, opt-in hook, SKILL marks it the Module-layout
       tool.
-- [ ] Suite green and in the gate.
-- [ ] Bump offered.
-- [ ] Backlog item closed.
+- [x] Suite green and in the gate.
+- [x] Bump offered (cogniva-dev 0.10.0).
+- [x] Backlog item closed.
 
 **2a**
 - [x] D11 answered: option (a).

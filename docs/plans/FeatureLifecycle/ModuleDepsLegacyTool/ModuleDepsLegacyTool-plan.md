@@ -6,16 +6,37 @@
 > per task; otherwise leave the changes in the working tree. Never run
 > git switch/checkout/branch inside a task.
 
+> **Status: implemented** on `feature/module-deps-legacy-tool` (PR #15). This
+> plan is now the implementation record. The code blocks in the tasks below are
+> the plan as executed; review follow-ups changed the shipped files after that:
+> - `guard-module-cycles.js` strips a BOM from stdin as well as from
+>   `policy.json` (as an ASCII `﻿` escape), resolves the git root with
+>   `execFileSync` (never through a shell), and its comments describe `block`
+>   as feedback.
+> - `module-deps.ps1` gives every Module in a cycle (one strongly connected
+>   component) the same tier, replacing Task 1's back-edge skip; the tier notes
+>   say so.
+> - `SKILL.md`, the policy README template and ADR 0041 describe the hook as
+>   edit-time feedback that cannot prevent an edit; hard enforcement is
+>   `-Check` in a completion gate.
+> - The test suites gained a shell-significant repo path case and a
+>   shared-tier case.
+>
+> Where they differ, the repository files are authoritative, not the code
+> blocks below.
+
 **Goal:** Stage 2a.0 of architecture profiles: make the plugin's `module-deps`
 a reusable, data-free **legacy Module-layout tool** with a `-Check` cycle gate,
 cycle-safe deterministic rendering, display-only glossary descriptions, and an
-opt-in Claude Code blocking hook, so NewCogniva can later retire its fork.
+opt-in Claude Code edit-time feedback hook, so NewCogniva can later retire its
+fork.
 
 **Architecture:** `module-deps.ps1` stays one Windows PowerShell 5.1-compatible,
 ASCII-only script. It gains `-Check`, which computes the cross-Module graph,
 reports cycles not listed in `docs/architecture/allowed-cycles.txt` (in either
-pair order), exits 0/1 and writes nothing. The cycle-safe depth is ported from
-the NewCogniva fork. Every sort is made ordinal, because PowerShell 7
+pair order), exits 0/1 and writes nothing. Tier depth is cycle-safe: as
+shipped, every Module in a cycle shares one tier (the fork's back-edge skip,
+which Task 1 first ported, invented a hierarchy inside a cycle). Every sort is made ordinal, because PowerShell 7
 randomises string hash codes and would otherwise change the output order from
 run to run. The NewCogniva-specific `$moduleDesc` table, the `Shell` bucket and
 the DocumentStore prose are removed; descriptions come only from the repo
@@ -24,7 +45,9 @@ Output becomes UTF-8 without a BOM so glossary text survives. A new
 `scripts/guard-module-cycles.js` `PostToolUse` hook runs `-Check` after a
 `.csproj` edit, only in repos whose `.claude/cogniva-dev/policy.json` sets
 `"moduleDepsCheck": true`. It fails open on everything except a confirmed
-cycle. The tool reads no architecture profile, does no region graphing and no
+cycle. Because `PostToolUse` runs after the file has changed, its `block`
+decision is feedback asking Claude to correct the edit; it cannot prevent one.
+Hard enforcement is `-Check` in a completion gate. The tool reads no architecture profile, does no region graphing and no
 layer enforcement, and does not support the CognivaShell layout.
 
 **Read these first:**
@@ -52,16 +75,18 @@ docs/adr/NNNN-module-deps-is-a-data-free-legacy-module-layout-tool.md  # NEW —
 
 ## Candidate ADRs
 
-### ADR-C1: module-deps is a data-free legacy Module-layout tool with opt-in enforcement
+### ADR-C1: module-deps is a data-free legacy Module-layout tool with an opt-in cycle check
 **Provenance:** Suggested by human
 `module-deps` graphs only the legacy `src/Modules/<Name>/` layout that
 `add-module` scaffolds, and ships no repository-specific data. Module
 descriptions are display-only and come from the repo glossary's
 `## <Name> (Module)` entries; allowed cycles come from the repo's
 `docs/architecture/allowed-cycles.txt`. `-Check` is always callable on its own.
-Blocking enforcement is a Claude Code `PostToolUse` adapter that acts only where
-a repo opts in with `"moduleDepsCheck": true` in `.claude/cogniva-dev/policy.json`.
-**Write with:** Task 3
+Edit-time feedback is a Claude Code `PostToolUse` adapter that acts only where
+a repo opts in with `"moduleDepsCheck": true` in `.claude/cogniva-dev/policy.json`;
+it runs after the edit, so it asks for a correction rather than preventing one.
+Hard enforcement runs `-Check` in a completion gate.
+**Write with:** Task 3 (written as ADR 0041)
 
 ## Task 1: module-deps.ps1 — -Check, determinism, no project data
 
@@ -937,8 +962,10 @@ if ($Open) {
 - Modify: `plugins/cogniva-dev/hooks/hooks.json`
 
 Constraints this task must honour:
-- The hook only ever **blocks** on a confirmed cycle: `module-deps.ps1 -Check`
-  exits 1 and prints a report.
+- The hook only ever returns a `block` decision on a confirmed cycle:
+  `module-deps.ps1 -Check` exits 1 and prints a report. `PostToolUse` runs
+  after the file has changed, so that decision is feedback asking Claude to
+  correct the edit; it cannot prevent the edit.
 - In every other case it exits 0 silently: not a `.csproj`, no git, no opt-in,
   no PowerShell, a timeout, or a script error.
 - It acts only when the edited file's repo has
@@ -1355,7 +1382,7 @@ with
 - [x] **Step 6 (write ADR):** scan `docs/adr/` for the next free number `NNNN`, then write `docs/adr/NNNN-module-deps-is-a-data-free-legacy-module-layout-tool.md` with exactly this content (substitute only `NNNN` in the filename):
 
 ```markdown
-# module-deps is a data-free legacy Module-layout tool with opt-in enforcement
+# module-deps is a data-free legacy Module-layout tool with an opt-in cycle check
 
 **Provenance:** Suggested by human
 
@@ -1364,8 +1391,10 @@ with
 descriptions are display-only and come from the repo glossary's
 `## <Name> (Module)` entries; allowed cycles come from the repo's
 `docs/architecture/allowed-cycles.txt`. `-Check` is always callable on its own.
-Blocking enforcement is a Claude Code `PostToolUse` adapter that acts only where
-a repo opts in with `"moduleDepsCheck": true` in `.claude/cogniva-dev/policy.json`.
+Edit-time feedback is a Claude Code `PostToolUse` adapter that acts only where
+a repo opts in with `"moduleDepsCheck": true` in `.claude/cogniva-dev/policy.json`;
+it runs after the edit, so it asks for a correction rather than preventing one.
+Hard enforcement runs `-Check` in a completion gate.
 ```
 
   Then run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace . -Since HEAD` → no errors.
