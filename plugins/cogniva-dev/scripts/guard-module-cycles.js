@@ -72,7 +72,7 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
       decision: 'block',
       reason: 'This .csproj edit leaves a cross-Module dependency cycle (module-deps -Check). ' +
         'Revert or change the ProjectReference so cross-Module references stay acyclic, or - ' +
-        'deliberate and reviewed only - add the pair to docs/architecture/allowed-cycles.txt.\n\n' +
+        'deliberate and reviewed only - add the whole cycle as one line to docs/architecture/allowed-cycles.txt.\n\n' +
         report,
     }));
     process.exit(0);

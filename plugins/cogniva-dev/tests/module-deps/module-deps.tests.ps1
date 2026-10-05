@@ -103,6 +103,32 @@ try {
     Check 'a malformed allowed-cycles line allows nothing and is reported' ($r.Code -eq 1 -and $r.Out -match "WARN: allowed-cycles\.txt line 1")
     Remove-Item -LiteralPath (Join-Path $cyclic 'docs') -Recurse -Force
 
+    # A -> B -> C -> A is ONE cycle (one set of mutually reachable Modules),
+    # reported and approved as a whole, never as three pairs.
+    $tri = New-Repo 'three-cycle'
+    Add-Project $tri 'src\Modules\A' 'A.Contracts' @()
+    Add-Project $tri 'src\Modules\A' 'A.Application' @('A.Contracts', 'B.Contracts')
+    Add-Project $tri 'src\Modules\B' 'B.Contracts' @()
+    Add-Project $tri 'src\Modules\B' 'B.Application' @('B.Contracts', 'C.Contracts')
+    Add-Project $tri 'src\Modules\C' 'C.Contracts' @()
+    Add-Project $tri 'src\Modules\C' 'C.Application' @('C.Contracts', 'A.Contracts')
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'a 3-Module cycle is reported once, as the whole cycle' ($r.Code -eq 1 -and $r.Out -match '(?m)^  A <-> B <-> C\s*$' -and $r.Out -notmatch '(?m)^  A <-> C\s*$' -and $r.Out -match 'C -> A \(introduced by role\(s\): Application\)')
+    $triAllow = Join-Path $tri 'docs\architecture\allowed-cycles.txt'
+    Write-Text $triAllow "A <-> B`nB <-> C`nA <-> C`n"
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'pairs do not approve a larger cycle' ($r.Code -eq 1)
+    Write-Text $triAllow "C <-> A <-> B   # reviewed: test fixture`n"
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'a whole-cycle line approves it, members in any order' ($r.Code -eq 0)
+    Write-Text $triAllow "A <-> A`n"
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-Check')
+    Check 'a line repeating a Module is malformed' ($r.Code -eq 1 -and $r.Out -match 'WARN: allowed-cycles\.txt line 1')
+    Remove-Item -LiteralPath (Join-Path $tri 'docs') -Recurse -Force
+    $r = Invoke-ModuleDeps @('-RepoRoot', $tri, '-NoCommit')
+    $triMd = Read-Utf8 (Join-Path $tri 'docs\architecture\module-dependencies.md')
+    Check 'the Cycles section lists the 3-Module cycle once' ($triMd -match '(?m)^- A <-> B <-> C\s*$' -and $triMd -notmatch '(?m)^- A <-> C\s*$')
+
     # Descriptions are display-only: an unreadable glossary changes nothing in -Check.
     $glossaryPath = Join-Path $cyclic 'docs\glossary\README.md'
     New-Item -ItemType Directory -Path $glossaryPath -Force | Out-Null   # a directory where the file should be

@@ -140,27 +140,30 @@ function Get-Closure([string]$mod) {
 $closure = @{}
 foreach ($m in $realModules) { $closure[$m] = Get-Closure $m }
 
-# Every mutually reachable pair, written "A <-> B" with A before B ordinally.
+# Cycles are strongly connected components: sets of Modules that can all
+# reach each other. Each component is keyed by its ordinally-first member; one
+# with two or more members is a cycle, written "A <-> B <-> C" with its members
+# in ordinal order. A cycle is one deployment unit, reported and approved as a
+# whole, never as the pairs inside it.
+$component        = @{}   # module -> component key
+$componentMembers = @{}   # component key -> its members, ordinal order
+foreach ($m in $realModules) {
+    $members = @(Sort-Ordinal (@($m) + @($realModules | Where-Object { $_ -ne $m -and $closure[$m].Contains($_) -and $closure[$_].Contains($m) })))
+    $component[$m] = $members[0]
+    $componentMembers[$members[0]] = $members
+}
 $cycles = New-Object 'System.Collections.Generic.List[string]'
-for ($i = 0; $i -lt $realModules.Count; $i++) {
-    for ($j = $i + 1; $j -lt $realModules.Count; $j++) {
-        $a = $realModules[$i]; $b = $realModules[$j]
-        if ($closure[$a].Contains($b) -and $closure[$b].Contains($a)) {
-            $cycles.Add("$a <-> $b") | Out-Null
-        }
-    }
+foreach ($k in @(Sort-Ordinal $componentMembers.Keys)) {
+    if ($componentMembers[$k].Count -ge 2) { $cycles.Add(($componentMembers[$k] -join ' <-> ')) | Out-Null }
 }
 
 # ---- 3b. gate mode (-Check): report and exit, write nothing ----------------
 # Cycles listed in docs/architecture/allowed-cycles.txt are tolerated: one
-# "A <-> B" per line in either order, '#' starts a comment (a trailing
-# "# reason" is encouraged), blank lines ignored. Adding a pair is a
+# cycle per line, its Modules joined by "<->" in any order ("A <-> B",
+# "A <-> B <-> C"). A line allows exactly that set of Modules: when a cycle
+# grows or shrinks, it needs a new line. '#' starts a comment (a trailing
+# "# reason" is encouraged), blank lines are ignored. Adding a line is a
 # deliberate, reviewed act. -Check never reads the glossary.
-function Get-CyclePairKey([string]$a, [string]$b) {
-    $pair = @(Sort-Ordinal @($a.Trim(), $b.Trim()))
-    return "$($pair[0]) <-> $($pair[1])"
-}
-
 if ($Check) {
     $allowFile = Join-Path $RepoRoot 'docs\architecture\allowed-cycles.txt'
     $allowed = New-Object 'System.Collections.Generic.HashSet[string]'
@@ -170,12 +173,13 @@ if ($Check) {
             $lineNo++
             $t = ($ln -split '#', 2)[0].Trim()
             if (-not $t) { continue }
-            $parts = @($t -split '<->')
-            if ($parts.Count -ne 2 -or -not $parts[0].Trim() -or -not $parts[1].Trim()) {
-                Write-Host ("WARN: allowed-cycles.txt line {0} is not 'A <-> B' and allows nothing: {1}" -f $lineNo, $t)
+            $parts = @($t -split '<->' | ForEach-Object { $_.Trim() })
+            $names = @(Sort-Ordinal ($parts | Select-Object -Unique))
+            if ($parts.Count -lt 2 -or @($parts | Where-Object { -not $_ }).Count -gt 0 -or $names.Count -ne $parts.Count) {
+                Write-Host ("WARN: allowed-cycles.txt line {0} is not 'A <-> B [<-> C ...]' with distinct Modules, and allows nothing: {1}" -f $lineNo, $t)
                 continue
             }
-            [void]$allowed.Add((Get-CyclePairKey $parts[0] $parts[1]))
+            [void]$allowed.Add(($names -join ' <-> '))
         }
     }
     $bad = @($cycles | Where-Object { -not $allowed.Contains($_) })
@@ -186,16 +190,16 @@ if ($Check) {
     Write-Host 'module-deps check FAILED: cross-Module dependency cycle(s) detected:'
     foreach ($c in $bad) {
         Write-Host "  $c"
-        $pair = $c -split ' <-> '
-        foreach ($k in @("$($pair[0])|$($pair[1])", "$($pair[1])|$($pair[0])")) {
-            if ($edgeRoles.ContainsKey($k)) {
-                $p = $k -split '\|'
+        $members = $c -split ' <-> '
+        foreach ($k in @(Sort-Ordinal $edgeRoles.Keys)) {
+            $p = $k -split '\|'
+            if ($members -ccontains $p[0] -and $members -ccontains $p[1]) {
                 Write-Host ("    {0} -> {1} (introduced by role(s): {2})" -f $p[0], $p[1], (@(Sort-Ordinal $edgeRoles[$k]) -join ', '))
             }
         }
     }
     Write-Host 'Cross-Module references must stay acyclic.'
-    Write-Host 'Fix the ProjectReference, or - deliberate and reviewed only - add the pair to docs/architecture/allowed-cycles.txt (either order; a trailing "# reason" is encouraged).'
+    Write-Host 'Fix a ProjectReference, or - deliberate and reviewed only - add the whole cycle as one line to docs/architecture/allowed-cycles.txt (Modules in any order; a trailing "# reason" is encouraged).'
     exit 1
 }
 
@@ -289,17 +293,11 @@ foreach ($k in @(Sort-Ordinal $edgeRoles.Keys)) {
 }
 
 # dependency depth (longest path to a leaf) -> tiers
-# Modules in one cycle (mutually reachable in the transitive closure, i.e. one
-# strongly connected component) are one deployment unit and share a tier.
-# Each component is keyed by its ordinally-first member; depth is the longest
-# path to a leaf in the graph of components, which is acyclic, so the
-# recursion always terminates. Components and their targets are visited in
-# ordinal order, so tiers are the same on every run.
-$component = @{}       # module -> component key
-foreach ($m in $realModules) {
-    $members = @($m) + @($realModules | Where-Object { $_ -ne $m -and $closure[$m].Contains($_) -and $closure[$_].Contains($m) })
-    $component[$m] = @(Sort-Ordinal $members)[0]
-}
+# Modules in one cycle (one strongly connected component, section 3) are one
+# deployment unit and share a tier. Depth is the longest path to a leaf in the
+# graph of components, which is acyclic, so the recursion always terminates.
+# Components and their targets are visited in ordinal order, so tiers are the
+# same on every run.
 $componentDeps = @{}   # component key -> other component keys it depends on
 foreach ($m in $realModules) {
     $c = $component[$m]
@@ -451,7 +449,7 @@ W ''
 if ($cycles.Count -eq 0) {
     W 'None.'
 } else {
-    W 'These Modules are mutually reachable and form a single deployment unit:'
+    W 'Each line is one cycle: its Modules are mutually reachable and form a single deployment unit.'
     W ''
     foreach ($c in $cycles) { W "- $c" }
 }
@@ -586,7 +584,7 @@ WH '<h2>Cycles</h2>'
 if ($cycles.Count -eq 0) {
     WH '<p><span class="badge ok">none</span></p>'
 } else {
-    WH '<p>These Modules are mutually reachable and form a single deployment unit:</p>'
+    WH '<p>Each line is one cycle: its Modules are mutually reachable and form a single deployment unit.</p>'
     WH '<ul class="cycles">'
     foreach ($c in $cycles) { WH "<li>$(He $c)</li>" }
     WH '</ul>'

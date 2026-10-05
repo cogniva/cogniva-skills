@@ -56,14 +56,20 @@ powershell -NoProfile -File "<plugin>/skills/module-deps/module-deps.ps1" -Check
 
 `-Check` computes the graph and lists every cross-Module cycle that
 `docs/architecture/allowed-cycles.txt` does not allow, with the project kinds
-that introduce each edge. It exits `0` when there are none and `1` when there
+that introduce each edge inside it. A cycle is a set of Modules that can all
+reach each other (a strongly connected component), reported once as a whole:
+`A -> B -> C -> A` is the one cycle `A <-> B <-> C`, not three pairs. It exits `0` when there are none and `1` when there
 are. It writes nothing, commits nothing, and never reads the glossary. Any
 caller can use it: a git hook, CI, a green gate, or you.
 
 `docs/architecture/allowed-cycles.txt` is optional and repo-owned. It holds one
-`A <-> B` pair per line, in either order. `#` starts a comment; a trailing
-`# reason` is encouraged. Blank lines are ignored. A line that is not a pair is
-reported and allows nothing. Adding a pair is a deliberate, reviewed act.
+cycle per line, its Modules joined by `<->` in any order: `A <-> B`, or
+`A <-> B <-> C`. A line allows exactly that set of Modules, so a cycle that
+grows or shrinks needs a new line, and pairs never add up to approve a larger
+cycle. `#` starts a comment; a trailing `# reason` is encouraged. Blank lines
+are ignored. A line with fewer than two Modules, an empty name, or a repeated
+Module is reported and allows nothing. Adding a line is a deliberate, reviewed
+act.
 
 ## Module descriptions
 
@@ -102,8 +108,8 @@ is also the route under other hosts.
 3. After `-Check`: relay `OK`, or the listed cycles and the kinds that
    introduce them.
 4. If a cycle is reported, mention it should be reviewed: mutually dependent
-   Modules ship as one deployment unit. Fix the reference, or allow the pair
-   deliberately.
+   Modules ship as one deployment unit. Fix a reference, or allow the whole
+   cycle deliberately.
 
 Do NOT hand-edit the generated files or recompute the graph yourself; always
 run the script. If the script errors, report the error verbatim, and do not
