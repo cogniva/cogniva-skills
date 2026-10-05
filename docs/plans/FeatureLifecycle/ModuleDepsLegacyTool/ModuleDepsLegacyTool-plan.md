@@ -948,7 +948,7 @@ Constraints this task must honour:
   inside the target repo.
 - `-Check` stays independently callable; the hook is only an adapter around it.
 
-- [ ] **Step 1 (failing test):** create `plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` with exactly this content:
+- [x] **Step 1 (failing test):** create `plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` with exactly this content:
 
 ```powershell
 # Dependency-free tests for the opt-in module-deps PostToolUse hook
@@ -1047,9 +1047,9 @@ Write-Host 'All guard-module-cycles assertions passed.'
 exit 0
 ```
 
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → exits 1. The registration check FAILs, and so does the opted-in block case (the hook script does not exist yet).
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → exits 1. The registration check FAILs, and so does the opted-in block case (the hook script does not exist yet).
 
-- [ ] **Step 3 (implement the hook):** create `plugins/cogniva-dev/scripts/guard-module-cycles.js` with exactly this content:
+- [x] **Step 3 (implement the hook):** create `plugins/cogniva-dev/scripts/guard-module-cycles.js` with exactly this content:
 
 ```javascript
 // PostToolUse (Write|Edit) adapter for `module-deps -Check`: after a .csproj
@@ -1129,7 +1129,7 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
 });
 ```
 
-- [ ] **Step 4 (register the hook):** replace the whole of `plugins/cogniva-dev/hooks/hooks.json` with exactly this content (the existing three hooks are unchanged; the new one joins the `Write|Edit` PostToolUse entry):
+- [x] **Step 4 (register the hook):** replace the whole of `plugins/cogniva-dev/hooks/hooks.json` with exactly this content (the existing three hooks are unchanged; the new one joins the `Write|Edit` PostToolUse entry):
 
 ```json
 {
@@ -1181,9 +1181,9 @@ process.stdin.on('data', d => (raw += d)).on('end', () => {
 }
 ```
 
-- [ ] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → `All guard-module-cycles assertions passed.` Then `claude plugin validate .` → passes.
+- [x] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → `All guard-module-cycles assertions passed.` Then `claude plugin validate .` → passes.
 
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/guard-module-cycles.js plugins/cogniva-dev/hooks/hooks.json plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` then `git commit -m "feat(module-deps): opt-in PostToolUse cycle hook"`
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/guard-module-cycles.js plugins/cogniva-dev/hooks/hooks.json plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` then `git commit -m "feat(module-deps): opt-in PostToolUse cycle hook"`
 
 ## Task 3: Documentation, green gate, ADR
 
