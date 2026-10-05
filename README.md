@@ -32,7 +32,7 @@ Cogniva's plugin marketplace (`cogniva`) for Claude Code and OpenAI Codex — bo
 | `plugins/cogniva-dev/skills/quick-fix` | Planless sibling of execute-feature for small changes |
 | `plugins/cogniva-dev/skills/cleanup-work` | Close out this session's integrated worktrees |
 | `plugins/cogniva-dev/skills/cleanup-allwork` | Checkout-wide reap of every cleanupable worktree |
-| `plugins/cogniva-dev/skills/module-deps` | Regenerate the Module dependency graph from .csproj references |
+| `plugins/cogniva-dev/skills/module-deps` | Legacy Module layout: regenerate the Module dependency graph from .csproj references, or check it for cycles (`-Check`) |
 | `plugins/cogniva-dev/skills/feature-status` | Read-only scan of per-feature task progress |
 | `plugins/cogniva-dev/skills/module-status` | Read-only view of one Module's features and backlog |
 | `plugins/cogniva-dev/skills/repo-status` | Cross-Module roll-up of the live roadmap |

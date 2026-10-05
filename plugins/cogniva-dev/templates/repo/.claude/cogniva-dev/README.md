@@ -35,6 +35,23 @@ Semantics:
 - **Absent = no policy.** No file, an unreadable file, or a file without
   `requiredDevelopmentBranchPrefix` means no check and no behaviour change.
 
+## Module cycle check — `moduleDepsCheck` in `policy.json`
+
+Optional, and off by default. For repos on the legacy Module layout
+(`src/Modules/<Name>/`), the same `policy.json` can turn on the plugin's
+blocking cycle check:
+
+```json
+{ "moduleDepsCheck": true }
+```
+
+When it is `true`, every `.csproj` edit Claude makes runs
+`module-deps.ps1 -Check`. An edit that leaves a cross-Module cycle not listed
+in `docs/architecture/allowed-cycles.txt` is blocked, with the report. Absent,
+unreadable, or anything but `true` means no check. The hook fails open on any
+error. `-Check` itself can always be run directly (see the `module-deps`
+skill).
+
 ## Green gate config — `.claude/cogniva-dev/green-gate.json`
 
 `/cogniva-dev:execute-feature` and `/cogniva-dev:quick-fix` run a **green gate** in the

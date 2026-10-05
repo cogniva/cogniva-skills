@@ -7,6 +7,8 @@
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1", "label": "green-gate-runner", "note": "Exercises the single canonical green-gate implementation." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1", "label": "applicable-rules", "note": "Proves AGENTS-aware placement preflight is read-only." },
     { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1", "label": "architecture-profile", "note": "Pins profile resolution, inheritance, suggestions, adoption, and the shipped profile library; needs PowerShell 7." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1", "label": "module-deps", "note": "Pins the legacy Module-layout tool: -Check, allowed cycles, cycle-safe deterministic output, display-only glossary descriptions, no project data." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1", "label": "module-deps-hook", "note": "Pins the opt-in PostToolUse cycle hook: blocks only a confirmed cycle in a repo with moduleDepsCheck true." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1", "label": "gate-check", "note": "Proves mechanical gate orchestration is read-only and cannot certify an unresolved target." }
   ]
 }

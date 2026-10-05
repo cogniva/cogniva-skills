@@ -1201,7 +1201,7 @@ Constraints this task must honour:
 - Do not change any plugin `version` field. The version bump is offered at
   integration, not made here.
 
-- [ ] **Step 1 (SKILL.md):** replace the whole of `plugins/cogniva-dev/skills/module-deps/SKILL.md` with exactly this content:
+- [x] **Step 1 (SKILL.md):** replace the whole of `plugins/cogniva-dev/skills/module-deps/SKILL.md` with exactly this content:
 
 ````markdown
 ---
@@ -1312,7 +1312,7 @@ substitute a manually written graph. The HTML diagram needs internet (Mermaid
 loads from a CDN); the tables render offline regardless.
 ````
 
-- [ ] **Step 2 (policy key docs):** in `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`, insert this section immediately before the line `## Green gate config — `.claude/cogniva-dev/green-gate.json`` (keep one blank line before and after it):
+- [x] **Step 2 (policy key docs):** in `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`, insert this section immediately before the line `## Green gate config — `.claude/cogniva-dev/green-gate.json`` (keep one blank line before and after it):
 
 ```markdown
 ## Module cycle check — `moduleDepsCheck` in `policy.json`
@@ -1333,7 +1333,7 @@ error. `-Check` itself can always be run directly (see the `module-deps`
 skill).
 ```
 
-- [ ] **Step 3 (green gate):** in `.claude/cogniva-dev/green-gate.json`, insert these two entries immediately after the `"label": "architecture-profile"` entry (keep the array valid JSON):
+- [x] **Step 3 (green gate):** in `.claude/cogniva-dev/green-gate.json`, insert these two entries immediately after the `"label": "architecture-profile"` entry (keep the array valid JSON):
 
 ```json
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1", "label": "module-deps", "note": "Pins the legacy Module-layout tool: -Check, allowed cycles, cycle-safe deterministic output, display-only glossary descriptions, no project data." },
@@ -1342,17 +1342,17 @@ skill).
 
 Then verify that it parses: `powershell -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands.label -join ','"` → the list includes `module-deps,module-deps-hook`.
 
-- [ ] **Step 4 (README row):** in `README.md`, replace the line
+- [x] **Step 4 (README row):** in `README.md`, replace the line
 `| `plugins/cogniva-dev/skills/module-deps` | Regenerate the Module dependency graph from .csproj references |`
 with
 `| `plugins/cogniva-dev/skills/module-deps` | Legacy Module layout: regenerate the Module dependency graph from .csproj references, or check it for cycles (`-Check`) |`
 
-- [ ] **Step 5 (run until green):** run both suites and the plugin validation:
+- [x] **Step 5 (run until green):** run both suites and the plugin validation:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` → `All module-deps assertions passed.`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → `All guard-module-cycles assertions passed.`
   - `claude plugin validate .` → passes.
 
-- [ ] **Step 6 (write ADR):** scan `docs/adr/` for the next free number `NNNN`, then write `docs/adr/NNNN-module-deps-is-a-data-free-legacy-module-layout-tool.md` with exactly this content (substitute only `NNNN` in the filename):
+- [x] **Step 6 (write ADR):** scan `docs/adr/` for the next free number `NNNN`, then write `docs/adr/NNNN-module-deps-is-a-data-free-legacy-module-layout-tool.md` with exactly this content (substitute only `NNNN` in the filename):
 
 ```markdown
 # module-deps is a data-free legacy Module-layout tool with opt-in enforcement
@@ -1370,4 +1370,4 @@ a repo opts in with `"moduleDepsCheck": true` in `.claude/cogniva-dev/policy.jso
 
   Then run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace . -Since HEAD` → no errors.
 
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/skills/module-deps/SKILL.md plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md .claude/cogniva-dev/green-gate.json README.md docs/adr/` then `git commit -m "docs(module-deps): legacy Module-layout tool, -Check, opt-in hook; gate the new suites"`
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/skills/module-deps/SKILL.md plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md .claude/cogniva-dev/green-gate.json README.md docs/adr/` then `git commit -m "docs(module-deps): legacy Module-layout tool, -Check, opt-in hook; gate the new suites"`
