@@ -129,6 +129,10 @@ Check 'plan-feature never adopts or declares a profile on its own' `
     ($pfFlat -match 'Adopting or declaring a profile writes files, so do it only when the user asks')
 Check 'plan-feature restates standards in task bodies' `
     ($pfFlat -match 'the executing agent never sees the profile')
+Check 'plan-feature reads composed standards with -Show' `
+    ($pfFlat -match 'AMENDED BY' -and $pfFlat -match '-Show <id>')
+Check 'plan-feature asks before designing on standards that need review' `
+    ($pfFlat -match 'NEEDS HUMAN REVIEW' -and $pfFlat -match 'ask before designing on those standards')
 Check 'PLAN-FORMAT carries the Architecture profile header line' `
     ($fmt -match '\*\*Architecture profile:\*\*')
 Check 'applicable-rules documents the ArchitectureProfile field' `

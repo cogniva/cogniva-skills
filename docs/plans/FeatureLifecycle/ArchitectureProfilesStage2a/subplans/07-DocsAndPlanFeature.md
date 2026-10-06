@@ -74,17 +74,17 @@ docs/plans/FeatureLifecycle/ArchitectureProfiles/Stage2a-proposal.md # status he
 - Modify: `plugins/cogniva-dev/skills/plan-feature/SKILL.md`
 - Test: `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`
 
-- [ ] **Step 1 (failing pin):** Under `# --- architecture profiles` in `skill-semantics.tests.ps1`, add:
+- [x] **Step 1 (failing pin):** Under `# --- architecture profiles` in `skill-semantics.tests.ps1`, add:
   ```powershell
   Check 'plan-feature reads composed standards with -Show' `
       ($pfFlat -match 'AMENDED BY' -and $pfFlat -match '-Show <id>')
   Check 'plan-feature asks before designing on standards that need review' `
       ($pfFlat -match 'NEEDS HUMAN REVIEW' -and $pfFlat -match 'ask before designing on those standards')
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the two new pins.
-- [ ] **Step 3 (implement):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, in the **Architecture profile.** paragraph, directly after the sentence ending "open only the standards that bear on this design, and honour them like existing ADRs: surface a departure, never work around it.", add: "A standard listed with `AMENDED BY` lines (or `REPLACED`) is composed from several files: read each one, or print the composed text with `-Show <id>`. If a target prints `NEEDS HUMAN REVIEW`, list its `REVIEW:` items for the user and ask before designing on those standards; it is a question, not a stop."
-- [ ] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "feat(plan-feature): read composed standards; ask before designing on review items"`
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the two new pins.
+- [x] **Step 3 (implement):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, in the **Architecture profile.** paragraph, directly after the sentence ending "open only the standards that bear on this design, and honour them like existing ADRs: surface a departure, never work around it.", add: "A standard listed with `AMENDED BY` lines (or `REPLACED`) is composed from several files: read each one, or print the composed text with `-Show <id>`. If a target prints `NEEDS HUMAN REVIEW`, list its `REVIEW:` items for the user and ask before designing on those standards; it is a question, not a stop."
+- [x] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "feat(plan-feature): read composed standards; ask before designing on review items"`
 
 ## Task 3: Proposal status and the full gate
 
