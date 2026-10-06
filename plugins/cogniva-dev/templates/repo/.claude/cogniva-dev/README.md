@@ -37,7 +37,7 @@ Semantics:
 
 ## Module cycle check — `moduleDepsCheck` in `policy.json`
 
-Optional, and off by default. For repos on the legacy Module layout
+Optional, and off by default. For repos on the Module bundle layout
 (`src/Modules/<Name>/`), the same `policy.json` can turn on the plugin's
 edit-time cycle check:
 

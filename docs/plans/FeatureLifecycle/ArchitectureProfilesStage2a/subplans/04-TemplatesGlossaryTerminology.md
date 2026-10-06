@@ -57,7 +57,7 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
 - Modify: `plugins/cogniva-dev/templates/repo/CLAUDE.md`, `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`
 - Test: `plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1`
 
-- [ ] **Step 1 (failing tests):** In `profile-library.tests.ps1`, add `$templates = Join-Path $plugin 'templates\repo'` below `$library = …`, and insert directly above `# --- sections appended by later sub-plans go above this line ---`:
+- [x] **Step 1 (failing tests):** In `profile-library.tests.ps1`, add `$templates = Join-Path $plugin 'templates\repo'` below `$library = …`, and insert directly above `# --- sections appended by later sub-plans go above this line ---`:
   ```powershell
       # --- template drift: the template points at the profile and restates no rules ---
       $agents = Join-Path $templates 'AGENTS.md'
@@ -75,8 +75,8 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
       Check 'template Directory.Build.props sets net10.0, nullable and warnings as errors' ($propsText -match '<TargetFramework>net10\.0</TargetFramework>' -and $propsText -match '<Nullable>enable</Nullable>' -and $propsText -match '<TreatWarningsAsErrors>true</TreatWarningsAsErrors>')
       Check 'build-settings names every property the template sets' (@('TargetFramework', 'Nullable', 'TreatWarningsAsErrors' | Where-Object { $buildText -notmatch $_ }).Count -eq 0)
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → FAIL on the template checks.
-- [ ] **Step 3:** Create `plugins/cogniva-dev/templates/repo/AGENTS.md`:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → FAIL on the template checks.
+- [x] **Step 3:** Create `plugins/cogniva-dev/templates/repo/AGENTS.md`:
   ````markdown
   # Project conventions
 
@@ -133,8 +133,8 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
     fast-forward-merges into your branch.
   ````
   (This last section is the current `templates/repo/CLAUDE.md` section moved verbatim.) `<cogniva-dev plugin>` stays as written: it is a deliberate placeholder in the template, because the plugin's install path differs per machine.
-- [ ] **Step 4:** Overwrite `plugins/cogniva-dev/templates/repo/CLAUDE.md` with exactly one line: `@AGENTS.md` (plus the final newline).
-- [ ] **Step 5:** Create `plugins/cogniva-dev/templates/repo/docs/glossary/README.md`:
+- [x] **Step 4:** Overwrite `plugins/cogniva-dev/templates/repo/CLAUDE.md` with exactly one line: `@AGENTS.md` (plus the final newline).
+- [x] **Step 5:** Create `plugins/cogniva-dev/templates/repo/docs/glossary/README.md`:
   ```markdown
   # Glossary
 
@@ -150,7 +150,7 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
   A small, slow-changing project of types used across the codebase. It references no project that owns behaviour, so anything may depend on it. It is an ordinary referenced project, not a Visual Studio Shared Project (`.shproj`) or linked source; see [common and published types](../../.cogniva/profiles/cogniva-base/standards/architecture/common-and-published-types.md).
   _Avoid_: shared types, shared project, utilities
   ```
-- [ ] **Step 6:** Create `plugins/cogniva-dev/templates/repo/Directory.Build.props`:
+- [x] **Step 6:** Create `plugins/cogniva-dev/templates/repo/Directory.Build.props`:
   ```xml
   <Project>
     <PropertyGroup>
@@ -161,9 +161,9 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
     </PropertyGroup>
   </Project>
   ```
-- [ ] **Step 7:** In `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`, change "For repos on the legacy Module layout" to "For repos on the Module bundle layout".
-- [ ] **Step 8 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.`
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/templates/repo plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` then `git commit -m "feat(templates): AGENTS.md is canonical and points at the profile; seed glossary and Directory.Build.props"`
+- [x] **Step 7:** In `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`, change "For repos on the legacy Module layout" to "For repos on the Module bundle layout".
+- [x] **Step 8 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.`
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/templates/repo plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` then `git commit -m "feat(templates): AGENTS.md is canonical and points at the profile; seed glossary and Directory.Build.props"`
 
 ## Task 2: This repo's glossary, strategy and README
 

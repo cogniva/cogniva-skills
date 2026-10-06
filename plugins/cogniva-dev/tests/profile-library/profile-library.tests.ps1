@@ -10,6 +10,7 @@ $resolver = Join-Path $plugin 'scripts\resolve-architecture-profile.ps1'
 $adopter = Join-Path $plugin 'scripts\adopt-architecture-profile.ps1'
 $accepter = Join-Path $plugin 'scripts\accept-profile-delta.ps1'
 $library = Join-Path $plugin 'profiles'
+$templates = Join-Path $plugin 'templates\repo'
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ("cogniva-profile-library-" + [guid]::NewGuid().ToString('N'))
 $failures = @()
 
@@ -100,6 +101,22 @@ try {
     Check 'a Module-bundle repo resolves on dotnet with standards/ and amendments/ only' ($r.Code -eq 0 -and $r.Json.Targets[0].Status -eq 'RESOLVED' -and $r.Json.Targets[0].NeedsReview -eq $false -and -not (Test-Path (Join-Path $bundle '.cogniva/profiles/acme/replacements')) -and @($r.Json.Profiles.acme.Standards | Where-Object ReplacedBy).Count -eq 0)
     Check 'its Contracts projects match the published-types standard' (@($r.Json.Targets[0].MatchedStandards) -contains 'architecture/common-and-published-types.md')
     Check 'its hosts still match composition-roots' (@($r.Json.Targets[1].MatchedStandards) -contains 'architecture/composition-roots.md')
+
+    # --- template drift: the template points at the profile and restates no rules ---
+    $agents = Join-Path $templates 'AGENTS.md'
+    $agentsText = if (Test-Path $agents) { Get-Content -Raw -LiteralPath $agents } else { '' }
+    Check 'template AGENTS.md carries the profile pointer' ($agentsText -match '\.cogniva-profile\.yml' -and $agentsText -match 'resolve-architecture-profile\.ps1' -and $agentsText -match '-Show' -and $agentsText -match 'amendments/')
+    Check 'template AGENTS.md states no architecture rules' ($agentsText.Length -gt 0 -and $agentsText -notmatch 'src/Modules' -and $agentsText -notmatch '->' -and $agentsText -notmatch 'references nothing' -and $agentsText -notmatch 'Contracts')
+    Check 'template CLAUDE.md is exactly @AGENTS.md' ((Get-Content -Raw -LiteralPath (Join-Path $templates 'CLAUDE.md')).Trim() -ceq '@AGENTS.md')
+    $glossary = Join-Path $templates 'docs\glossary\README.md'
+    $glossaryText = if (Test-Path $glossary) { Get-Content -Raw -LiteralPath $glossary } else { '' }
+    Check 'template glossary seeds Host and Common types' ($glossaryText -match '(?m)^## Host$' -and $glossaryText -match '(?m)^## Common types$')
+    Check 'template glossary carries definitions and links only' ($glossaryText -notmatch '(?m)^\s*- ' -and $glossaryText -notmatch '->' -and $glossaryText -cnotmatch 'ONLY' -and $glossaryText -notmatch 'Module')
+    $props = Join-Path $templates 'Directory.Build.props'
+    $propsText = if (Test-Path $props) { Get-Content -Raw -LiteralPath $props } else { '' }
+    $buildText = Get-Content -Raw -LiteralPath (Join-Path $library 'dotnet\standards\dotnet\build-settings.md')
+    Check 'template Directory.Build.props sets net10.0, nullable and warnings as errors' ($propsText -match '<TargetFramework>net10\.0</TargetFramework>' -and $propsText -match '<Nullable>enable</Nullable>' -and $propsText -match '<TreatWarningsAsErrors>true</TreatWarningsAsErrors>')
+    Check 'build-settings names every property the template sets' (@('TargetFramework', 'Nullable', 'TreatWarningsAsErrors' | Where-Object { $buildText -notmatch $_ }).Count -eq 0)
 
     # --- sections appended by later sub-plans go above this line ---
 }
