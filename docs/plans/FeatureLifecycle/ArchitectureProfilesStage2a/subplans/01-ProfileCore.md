@@ -490,7 +490,7 @@ Record format (YAML subset, LF): `source: plugin-library/<id>`, `plugin-version:
 
 Rules: it rewrites only `basis:` frontmatter lines of the named profile's **own** amendments and replacements (inserting `basis:` right after `description:` when absent), preserving BOM presence and line endings. A repo profile with an adoption record is refused (exit 2: library profiles are reviewed upstream). `-Library` points it at the plugin's `profiles/` (or `-LibraryRoot`) for maintainers and skips the record check. Exactly one of `-Standard <id>` / `-All`. `CURRENT` → `UP-TO-DATE`; `STALE`/`UNREVIEWED` → `ACCEPTED`; `ORPHANED` cannot be accepted (exit 1). An id that is not one of the profile's deltas → exit 2.
 
-- [ ] **Step 1 (failing tests):** Add `$accepter = Join-Path $plugin 'scripts\accept-profile-delta.ps1'` beside `$adopter`, and insert directly above `# --- undeclared repos and suggestions`:
+- [x] **Step 1 (failing tests):** Add `$accepter = Join-Path $plugin 'scripts\accept-profile-delta.ps1'` beside `$adopter`, and insert directly above `# --- undeclared repos and suggestions`:
   ```powershell
   # --- accept-profile-delta --------------------------------------------------
   $acc = New-Repo 'accept'
@@ -529,8 +529,8 @@ Rules: it rewrites only `basis:` frontmatter lines of the named profile's **own*
   Check 'accept -Library updates a plugin library profile for maintainers' ($x.Code -eq 0 -and (Get-Content -Raw (Join-Path $library 'python/amendments/architecture/owner.md')) -match 'basis: [0-9a-f]{12}')
   Remove-Item -LiteralPath (Join-Path $library 'python/amendments') -Recurse -Force
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → FAIL on the accept checks.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/accept-profile-delta.ps1`:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → FAIL on the accept checks.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/accept-profile-delta.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Record that a human reviewed a repo-owned profile's amendments and replacement
@@ -613,6 +613,6 @@ Rules: it rewrites only `basis:` frontmatter lines of the named profile's **own*
   if ($orphans) { exit 1 }
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.`
-- [ ] **Step 5 (write ADRs):** scan `docs/adr/` for the next number and write ADR-C1, ADR-C2, ADR-C3 and ADR-C6 from this sub-plan's `## Candidate ADRs` verbatim (the heading is the title without the `ADR-Cn:` label; keep the Provenance and the `**Relitigation:** Open to discussion` lines) to consecutive `docs/adr/NNNN-<slug>.md` files per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Then run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/accept-profile-delta.ps1 plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1 docs/adr` then `git commit -m "feat(profiles): accept-profile-delta; ADRs for deltas, basis, adoption records, mutation gating"`
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.`
+- [x] **Step 5 (write ADRs):** scan `docs/adr/` for the next number and write ADR-C1, ADR-C2, ADR-C3 and ADR-C6 from this sub-plan's `## Candidate ADRs` verbatim (the heading is the title without the `ADR-Cn:` label; keep the Provenance and the `**Relitigation:** Open to discussion` lines) to consecutive `docs/adr/NNNN-<slug>.md` files per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Then run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/accept-profile-delta.ps1 plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1 docs/adr` then `git commit -m "feat(profiles): accept-profile-delta; ADRs for deltas, basis, adoption records, mutation gating"`

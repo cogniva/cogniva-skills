@@ -6,6 +6,7 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $plugin = [System.IO.Path]::GetFullPath((Join-Path $here '..\..'))
 $resolver = Join-Path $plugin 'scripts\resolve-architecture-profile.ps1'
 $adopter = Join-Path $plugin 'scripts\adopt-architecture-profile.ps1'
+$accepter = Join-Path $plugin 'scripts\accept-profile-delta.ps1'
 $shippedLibrary = Join-Path $plugin 'profiles'
 $template = Join-Path $plugin 'templates\repo\CLAUDE.md'
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ("cogniva-architecture-profile-" + [guid]::NewGuid().ToString('N'))
@@ -251,6 +252,43 @@ try {
     $text = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Lib/x.cs', '-Require', 'architecture/owner.md', '-LibraryRoot', $library)
     Check '-Require text output names the blocked standard' ($text.Code -eq 3 -and $text.Out -match 'REQUIRE BLOCKED: src/Lib/x\.cs architecture/owner\.md')
     Write-Fixture $d '.cogniva/profiles/base/standards/architecture/owner.md' $baseOwner
+
+    # --- accept-profile-delta --------------------------------------------------
+    $acc = New-Repo 'accept'
+    $accBase = Std 'Acc base.'
+    Add-Profile $acc 'base' "description: Base.`n" @{ 'architecture/a.md' = $accBase; 'architecture/b.md' = (Std 'Acc b.') }
+    Add-Profile $acc 'kid' "description: Kid.`ninherits: base`n" @{ 'amendments/architecture/a.md' = (Delta 'Kid a.' (Basis @($accBase))); 'amendments/architecture/b.md' = (Delta 'Kid b.' $null) }
+    $kidA = Join-Path $acc '.cogniva/profiles/kid/amendments/architecture/a.md'
+    $kidB = Join-Path $acc '.cogniva/profiles/kid/amendments/architecture/b.md'
+    [System.IO.File]::WriteAllText($kidA, ([System.IO.File]::ReadAllText($kidA)).Replace("`n", "`r`n"))
+    Write-Fixture $acc '.cogniva/profiles/base/standards/architecture/a.md' (Std 'Acc base, changed.')
+    $linesBefore = @([System.IO.File]::ReadAllLines($kidA) | Where-Object { $_ -notmatch '^basis:' })
+    $x = Invoke-Script $accepter @('-Repo', $acc, '-Profile', 'kid', '-Standard', 'architecture/a.md')
+    Check 'accept -Standard rewrites only that basis line' ($x.Code -eq 0 -and $x.Out -match 'ACCEPTED: \.cogniva/profiles/kid/amendments/architecture/a\.md basis [0-9a-f]{12} -> ' -and (($linesBefore -join '|') -eq ((@([System.IO.File]::ReadAllLines($kidA) | Where-Object { $_ -notmatch '^basis:' })) -join '|')))
+    Check 'accept preserves CRLF line endings' (([System.IO.File]::ReadAllText($kidA)).Contains("`r`n"))
+    Check 'accept -Standard leaves other deltas alone' (-not ((Get-Content -Raw $kidB) -match 'basis:'))
+    Write-Fixture $acc '.cogniva-profile.yml' "profile: kid`n"
+    $r = Resolve-Json $acc @('-Target', 'x')
+    Check 'an accepted delta is CURRENT' ((@($r.Json.Profiles.kid.Review | Where-Object Standard -eq 'architecture/a.md')).Count -eq 0)
+    $x = Invoke-Script $accepter @('-Repo', $acc, '-Profile', 'kid', '-All')
+    Check 'accept -All inserts a missing basis after description' ($x.Code -eq 0 -and $x.Out -match 'UP-TO-DATE: .*architecture/a\.md' -and (Get-Content $kidB)[2] -match '^basis: [0-9a-f]{12}$')
+    $r = Resolve-Json $acc @('-Target', 'x')
+    Check 'after accept -All nothing needs review' ($r.Json.Targets[0].NeedsReview -eq $false)
+    Write-Fixture $acc '.cogniva/profiles/kid/amendments/architecture/gone.md' (Delta 'Gone.' 'aaaaaaaaaaaa')
+    $x = Invoke-Script $accepter @('-Repo', $acc, '-Profile', 'kid', '-All')
+    Check 'an ORPHANED delta cannot be accepted' ($x.Code -eq 1 -and $x.Out -match 'ORPHANED: .*architecture/gone\.md')
+    Remove-Item -LiteralPath (Join-Path $acc '.cogniva/profiles/kid/amendments/architecture/gone.md')
+    $x = Invoke-Script $accepter @('-Repo', $acc, '-Profile', 'kid', '-Standard', 'architecture/zzz.md')
+    Check 'accepting an id that is not a delta of the profile is a usage error' ($x.Code -eq 2)
+    $x = Invoke-Script $accepter @('-Repo', $acc, '-Profile', 'kid')
+    Check 'accept needs -Standard or -All' ($x.Code -eq 2)
+    Write-Fixture $acc '.cogniva/adopted/kid.yml' "content: aaaaaaaaaaaa`n"
+    $x = Invoke-Script $accepter @('-Repo', $acc, '-Profile', 'kid', '-All')
+    Check 'accept refuses an adopted library profile' ($x.Code -eq 2 -and $x.All -match 'library profile')
+    Write-Fixture $library 'python/amendments/architecture/owner.md' (Delta 'Library python owner.' $null)
+    $x = Invoke-Script $accepter @('-Library', '-LibraryRoot', $library, '-Profile', 'python', '-All')
+    Check 'accept -Library updates a plugin library profile for maintainers' ($x.Code -eq 0 -and (Get-Content -Raw (Join-Path $library 'python/amendments/architecture/owner.md')) -match 'basis: [0-9a-f]{12}')
+    Remove-Item -LiteralPath (Join-Path $library 'python/amendments') -Recurse -Force
 
     # --- undeclared repos and suggestions ------------------------------------
     $bare = New-Repo 'undeclared'
