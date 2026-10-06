@@ -85,7 +85,7 @@ plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1   # -Require
 **Files:**
 - Modify: `plugins/cogniva-dev/skills/add-module/SKILL.md`
 
-- [ ] **Step 1:** Replace the frontmatter and everything above `## Gather first (ask the user)` with:
+- [x] **Step 1:** Replace the frontmatter and everything above `## Gather first (ask the user)` with:
   ````markdown
   ---
   name: add-module
@@ -134,6 +134,6 @@ plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1   # -Require
      registration the chosen projects allow. In an undeclared repo the
      selected projects are always the full set.
   ````
-- [ ] **Step 2:** In the existing steps: change step 1's first line to "Create the selected projects (in an undeclared repo, all of these) from repo root:"; change step 3's "Wire references (these ARE the dependency rules - no others allowed):" to "Wire references between the selected projects (in an undeclared repo these ARE the dependency rules - no others allowed; in a declared repo, wire per the repo's edge standards instead):"; in step 4, after "Add each new project to the solution explicitly", insert " (only the projects you created)". Leave every other existing step unchanged; Declared repos step 4 already says how steps 2, 5 and 8 follow the selection.
-- [ ] **Step 3 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.` (its "no 'legacy Module layout' wording" check also covers this file).
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/add-module/SKILL.md` then `git commit -m "feat(add-module): Module bundle layout scaffolder, gated on its standards in declared repos"`
+- [x] **Step 2:** In the existing steps: change step 1's first line to "Create the selected projects (in an undeclared repo, all of these) from repo root:"; change step 3's "Wire references (these ARE the dependency rules - no others allowed):" to "Wire references between the selected projects (in an undeclared repo these ARE the dependency rules - no others allowed; in a declared repo, wire per the repo's edge standards instead):"; in step 4, after "Add each new project to the solution explicitly", insert " (only the projects you created)". Leave every other existing step unchanged; Declared repos step 4 already says how steps 2, 5 and 8 follow the selection.
+- [x] **Step 3 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.` (its "no 'legacy Module layout' wording" check also covers this file).
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/skills/add-module/SKILL.md` then `git commit -m "feat(add-module): Module bundle layout scaffolder, gated on its standards in declared repos"`
