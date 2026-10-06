@@ -48,7 +48,7 @@ delete the line — the verb is the history.
 Pick-up verbs (written by `plan-feature` / `quick-fix` when work starts):
 
 ```markdown
-- [x] Whole-facet picker → planned: C3Data/ModelUiFoundation  `2026-06-13`
+- [x] Whole-facet picker → planned: Billing/InvoiceUiFoundation  `2026-06-13`
 - [x] Status-bar misalignment → done  `2026-06-13`
 ```
 
@@ -62,7 +62,7 @@ verdict):
 
 ```markdown
 - [x] Cache facet counts → obsolete: counts now computed in SQL  `2026-07-25`
-- [x] Export to CSV → superseded-by: C3Data/BulkExport  `2026-07-25`
+- [x] Export to CSV → superseded-by: Billing/BulkExport  `2026-07-25`
 - [x] Tooltip on size column → merged-into: Polish grid columns  `2026-07-25`
 - [x] Dark-mode toggle → wont-do: theming dropped per strategy call  `2026-07-25`
 ```
@@ -82,7 +82,7 @@ are never deleted or reordered.
 ## Tier 2 — feature-sized stub (`<Module>/<Idea>/`)
 
 For a cohesive future capability worth tracking before it earns a full plan
-(like the C3Data Backlog A/B/C stubs). Folder: `docs/plans/<Module>/<Idea>/`
+(like a Module's Backlog A/B/C stubs). Folder: `docs/plans/<Module>/<Idea>/`
 (`<Idea>` PascalCase). It has **no `-plan.md`** — that absence marks it a stub;
 `feature-status` / `module-status` see it via `state.md`.
 
@@ -129,5 +129,5 @@ as design notes or be folded into the plan.
 
 The grooming verbs apply to stubs too, via `state.md`: flip
 `Status: deferred → obsolete` (or `superseded`, `wont-do`) and add a dated `## Log`
-line carrying the same receipt (e.g. `2026-07-25 — superseded by C3Data/BulkExport`).
+line carrying the same receipt (e.g. `2026-07-25 — superseded by Billing/BulkExport`).
 Leave the folder in place — never delete a stub.

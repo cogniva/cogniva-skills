@@ -118,6 +118,19 @@ try {
     Check 'template Directory.Build.props sets net10.0, nullable and warnings as errors' ($propsText -match '<TargetFramework>net10\.0</TargetFramework>' -and $propsText -match '<Nullable>enable</Nullable>' -and $propsText -match '<TreatWarningsAsErrors>true</TreatWarningsAsErrors>')
     Check 'build-settings names every property the template sets' (@('TargetFramework', 'Nullable', 'TreatWarningsAsErrors' | Where-Object { $buildText -notmatch $_ }).Count -eq 0)
 
+    # --- plugin-wide leak check: no real repository or unit names ship in the plugin ---
+    # (module-deps.tests.ps1 and this file hold the lists themselves.)
+    $names = @('NewCogniva', 'CognivaShell', 'CognivaNewRepo', 'C3Data', 'DocumentOrchestration', 'DocumentStore', 'GovernanceOrchestration', 'StructureInsights')
+    $leaks = @(Get-ChildItem -LiteralPath $plugin -Recurse -File | Where-Object { $_.Name -notin 'module-deps.tests.ps1', 'profile-library.tests.ps1' } | ForEach-Object {
+        $file = $_
+        $text = Get-Content -Raw -LiteralPath $file.FullName -ErrorAction SilentlyContinue
+        foreach ($n in $names) { if ($text -and $text -cmatch "\b$n\b") { "$([System.IO.Path]::GetRelativePath($plugin, $file.FullName)): $n" } }
+    })
+    Check "no real repository names under plugins/cogniva-dev ($($leaks -join '; '))" ($leaks.Count -eq 0)
+    # This file is excluded: its own check label below names the phrase it forbids.
+    $stale = @(Get-ChildItem -LiteralPath $plugin -Recurse -File | Where-Object { $_.Name -ne 'profile-library.tests.ps1' -and (Get-Content -Raw -LiteralPath $_.FullName -ErrorAction SilentlyContinue) -match '(?i)legacy Module[- ]layout' } | ForEach-Object Name)
+    Check "no 'legacy Module layout' wording remains ($($stale -join ', '))" ($stale.Count -eq 0)
+
     # --- sections appended by later sub-plans go above this line ---
 }
 finally {

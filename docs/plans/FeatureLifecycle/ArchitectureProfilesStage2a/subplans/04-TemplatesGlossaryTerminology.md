@@ -262,7 +262,7 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
 - Modify: the module-deps, gate, ADR 0041, backlog-format and workflow-status files in the locked structure
 - Test: `plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1`, `plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1`
 
-- [ ] **Step 1 (failing test):** In `profile-library.tests.ps1`, insert directly above `# --- sections appended by later sub-plans go above this line ---`:
+- [x] **Step 1 (failing test):** In `profile-library.tests.ps1`, insert directly above `# --- sections appended by later sub-plans go above this line ---`:
   ```powershell
       # --- plugin-wide leak check: no real repository or unit names ship in the plugin ---
       # (module-deps.tests.ps1 and this file hold the lists themselves.)
@@ -278,14 +278,14 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
       Check "no 'legacy Module layout' wording remains ($($stale -join ', '))" ($stale.Count -eq 0)
   ```
   In `module-deps.tests.ps1`, change line 1's "the module-deps legacy Module-layout tool" to "the module-deps Module bundle layout tool", and the check `'SKILL.md calls it the legacy Module-layout tool' ($skillText -match 'legacy Module-layout tool')` to `'SKILL.md calls it the Module bundle layout tool' ($skillText -match 'Module bundle layout tool')`.
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → FAIL naming `BACKLOG-FORMAT.md: C3Data`, `workflow-status` files, and the module-deps files.
-- [ ] **Step 3 (rename):**
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → FAIL naming `BACKLOG-FORMAT.md: C3Data`, `workflow-status` files, and the module-deps files.
+- [x] **Step 3 (rename):**
   - `plugins/cogniva-dev/skills/module-deps/SKILL.md`: the description's leading "Legacy Module-layout tool - " → "Module bundle layout tool - "; "**This is a legacy Module-layout tool.**" → "**This is the Module bundle layout tool.**".
   - `plugins/cogniva-dev/skills/module-deps/module-deps.ps1`: line 2 "# Legacy Module-layout tool." → "# Module bundle layout tool."; the two generated-output strings "(legacy Module-layout tool)" → "(Module bundle layout tool)".
   - `.claude/cogniva-dev/green-gate.json`: the `module-deps` note "Pins the legacy Module-layout tool:" → "Pins the Module bundle layout tool:".
   - `git mv docs/adr/0041-module-deps-is-a-data-free-legacy-module-layout-tool.md docs/adr/0041-module-deps-is-a-data-free-module-bundle-layout-tool.md`; in it, the heading → `# module-deps is a data-free Module bundle layout tool with an opt-in cycle check` and "graphs only the legacy `src/Modules/<Name>/` layout that" → "graphs only the Module bundle layout (`src/Modules/<Name>/`) that". This is terminology only; the decision and its provenance do not change.
-- [ ] **Step 4 (invented example names):**
+- [x] **Step 4 (invented example names):**
   - `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`: `C3Data/ModelUiFoundation` → `Billing/InvoiceUiFoundation`; `C3Data/BulkExport` (both occurrences) → `Billing/BulkExport`; "(like the C3Data Backlog A/B/C stubs)" → "(like a Module's Backlog A/B/C stubs)".
   - `plugins/cogniva-dev/skills/workflow-status/SKILL.md` and `plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1`: `c--WorkingGit-CognivaNewRepo` → `c--dev-MyRepo`.
-- [ ] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` → passes; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0; `grep -rn -i "legacy module" README.md .claude docs/adr docs/glossary docs/strategy.md` → no output.
-- [ ] **Step 6 (commit):** `git add -A plugins/cogniva-dev/skills/module-deps plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md plugins/cogniva-dev/skills/workflow-status plugins/cogniva-dev/tests .claude/cogniva-dev/green-gate.json docs/adr` then `git commit -m "chore: 'Module bundle layout' replaces 'legacy Module layout'; no real repo names in the plugin"`
+- [x] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/module-deps.tests.ps1` → passes; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0; `grep -rn -i "legacy module" README.md .claude docs/adr docs/glossary docs/strategy.md` → no output.
+- [x] **Step 6 (commit):** `git add -A plugins/cogniva-dev/skills/module-deps plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md plugins/cogniva-dev/skills/workflow-status plugins/cogniva-dev/tests .claude/cogniva-dev/green-gate.json docs/adr` then `git commit -m "chore: 'Module bundle layout' replaces 'legacy Module layout'; no real repo names in the plugin"`

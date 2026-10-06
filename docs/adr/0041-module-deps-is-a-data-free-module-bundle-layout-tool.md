@@ -1,8 +1,8 @@
-# module-deps is a data-free legacy Module-layout tool with an opt-in cycle check
+# module-deps is a data-free Module bundle layout tool with an opt-in cycle check
 
 **Provenance:** Suggested by human
 
-`module-deps` graphs only the legacy `src/Modules/<Name>/` layout that
+`module-deps` graphs only the Module bundle layout (`src/Modules/<Name>/`) that
 `add-module` scaffolds, and ships no repository-specific data. Module
 descriptions are display-only and come from the repo glossary's
 `## <Name> (Module)` entries; allowed cycles come from the repo's

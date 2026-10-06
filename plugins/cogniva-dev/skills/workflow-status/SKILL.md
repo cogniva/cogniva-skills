@@ -31,7 +31,7 @@ shown run with `--detail`.
   workflows/scripts/<name>-<wf-id>.js          the workflow script (gives the name)
 ```
 `<slug>` is the repo path with `:` `\` `/` replaced by `-`
-(e.g. `c--WorkingGit-CognivaNewRepo`). A run is **RUNNING** when a `started`
+(e.g. `c--dev-MyRepo`). A run is **RUNNING** when a `started`
 record has no matching `result` AND the newest `agent-*.jsonl` was written
 recently; **STALLED** when that open agent has gone idle past the threshold
 (the classic "workflow died with no completion notification" case); **idle**

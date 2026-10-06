@@ -1,4 +1,4 @@
-# Dependency-free tests for the module-deps legacy Module-layout tool: -Check,
+# Dependency-free tests for the module-deps Module bundle layout tool: -Check,
 # allowed cycles, cycle-safe deterministic rendering, display-only glossary
 # descriptions, kind labels, RepoRoot default, auto-commit, and no project data.
 # Windows PowerShell 5.1. ASCII-only source.
@@ -209,7 +209,7 @@ try {
     Check 'the script carries no project names or data' (@($leaks).Count -eq 0 -and $source -cnotmatch "'Shell'")
     Check 'the script source is ASCII-only' (@([System.IO.File]::ReadAllBytes($script) | Where-Object { $_ -gt 127 }).Count -eq 0)
     $skillText = [System.IO.File]::ReadAllText($skill)
-    Check 'SKILL.md calls it the legacy Module-layout tool' ($skillText -match 'legacy Module-layout tool')
+    Check 'SKILL.md calls it the Module bundle layout tool' ($skillText -match 'Module bundle layout tool')
     Check 'SKILL.md documents -Check and allowed cycles' ($skillText -match '-Check' -and $skillText -match 'allowed-cycles\.txt')
     Check 'SKILL.md documents glossary descriptions and the opt-in hook' ($skillText -match '## <Name> \(Module\)' -and $skillText -match 'moduleDepsCheck')
 }
