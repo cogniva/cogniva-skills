@@ -11,16 +11,27 @@
 # REPLACED). Each amendment or replacement records the inherited text it was
 # reviewed against (basis:); one that is UNREVIEWED, STALE or ORPHANED still
 # applies but is listed under Review, and the target is marked NeedsReview
-# (text: NEEDS HUMAN REVIEW). Review state never changes the exit code.
+# (text: NEEDS HUMAN REVIEW). Review state alone never changes the exit code.
+# -Show <id> prints the effective text of one standard for exactly one target,
+# each part (the standard, then every amendment, root first) under a provenance
+# line; it is text-only (not with -Format Json).
+# -Require <id,...> is the gate for an architecture-dependent change: a listed
+# standard that a RESOLVED target's profile lacks, or that needs human review,
+# blocks (JSON: Require.Blocked; text: REQUIRE BLOCKED). Unlisted stale standards
+# never block.
 # Exit 0 = every target resolved (including MIXED / UNDECLARED); 1 = the report
-# was produced but at least one target is ERROR; 2 = usage error, nothing reported.
+# was produced but at least one target is ERROR (or -Show's target is not
+# RESOLVED); 3 = a standard named by -Require is missing or needs human review;
+# 2 = usage error, nothing reported. Precedence: 2 > 1 > 3 > 0.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Repo,
     [Parameter(Mandatory)][string[]]$Target,
     [string]$Profile,
     [string]$LibraryRoot,
-    [ValidateSet('Text', 'Json')][string]$Format = 'Text'
+    [ValidateSet('Text', 'Json')][string]$Format = 'Text',
+    [string]$Show,
+    [string[]]$Require
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'profile-lib.ps1')
@@ -36,6 +47,9 @@ try {
 
     $requested = @($Target | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim().Trim("'").Trim('"') } | Where-Object { $_ })
     if (-not $requested.Count) { Fail 'no target supplied' }
+    if ($Show -and $Format -eq 'Json') { Fail '-Show prints text; do not combine it with -Format Json' }
+    if ($Show -and $requested.Count -gt 1) { Fail '-Show takes exactly one target' }
+    $requireIds = @($Require | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim().Replace('\', '/') } | Where-Object { $_ })
     $fullTargets = @()
     foreach ($raw in $requested) {
         $full = if ([System.IO.Path]::IsPathRooted($raw)) { [System.IO.Path]::GetFullPath($raw) } else { [System.IO.Path]::GetFullPath((Join-Path $repoFull $raw)) }
@@ -129,6 +143,38 @@ foreach ($full in $fullTargets) {
     }
 }
 
+if ($Show) {
+    $t = $targets[0]
+    if ($t.Status -ne 'RESOLVED') { Write-Output "architecture-profile: $($t.Target) has no resolved profile ($($t.Status))"; exit 1 }
+    $wanted = $Show.Replace('\', '/')
+    $s = @($profileResults[$t.Profile].Standards | Where-Object { $_.Id -ieq $wanted }) | Select-Object -First 1
+    if (-not $s) { Fail "standard '$Show' is not in profile '$($t.Profile)'" }
+    Write-Output "SHOW $($s.Id) - profile $($t.Profile) (chain: $($profileResults[$t.Profile].Chain -join ' -> '))"
+    if ($s.NeedsReview) { Write-Output 'NEEDS HUMAN REVIEW' }
+    foreach ($part in $s.Parts) {
+        $state = if ($part.State) { ", $($part.State)" } else { '' }
+        Write-Output ''
+        Write-Output "--- $($part.Role) from $($part.From) ($($part.Ownership)$state): $($part.Display)"
+        Write-Output ([System.IO.File]::ReadAllText($part.Path).TrimEnd())
+    }
+    exit 0
+}
+
+# -Require: a listed standard blocks when a RESOLVED target's profile lacks it or
+# it needs human review. Review items on unlisted standards never block.
+$blocked = [System.Collections.Generic.List[object]]::new()
+if ($requireIds.Count) {
+    foreach ($t in @($targets | Where-Object Status -eq 'RESOLVED')) {
+        foreach ($id in $requireIds) {
+            $s = @($profileResults[$t.Profile].Standards | Where-Object { $_.Id -ieq $id }) | Select-Object -First 1
+            $reason = if (-not $s) { "not in profile '$($t.Profile)'" }
+            elseif ($s.NeedsReview) { 'needs human review: ' + (@($s.Parts | Where-Object { $_.State -and $_.State -ne 'CURRENT' } | ForEach-Object { "$($_.From) $($_.Role) $($_.State)" }) -join '; ') }
+            else { $null }
+            if ($reason) { $blocked.Add([pscustomobject]@{ Target = $t.Target; Standard = $id; Reason = $reason }) }
+        }
+    }
+}
+
 $profiles = [ordered]@{}
 foreach ($id in @($targets | Where-Object Status -eq 'RESOLVED' | ForEach-Object Profile | Sort-Object -Unique)) {
     $r = $profileResults[$id]
@@ -147,7 +193,7 @@ foreach ($t in $targets) {
     $groups[$key] += $t.Target
 }
 $aggregate = if ($groups.Contains('(error)')) { 'ERROR' } elseif ($groups.Count -gt 1) { 'MIXED' } elseif ($groups.Contains('(undeclared)')) { 'UNDECLARED' } else { 'UNIFORM' }
-$exitCode = if ($aggregate -eq 'ERROR') { 1 } else { 0 }
+$exitCode = if ($aggregate -eq 'ERROR') { 1 } elseif ($blocked.Count) { 3 } else { 0 }
 
 $report = [pscustomobject]@{
     Repo = $repoFull; ReadOnly = $true; ExplicitProfile = if ($Profile) { $Profile } else { $null }
@@ -156,6 +202,7 @@ $report = [pscustomobject]@{
     Profiles = $profiles
     Warnings = @($warnings | Select-Object -Unique)
 }
+if ($requireIds.Count) { $report | Add-Member -NotePropertyName Require -NotePropertyValue ([pscustomobject]@{ Standards = $requireIds; Blocked = @($blocked) }) }
 
 if ($Format -eq 'Json') { $report | ConvertTo-Json -Depth 10; exit $exitCode }
 
@@ -196,6 +243,10 @@ foreach ($id in $report.Profiles.Keys) {
         $inheritedShown = if ($i.Inherited) { $i.Inherited } else { 'n/a' }
         Write-Output "  REVIEW: $($i.Standard) - $($i.Profile) ($($i.Ownership)) $($i.Delta) is $($i.State) (basis $basisShown -> $inheritedShown)"
     }
+}
+if ($requireIds.Count) {
+    if ($blocked.Count) { foreach ($b in $blocked) { Write-Output "REQUIRE BLOCKED: $($b.Target) $($b.Standard) - $($b.Reason)" } }
+    else { Write-Output "REQUIRE: ok ($($requireIds -join ', '))" }
 }
 foreach ($w in $report.Warnings) { Write-Output "WARN: $w" }
 exit $exitCode

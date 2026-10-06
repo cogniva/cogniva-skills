@@ -33,10 +33,10 @@ function Invoke-Script([string]$Script, [string[]]$Arguments) {
     finally { $ErrorActionPreference = $previous }
     [pscustomobject]@{ Code = $code; Out = ($stdout -join "`n"); All = ($all -join "`n") }
 }
-# Exit 0 and 1 both carry a JSON report (1 = at least one target is ERROR); exit 2 carries none.
+# Exit 0, 1 and 3 carry a JSON report (1 = some target is ERROR, 3 = a -Require standard is blocked); exit 2 carries none.
 function Resolve-Json([string]$Repo, [string[]]$Extra) {
     $result = Invoke-Script $resolver (@('-Repo', $Repo, '-Format', 'Json', '-LibraryRoot', $script:library) + $Extra)
-    $json = if ($result.Code -in 0, 1) { $result.Out | ConvertFrom-Json } else { $null }
+    $json = if ($result.Code -in 0, 1, 3) { $result.Out | ConvertFrom-Json } else { $null }
     [pscustomobject]@{ Code = $result.Code; Json = $json; All = $result.All; Raw = $result.Out }
 }
 function Test-TargetError($Result, [string]$Pattern) {
@@ -230,6 +230,28 @@ try {
     Check 'a malformed basis is an ERROR' (Test-TargetError $r "'basis' must be 12 lowercase hex characters")
     Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/edges.md' (Delta 'Leaf on mid edges.' (Basis @($midEdges)))
 
+    # --- -Show and -Require ----------------------------------------------------
+    $show = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Lib/x.cs', '-Show', 'architecture/owner.md', '-LibraryRoot', $library)
+    $iBase = $show.Out.IndexOf('--- standard from base (repo-owned): .cogniva/profiles/base/standards/architecture/owner.md')
+    $iMid = $show.Out.IndexOf('--- amendment from mid (repo-owned, CURRENT): .cogniva/profiles/mid/amendments/architecture/owner.md')
+    $iLeaf = $show.Out.IndexOf('--- amendment from leaf (repo-owned, CURRENT): .cogniva/profiles/leaf/amendments/architecture/owner.md')
+    Check '-Show prints each part with provenance, root first' ($show.Code -eq 0 -and $iBase -ge 0 -and $iMid -gt $iBase -and $iLeaf -gt $iMid -and $show.Out -match '# Delta body')
+    $show = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Lib/x.cs', '-Show', 'architecture/nope.md', '-LibraryRoot', $library)
+    Check '-Show of an unknown standard is a usage error' ($show.Code -eq 2)
+    $show = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Lib/x.cs', '-Show', 'architecture/owner.md', '-Format', 'Json', '-LibraryRoot', $library)
+    Check '-Show does not combine with -Format Json' ($show.Code -eq 2)
+
+    Write-Fixture $d '.cogniva/profiles/base/standards/architecture/owner.md' (Std 'Base owner, changed again.')
+    $r = Resolve-Json $d @('-Target', 'src/Lib/x.cs', '-Require', 'architecture/edges.md')
+    Check '-Require passes when only an unrelated standard is stale' ($r.Code -eq 0 -and @($r.Json.Require.Blocked).Count -eq 0)
+    $r = Resolve-Json $d @('-Target', 'src/Lib/x.cs', '-Require', 'architecture/edges.md,architecture/owner.md')
+    Check '-Require exits 3 naming the required standard that needs review' ($r.Code -eq 3 -and @($r.Json.Require.Blocked).Count -eq 1 -and $r.Json.Require.Blocked[0].Standard -eq 'architecture/owner.md' -and $r.Json.Require.Blocked[0].Reason -match 'needs human review')
+    $r = Resolve-Json $d @('-Target', 'src/Lib/x.cs', '-Require', 'architecture/nope.md')
+    Check '-Require exits 3 for a standard the profile lacks' ($r.Code -eq 3 -and $r.Json.Require.Blocked[0].Reason -match "not in profile 'leaf'")
+    $text = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Lib/x.cs', '-Require', 'architecture/owner.md', '-LibraryRoot', $library)
+    Check '-Require text output names the blocked standard' ($text.Code -eq 3 -and $text.Out -match 'REQUIRE BLOCKED: src/Lib/x\.cs architecture/owner\.md')
+    Write-Fixture $d '.cogniva/profiles/base/standards/architecture/owner.md' $baseOwner
+
     # --- undeclared repos and suggestions ------------------------------------
     $bare = New-Repo 'undeclared'
     Write-Fixture $bare 'App.slnx' "<Solution />`n"
@@ -315,6 +337,8 @@ try {
     Check 'one broken target does not poison the others' ($r.Code -eq 1 -and $states -eq 'RESOLVED,ERROR,ERROR' -and $r.Json.Targets[0].Profile -eq 'good' -and @($r.Json.Profiles.good.Standards).Count -eq 1)
     Check 'each ERROR carries its own reason' ($r.Json.Targets[1].Error -match "missing/\.cogniva-profile\.yml: profile 'absent'" -and $r.Json.Targets[2].Error -match "\.cogniva/profiles/broken/profile\.yml: unknown key 'checks'")
     Check 'errors are grouped in the aggregate' ($r.Json.Aggregate.Status -eq 'ERROR' -and @($r.Json.Aggregate.Groups.'(error)').Count -eq 2 -and @($r.Json.Aggregate.Groups.good) -contains 'ok/a.py')
+    $r = Resolve-Json $split @('-Target', 'ok/a.py,missing/b.py', '-Require', 'rules/one.md')
+    Check '-Require with an ERROR target exits 1, not 3' ($r.Code -eq 1)
     $r = Resolve-Json $split @('-Target', 'ok/a.py')
     Check 'a broken profile nobody uses does not affect resolution' ($r.Code -eq 0 -and $r.Json.Targets[0].Status -eq 'RESOLVED')
 

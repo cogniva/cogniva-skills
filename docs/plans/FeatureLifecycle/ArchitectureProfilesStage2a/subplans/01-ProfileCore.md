@@ -330,7 +330,7 @@ Rules this task implements (restate them in code comments where useful):
 
 Rules: `-Show <id>` prints the effective text of one standard for one target, with a provenance line before each part; it is text-only, read-only, exit 0 (exit 1 when the target is not RESOLVED, exit 2 for an unknown id, more than one target, or `-Format Json`). `-Require <id,…>` checks every RESOLVED target's profile: a listed id that is missing, or whose standard `NeedsReview`, blocks. Exit precedence: 2 (usage) > 1 (an ERROR target) > 3 (a required standard is blocked) > 0. A stale standard that is not listed never causes exit 3.
 
-- [ ] **Step 1 (failing tests):** Insert directly above `# --- undeclared repos and suggestions` (after the Task 1 delta section, which leaves the `deltas` repo current):
+- [x] **Step 1 (failing tests):** Insert directly above `# --- undeclared repos and suggestions` (after the Task 1 delta section, which leaves the `deltas` repo current):
   ```powershell
   # --- -Show and -Require ----------------------------------------------------
   $show = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Lib/x.cs', '-Show', 'architecture/owner.md', '-LibraryRoot', $library)
@@ -360,8 +360,8 @@ Rules: `-Show <id>` prints the effective text of one standard for one target, wi
   Check '-Require with an ERROR target exits 1, not 3' ($r.Code -eq 1)
   ```
   Note `Resolve-Json` only parses JSON for exit 0/1; change its line to `$json = if ($result.Code -in 0, 1, 3) { $result.Out | ConvertFrom-Json } else { $null }` and update its comment to `# Exit 0, 1 and 3 carry a JSON report (1 = some target is ERROR, 3 = a -Require standard is blocked); exit 2 carries none.`
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → FAIL on the `-Show` / `-Require` checks.
-- [ ] **Step 3 (implement):** In `resolve-architecture-profile.ps1`:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → FAIL on the `-Show` / `-Require` checks.
+- [x] **Step 3 (implement):** In `resolve-architecture-profile.ps1`:
   - Add params `[string]$Show` and `[string[]]$Require`. In the argument `try` block: if `$Show` and `$Format -eq 'Json'` → `Fail '-Show prints text; do not combine it with -Format Json'`; if `$Show` and more than one requested target → `Fail '-Show takes exactly one target'`. Parse `$requireIds = @($Require | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim().Replace('\', '/') } | Where-Object { $_ })`.
   - After targets are built and before the report is written: if `$Show`:
     ```powershell
@@ -384,8 +384,8 @@ Rules: `-Show <id>` prints the effective text of one standard for one target, wi
   - When `$requireIds.Count`: for each RESOLVED target and each id, add `[pscustomobject]@{ Target; Standard = $id; Reason }` to `$blocked` when the profile has no standard with that id (`-ieq`; Reason `"not in profile '<profile>'"`) or that standard `NeedsReview` (Reason `"needs human review: " + (parts with non-CURRENT State as "<From> <Role> <State>", joined '; ')`). Add `Require = [pscustomobject]@{ Standards = $requireIds; Blocked = @($blocked) }` to the report (omit the property when `-Require` was not given). Exit code: `if ($aggregate -eq 'ERROR') { 1 } elseif ($blocked.Count) { 3 } else { 0 }`.
   - Text output, before the `WARN:` lines: each blocked item as `REQUIRE BLOCKED: $($b.Target) $($b.Standard) - $($b.Reason)`, or `REQUIRE: ok ($($requireIds -join ', '))` when nothing is blocked.
   - Header comment: document `-Show`, `-Require` and `3 = a standard named by -Require is missing or needs human review`.
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.`
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1 plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "feat(profiles): -Show effective text and -Require mutation gate (exit 3)"`
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.`
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1 plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "feat(profiles): -Show effective text and -Require mutation gate (exit 3)"`
 
 ## Task 3: Adoption records, refresh outcomes, `-Refresh`, Stage 1 migration
 
