@@ -66,7 +66,7 @@ plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1   # repo-ini
 **Files:**
 - Modify: `plugins/cogniva-dev/skills/repo-init/SKILL.md`
 
-- [ ] **Step 1:** Replace the whole file with:
+- [x] **Step 1:** Replace the whole file with:
   ````markdown
   ---
   name: repo-init
@@ -165,8 +165,8 @@ plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1   # repo-ini
   `AGENTS.md` points to them and states none itself. Do not restate them ad hoc;
   link glossary terms such as [Host](docs/glossary/README.md#host).
   ````
-- [ ] **Step 2 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/repo-init/SKILL.md` then `git commit -m "feat(repo-init): scaffold the minimal dotnet skeleton and declare the dotnet profile"`
+- [x] **Step 2 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/skills/repo-init/SKILL.md` then `git commit -m "feat(repo-init): scaffold the minimal dotnet skeleton and declare the dotnet profile"`
 
 ## Task 3: Scaffold check (automated; replaces the proposal's ⛔ gate)
 
