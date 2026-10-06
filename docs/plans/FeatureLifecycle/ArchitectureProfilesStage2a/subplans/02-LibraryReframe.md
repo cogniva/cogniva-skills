@@ -290,7 +290,7 @@ Write every file below exactly (LF line endings, a final newline).
 - Modify: `.claude/cogniva-dev/green-gate.json`
 - Create: ADR C4 under `docs/adr/`
 
-- [ ] **Step 1 (write the suite):** Create `plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1`:
+- [x] **Step 1 (write the suite):** Create `plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Dependency-free tests for the shipped profile library and the scaffold
@@ -406,11 +406,11 @@ Write every file below exactly (LF line endings, a final newline).
   Write-Host 'All profile-library assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.` A failure here is a defect in Task 1's content or in Sub-plan 01's scripts — fix it, do not weaken the check.
-- [ ] **Step 3 (register in the gate):** In `.claude/cogniva-dev/green-gate.json`, insert after the `architecture-profile` entry:
+- [x] **Step 2 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.` A failure here is a defect in Task 1's content or in Sub-plan 01's scripts — fix it, do not weaken the check.
+- [x] **Step 3 (register in the gate):** In `.claude/cogniva-dev/green-gate.json`, insert after the `architecture-profile` entry:
   ```json
   { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1", "label": "profile-library", "note": "Pins the shipped library (deltas current, Module-bundle leak check, kind-first and Module-bundle fixtures) and the scaffold templates that must agree with it; needs PowerShell 7." },
   ```
   Then `pwsh -NoProfile -Command "Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json | Out-Null"` → no error.
-- [ ] **Step 4 (write ADR):** scan `docs/adr/` for the next number and write ADR-C4 from this sub-plan's `## Candidate ADRs` verbatim (heading without the `ADR-C4:` label; keep `**Provenance:** Suggested by human` and `**Relitigation:** Open to discussion`) to `docs/adr/NNNN-dotnet-holds-shared-principles-and-default-conventions.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/tests/profile-library .claude/cogniva-dev/green-gate.json docs/adr` then `git commit -m "test(profiles): profile-library suite with Module-bundle leak check and shape fixtures"`
+- [x] **Step 4 (write ADR):** scan `docs/adr/` for the next number and write ADR-C4 from this sub-plan's `## Candidate ADRs` verbatim (heading without the `ADR-C4:` label; keep `**Provenance:** Suggested by human` and `**Relitigation:** Open to discussion`) to `docs/adr/NNNN-dotnet-holds-shared-principles-and-default-conventions.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/tests/profile-library .claude/cogniva-dev/green-gate.json docs/adr` then `git commit -m "test(profiles): profile-library suite with Module-bundle leak check and shape fixtures"`
