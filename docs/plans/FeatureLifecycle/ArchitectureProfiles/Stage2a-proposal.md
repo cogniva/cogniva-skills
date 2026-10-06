@@ -685,24 +685,24 @@ child profile. The CognivaShell evidence is noted for your decision.
 
 **2a**
 - [x] D11 answered: option (a).
-- [ ] T1: deltas, normalised basis, states, `NeedsReview`, ERROR cases,
+- [x] T1: deltas, normalised basis, states, `NeedsReview`, ERROR cases,
       records, `-Refresh`, `-Show`, `-Require`/exit 3, `applies-to`,
       `accept`; Stage 1 migration; suite green.
-- [ ] T2: `cogniva-base` +3; `dotnet` = principles + `project-layout` +
+- [x] T2: `cogniva-base` +3; `dotnet` = principles + `project-layout` +
       `ui` + `build-settings` + 3 amendments; Stage 1 Module standards
       deleted; legacy-topology leak check and fixtures green.
-- [ ] T3: placement checks come from the profile; legacy paths unchanged;
+- [x] T3: placement checks come from the profile; legacy paths unchanged;
       stale deltas escalate only for matched standards, tested through the
       preflight; SKILL.md contract updated.
-- [ ] T4: templates (`AGENTS.md`, `CLAUDE.md` shim, glossary,
+- [x] T4: templates (`AGENTS.md`, `CLAUDE.md` shim, glossary,
       `Directory.Build.props`); this repo's glossary and strategy updated;
       tests 1–7 green.
-- [ ] T5: repo-init scaffolds the D11 shape and declares `dotnet`; ⛔ gate passed.
-- [ ] T6: add-module is legacy and gated with `-Require`; an unrelated stale
+- [x] T5: repo-init scaffolds the D11 shape and declares `dotnet`; ⛔ gate passed.
+- [x] T6: add-module is legacy and gated with `-Require`; an unrelated stale
       standard does not block; new-style repos are stopped with guidance.
-- [ ] T8: docs, migration guide, ADRs C1–C6, glossary confirmed, acceptance
+- [x] T8: docs, migration guide, ADRs C1–C6, glossary confirmed, acceptance
       fixture green.
-- [ ] Green gate, `claude plugin validate .` and manifest parity pass.
-- [ ] Minor bump offered across all three files.
-- [ ] Backlog: repo-init and applicable-rules items closed; add `add-project`
+- [x] Green gate, `claude plugin validate .` and manifest parity pass.
+- [x] Minor bump offered across all three files.
+- [x] Backlog: repo-init and applicable-rules items closed; add `add-project`
       and D12 items.

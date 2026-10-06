@@ -1,6 +1,6 @@
 ---
 name: module-status
-description: Use to see the whole state of ONE Module - in-flight features, deferred backlog stubs, and loose BACKLOG.md items in a single read-only view. Wraps the feature-status plan/state scan (scoped to the Module) and adds the Status: lifecycle, deferred stubs, and the loose-item count. No subagents, no edits.
+description: "Use to see the whole state of ONE Module - in-flight features, deferred backlog stubs, and loose BACKLOG.md items in a single read-only view. Wraps the feature-status plan/state scan (scoped to the Module) and adds the Status: lifecycle, deferred stubs, and the loose-item count. No subagents, no edits."
 ---
 
 # Module Status
