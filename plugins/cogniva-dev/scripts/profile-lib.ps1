@@ -138,8 +138,11 @@ function Get-ProfileEntry($Source, [string]$Id) {
     if ($Source.Cache.ContainsKey($Id)) { return $Source.Cache[$Id] }
     $dir = Join-Path $Source.Root $Id
     if (-not (Test-Path -LiteralPath $dir -PathType Container)) { return $null }
-    $actual = (Get-Item -LiteralPath $dir).Name
-    if ($actual -cne $Id) { Throw-ProfileError "$($Source.Display)/${actual}: profile folder names must be lowercase ('$Id')" }
+    # Read the on-disk casing from the parent's listing: Get-Item echoes the
+    # typed casing on some hosts (Windows PowerShell 5.1, older pwsh), which
+    # would let 'mixed' resolve to a 'Mixed' folder.
+    $onDisk = @(Get-ChildItem -LiteralPath $Source.Root -Directory | Where-Object { $_.Name -eq $Id } | ForEach-Object { $_.Name })
+    if ($onDisk -cnotcontains $Id) { Throw-ProfileError "$($Source.Display)/$($onDisk[0]): profile folder names must be lowercase ('$Id')" }
     $display = "$($Source.Display)/$Id/profile.yml"
     $file = Join-Path $dir 'profile.yml'
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { Throw-ProfileError "${display}: missing" }

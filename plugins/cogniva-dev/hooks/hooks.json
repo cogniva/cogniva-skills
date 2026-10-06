@@ -33,6 +33,12 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/nudge-backlog-commit.js\"",
             "timeout": 15,
             "statusMessage": "Checking for an uncommitted backlog capture in the primary checkout"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/guard-module-cycles.js\"",
+            "timeout": 100,
+            "statusMessage": "Checking the Module graph for cycles (repos that opt in only)"
           }
         ]
       }
