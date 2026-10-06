@@ -105,7 +105,7 @@ Rules this task implements (restate them in code comments where useful):
 - **States:** `ORPHANED` (no inherited text: the id no longer exists upstream) wins first; then `UNREVIEWED` (no `basis:`); `CURRENT` (basis matches); `STALE` (it does not). Any non-`CURRENT` delta still applies; the target stays `RESOLVED`. ORPHANED deltas still appear as standards so their guidance is not lost.
 - **Ownership:** `library` when the source is the plugin library or `.cogniva/adopted/<id>.yml` exists in the repo; otherwise `repo-owned`.
 
-- [ ] **Step 1 (failing tests):** In `architecture-profile.tests.ps1`:
+- [x] **Step 1 (failing tests):** In `architecture-profile.tests.ps1`:
   1. Directly below `$failures = @()`, dot-source the library so tests can use its primitives:
      ```powershell
      . (Join-Path $plugin 'scripts\profile-lib.ps1')
@@ -240,8 +240,8 @@ Rules this task implements (restate them in code comments where useful):
      Check 'a malformed basis is an ERROR' (Test-TargetError $r "'basis' must be 12 lowercase hex characters")
      Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/edges.md' (Delta 'Leaf on mid edges.' (Basis @($midEdges)))
      ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → FAIL lines (the new functions do not exist yet; the run may stop at the first missing function — that counts as the expected failure).
-- [ ] **Step 3 (implement, `profile-lib.ps1`):**
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → FAIL lines (the new functions do not exist yet; the run may stop at the first missing function — that counts as the expected failure).
+- [x] **Step 3 (implement, `profile-lib.ps1`):**
   - Add `$script:AdoptedRelative = '.cogniva/adopted'` and `$script:BasisPattern = '^[0-9a-f]{12}$'` beside the existing `$script:` settings.
   - Add these functions:
     ```powershell
@@ -312,15 +312,15 @@ Rules this task implements (restate them in code comments where useful):
        - Replacement on an existing entry: `Overrides += From`, `From = profile`, `ReplacedBy = profile`, `Path`, `Description`, `AppliesTo` = its own (or `@()`), `Amendments = @()`, `Parts = @(part)`. Orphaned replacement: a new entry with `From = ReplacedBy = profile`.
        - Amendment on an existing entry: `Amendments += [pscustomobject]@{ From; Ownership; Path; Description; State }`, `Parts += part`, and `AppliesTo` = its own when it declares any. Orphaned amendment: a new entry whose Description/Path are the amendment's, `From = profile`, `Amendments = @(that one)`, `Parts = @(part)`.
     4. Finally set each entry's `NeedsReview` to whether any part has a State other than `CURRENT` (`$null` States are base parts), and build `Review` from those parts: `[pscustomobject]@{ Standard = Id; Profile = part.From; Ownership; Delta = part.Role; State; Basis = part.Basis; Inherited = part.Inherited; Path = part.Display }`, sorted by Standard then Profile.
-- [ ] **Step 4 (implement, resolver):** In `resolve-architecture-profile.ps1`:
+- [x] **Step 4 (implement, resolver):** In `resolve-architecture-profile.ps1`:
   - `$repoProfiles = New-ProfileSource (Join-Path $repoFull $script:RepoProfilesRelative) $script:RepoProfilesRelative (Join-Path $repoFull $script:AdoptedRelative)` and `$library = New-ProfileSource $LibraryRoot 'plugin-library' $null -IsLibrary`.
   - `Get-ProfileResult` stores `Effective = Get-EffectiveStandards …`, `Standards = $effective.Standards`, `Review = $effective.Review`, and `ChainDetail = @($chain | ForEach-Object { [pscustomobject]@{ Id = $_; Ownership = (Get-ProfileOwnership $repoProfiles $_) } })`. The failure object gets `Review = @(); ChainDetail = @()`.
   - Each target object gains `NeedsReview` (`$true` when its RESOLVED profile has any Review entry, else `$false`) and `MatchedStandards` (ids of that profile's standards with any `AppliesTo` glob where `Test-GlobMatch $glob $relative`; `@()` otherwise).
   - `Profiles.<id>` becomes `[pscustomobject]@{ Chain; ChainDetail; Description; Standards = @($r.Standards | Select-Object Id, Description, From, Overrides, Path, ReplacedBy, Amendments, AppliesTo, NeedsReview); Review }` — `Parts` never reaches JSON.
   - Text output: after the `PROFILE:` line of a RESOLVED target with `NeedsReview`, print `  NEEDS HUMAN REVIEW`. Per standard print `  STANDARD $($s.Id) [$($s.From)] - $($s.Description)` and the path line, then `    REPLACED - no longer receives $($s.Overrides[-1]) updates` when `ReplacedBy` and `Overrides` is non-empty, then `    AMENDED BY $($a.From) ($($a.Ownership), $($a.State)): $($a.Path)` per amendment, then `    APPLIES TO: $($s.AppliesTo -join ', ')` when non-empty. After a profile's standards print `  REVIEW: $($i.Standard) - $($i.Profile) ($($i.Ownership)) $($i.Delta) is $($i.State) (basis $basisShown -> $inheritedShown)` per Review entry, with `none` for a missing basis and `n/a` for a missing inherited hash.
   - Update the header comment to mention amendments, replacements and review state. Exit codes 0/1/2 keep their meanings.
-- [ ] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → ends with `All architecture-profile assertions passed.` Also run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → `All applicable-rules assertions passed.` (it consumes the resolver JSON).
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/profile-lib.ps1 plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1 plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "feat(profiles): amendments, replacement standards, basis and review state"`
+- [x] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → ends with `All architecture-profile assertions passed.` Also run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → `All applicable-rules assertions passed.` (it consumes the resolver JSON).
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/profile-lib.ps1 plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1 plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "feat(profiles): amendments, replacement standards, basis and review state"`
 
 ## Task 2: `-Show` and `-Require` (exit 3)
 

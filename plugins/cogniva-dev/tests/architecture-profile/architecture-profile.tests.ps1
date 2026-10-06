@@ -10,6 +10,7 @@ $shippedLibrary = Join-Path $plugin 'profiles'
 $template = Join-Path $plugin 'templates\repo\CLAUDE.md'
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ("cogniva-architecture-profile-" + [guid]::NewGuid().ToString('N'))
 $failures = @()
+. (Join-Path $plugin 'scripts\profile-lib.ps1')
 
 function Check($label, $condition) {
     if ($condition) { Write-Host "  PASS  $label" }
@@ -49,9 +50,19 @@ function New-Repo([string]$Name) {
 }
 function Add-Profile([string]$Repo, [string]$Id, [string]$Yaml, [hashtable]$Standards) {
     Write-Fixture $Repo ".cogniva/profiles/$Id/profile.yml" $Yaml
-    foreach ($key in $Standards.Keys) { Write-Fixture $Repo ".cogniva/profiles/$Id/standards/$key" $Standards[$key] }
+    foreach ($key in $Standards.Keys) {
+        $relative = if ($key -match '^(amendments|replacements)/') { $key } else { "standards/$key" }
+        Write-Fixture $Repo ".cogniva/profiles/$Id/$relative" $Standards[$key]
+    }
 }
 function Std([string]$Description) { return "---`ndescription: $Description`n---`n`n# Body`n" }
+function Delta([string]$Description, [string]$Basis, [string[]]$AppliesTo, [string]$Body = '# Delta body') {
+    $fm = "---`ndescription: $Description`n"
+    if ($Basis) { $fm += "basis: $Basis`n" }
+    if ($AppliesTo) { $fm += "applies-to:`n" + (($AppliesTo | ForEach-Object { "  - `"$_`"" }) -join "`n") + "`n" }
+    return "$fm---`n`n$Body`n"
+}
+function Basis([string[]]$Texts) { return Get-TextHash ((@($Texts | ForEach-Object { Get-NormalisedText $_ })) -join "`n") }
 
 try {
     # Fixture library: used for suggestions, hints, and adoption.
@@ -67,7 +78,7 @@ try {
     # --- precedence ----------------------------------------------------------
     $repo = New-Repo 'precedence'
     Add-Profile $repo 'base' "description: Base.`n" @{ 'architecture/owner.md' = (Std 'Base owner.'); 'architecture/shared.md' = (Std 'Base shared.') }
-    Add-Profile $repo 'python' "description: Python.`ninherits: base`n" @{ 'Architecture/Owner.md' = (Std 'Python owner.'); 'python/layout.md' = (Std 'Python layout.') }
+    Add-Profile $repo 'python' "description: Python.`ninherits: base`n" @{ 'amendments/architecture/owner.md' = (Delta 'Python owner.' (Basis @((Std 'Base owner.')))); 'python/layout.md' = (Std 'Python layout.') }
     Add-Profile $repo 'dotnet' "description: Dotnet.`ninherits: base`n" @{ 'dotnet/modules.md' = (Std 'Dotnet modules.') }
     Write-Fixture $repo '.cogniva-profile.yml' "profile: dotnet`n"
     Write-Fixture $repo 'tools/.cogniva-profile.yml' "# Python tooling`nprofile: python`n"
@@ -106,7 +117,7 @@ try {
     $p = $r.Json.Profiles.python
     $owner = @($p.Standards | Where-Object { $_.Id -ieq 'architecture/owner.md' })
     Check 'chain lists child first' (($p.Chain -join '>') -eq 'python>base')
-    Check 'child same-path standard overrides the parent (case-insensitive)' ($owner.Count -eq 1 -and $owner[0].From -eq 'python' -and $owner[0].Description -eq 'Python owner.' -and @($owner[0].Overrides) -contains 'base')
+    Check 'an amendment composes onto the inherited standard' ($owner.Count -eq 1 -and $owner[0].From -eq 'base' -and @($owner[0].Amendments).Count -eq 1 -and $owner[0].Amendments[0].From -eq 'python' -and $owner[0].Amendments[0].State -eq 'CURRENT')
     Check 'parent-only standards are inherited' (@($p.Standards | Where-Object { $_.Id -eq 'architecture/shared.md' -and $_.From -eq 'base' }).Count -eq 1)
     Check 'index carries descriptions, not bodies' (-not ($r.Raw -match '# Body'))
     Check 'standards are ordered by id' ((@($p.Standards.Id) -join '|') -eq (@($p.Standards.Id | Sort-Object { $_.ToLowerInvariant() }) -join '|'))
@@ -118,6 +129,106 @@ try {
 
     $text = Invoke-Script $resolver @('-Repo', $repo, '-Target', 'tools/ingest/run.py', '-LibraryRoot', $library)
     Check 'text output explains the winner and the shadowed marker' ($text.Out -match 'PROFILE: python \(path-override: tools/\.cogniva-profile\.yml\)' -and $text.Out -match 'SHADOWED: \.cogniva-profile\.yml -> dotnet')
+
+    # --- deltas: amendments, replacements, basis and review state -------------
+    Check 'normalisation: CRLF, trailing whitespace, trailing blank lines' ((Get-NormalisedText "a  `r`nb`r`n`r`n") -ceq "a`nb")
+    Check 'normalisation: BOM and lone CR' ((Get-NormalisedText ([string][char]0xFEFF + "a`rb")) -ceq "a`nb")
+    Check 'normalisation drops basis: lines' ((Get-NormalisedText "description: x`nbasis: 0123456789ab`ny") -ceq "description: x`ny")
+    Check 'basis is 12 lowercase hex characters' ((Get-TextHash 'x') -cmatch '^[0-9a-f]{12}$')
+    Check 'glob ** matches zero segments' (Test-GlobMatch 'src/Hosts/**' 'src/Hosts')
+    Check 'glob ** matches several segments' (Test-GlobMatch 'src/Hosts/**' 'src/Hosts/Web/Program.cs')
+    Check 'glob * stays within one segment' (-not (Test-GlobMatch 'src/*/x' 'src/a/b/x'))
+    Check 'glob segment patterns match' (Test-GlobMatch 'src/Modules/*/*.Contracts/**' 'src/Modules/Orders/Orders.Contracts/IOrders.cs')
+    Check 'glob does not match a longer segment name' (-not (Test-GlobMatch 'src/Hosts/**' 'src/HostsX/a.cs'))
+
+    $d = New-Repo 'deltas'
+    $baseOwner = Std 'Base owner.'
+    $baseEdges = Std 'Base edges.'
+    Add-Profile $d 'base' "description: Base.`n" @{ 'architecture/owner.md' = $baseOwner; 'architecture/edges.md' = $baseEdges }
+    $midOwner = Delta 'Mid narrows owner.' (Basis @($baseOwner)) @('src/Hosts/**')
+    $midEdges = Delta 'Mid edges.' (Basis @($baseEdges))
+    Add-Profile $d 'mid' "description: Mid.`ninherits: base`n" @{ 'amendments/architecture/owner.md' = $midOwner; 'replacements/architecture/edges.md' = $midEdges }
+    $leafOwner = Delta 'Leaf adds to owner.' (Basis @($baseOwner, $midOwner))
+    Add-Profile $d 'leaf' "description: Leaf.`ninherits: mid`n" @{ 'amendments/architecture/owner.md' = $leafOwner; 'amendments/architecture/edges.md' = (Delta 'Leaf on mid edges.' (Basis @($midEdges))); 'leaf/own.md' = (Std 'Leaf own.') }
+    Write-Fixture $d '.cogniva-profile.yml' "profile: leaf`n"
+    Write-Fixture $d 'tools/.cogniva-profile.yml' "profile: base`n"
+    $dBefore = @(& git -C $d status --porcelain)
+
+    $r = Resolve-Json $d @('-Target', 'src/Hosts/Web/Program.cs,src/Lib/x.cs,tools/t.py')
+    $leaf = $r.Json.Profiles.leaf
+    $owner = @($leaf.Standards | Where-Object Id -eq 'architecture/owner.md')[0]
+    $edges = @($leaf.Standards | Where-Object Id -eq 'architecture/edges.md')[0]
+    Check 'three-level amendments compose root first' ($r.Code -eq 0 -and $owner.From -eq 'base' -and (@($owner.Amendments.From) -join '>') -eq 'mid>leaf' -and @($owner.Amendments | Where-Object State -ne 'CURRENT').Count -eq 0)
+    Check 'the most-derived applies-to wins' ((@($owner.AppliesTo) -join ',') -eq 'src/Hosts/**')
+    Check 'a replacement supersedes the inherited standard' ($edges.From -eq 'mid' -and $edges.ReplacedBy -eq 'mid' -and @($edges.Overrides) -contains 'base' -and @($edges.Amendments).Count -eq 1 -and $edges.Amendments[0].State -eq 'CURRENT')
+    Check 'a current profile needs no review' ($r.Json.Targets[0].NeedsReview -eq $false -and @($leaf.Review).Count -eq 0)
+    Check 'MatchedStandards lists only applies-to matches' ((@($r.Json.Targets[0].MatchedStandards) -join ',') -eq 'architecture/owner.md' -and @($r.Json.Targets[1].MatchedStandards).Count -eq 0)
+    Check 'ChainDetail carries ownership' ((@($leaf.ChainDetail | ForEach-Object { "$($_.Id)=$($_.Ownership)" }) -join ',') -eq 'leaf=repo-owned,mid=repo-owned,base=repo-owned')
+    Check 'a subtree marker resolves its own chain' ($r.Json.Targets[2].Profile -eq 'base' -and @(@($r.Json.Profiles.base.Standards | Where-Object Id -eq 'architecture/owner.md')[0].Amendments).Count -eq 0)
+    $text = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Hosts/Web/Program.cs', '-LibraryRoot', $library)
+    Check 'text output flags a replacement' ($text.Out -match 'REPLACED - no longer receives base updates')
+    Check 'text output lists amendments with ownership and state' ($text.Out -match 'AMENDED BY mid \(repo-owned, CURRENT\)' -and $text.Out -match 'AMENDED BY leaf \(repo-owned, CURRENT\)')
+    Check 'index still carries descriptions, not bodies' (-not ($r.Raw -match '# Delta body'))
+    $again = Resolve-Json $d @('-Target', 'src/Hosts/Web/Program.cs,src/Lib/x.cs,tools/t.py')
+    Check 'delta resolution is deterministic' ($again.Raw -eq $r.Raw)
+
+    Write-Fixture $d '.cogniva/profiles/mid/amendments/architecture/owner.md' ([string][char]0xFEFF + $midOwner.Replace("`n", "  `r`n"))
+    $r = Resolve-Json $d @('-Target', 'src/Lib/x.cs')
+    Check 'BOM, CRLF and trailing whitespace keep a delta CURRENT' (@(@($r.Json.Profiles.leaf.Standards | Where-Object Id -eq 'architecture/owner.md')[0].Amendments | Where-Object State -ne 'CURRENT').Count -eq 0)
+
+    Write-Fixture $d '.cogniva/profiles/base/standards/architecture/owner.md' (Std 'Base owner, changed.')
+    $r = Resolve-Json $d @('-Target', 'src/Hosts/Web/Program.cs')
+    $owner = @($r.Json.Profiles.leaf.Standards | Where-Object Id -eq 'architecture/owner.md')[0]
+    Check 'a changed parent makes every delta below it STALE' ((@($owner.Amendments.State) -join ',') -eq 'STALE,STALE')
+    Check 'STALE stays RESOLVED and marks the target and standard' ($r.Code -eq 0 -and $r.Json.Targets[0].Status -eq 'RESOLVED' -and $r.Json.Targets[0].NeedsReview -eq $true -and $owner.NeedsReview -eq $true)
+    $item = @($r.Json.Profiles.leaf.Review | Where-Object Profile -eq 'mid')[0]
+    Check 'a Review entry names profile, ownership, delta and both bases' ($item.Standard -eq 'architecture/owner.md' -and $item.Ownership -eq 'repo-owned' -and $item.Delta -eq 'amendment' -and $item.State -eq 'STALE' -and $item.Basis -eq (Basis @($baseOwner)) -and $item.Inherited -eq (Basis @((Std 'Base owner, changed.'))))
+    $text = Invoke-Script $resolver @('-Repo', $d, '-Target', 'src/Hosts/Web/Program.cs', '-LibraryRoot', $library)
+    Check 'text output says NEEDS HUMAN REVIEW under the profile line' ($text.Out -match "PROFILE: leaf[^`n]*`n  NEEDS HUMAN REVIEW" -and $text.Out -match 'REVIEW: architecture/owner\.md - mid \(repo-owned\) amendment is STALE')
+    Write-Fixture $d '.cogniva/profiles/base/standards/architecture/owner.md' $baseOwner
+
+    Write-Fixture $d '.cogniva/profiles/mid/amendments/architecture/owner.md' ($midOwner -replace 'basis: [0-9a-f]{12}', 'basis: ffffffffffff')
+    $r = Resolve-Json $d @('-Target', 'src/Lib/x.cs')
+    $owner = @($r.Json.Profiles.leaf.Standards | Where-Object Id -eq 'architecture/owner.md')[0]
+    Check "editing an ancestor's basis line does not make descendants STALE" ((@($owner.Amendments.State) -join ',') -eq 'STALE,CURRENT')
+    Write-Fixture $d '.cogniva/profiles/mid/amendments/architecture/owner.md' $midOwner
+
+    Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/owner.md' (Delta 'Leaf adds to owner.' $null)
+    Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/missing.md' (Delta 'Amends nothing.' 'aaaaaaaaaaaa')
+    $r = Resolve-Json $d @('-Target', 'src/Lib/x.cs')
+    $states = @($r.Json.Profiles.leaf.Review | ForEach-Object { "$($_.Standard)=$($_.State)" }) -join ','
+    Check 'no basis is UNREVIEWED and a vanished target is ORPHANED; both stay RESOLVED' ($r.Code -eq 0 -and $r.Json.Targets[0].Status -eq 'RESOLVED' -and $states -match 'architecture/owner\.md=UNREVIEWED' -and $states -match 'architecture/missing\.md=ORPHANED')
+    Check 'an ORPHANED amendment still appears as a standard' (@($r.Json.Profiles.leaf.Standards | Where-Object Id -eq 'architecture/missing.md').Count -eq 1)
+    Remove-Item -LiteralPath (Join-Path $d '.cogniva/profiles/leaf/amendments/architecture/missing.md')
+    Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/owner.md' $leafOwner
+
+    Write-Fixture $d '.cogniva/adopted/base.yml' "source: plugin-library/base`nplugin-version: 0.0.0`ncontent: aaaaaaaaaaaa`n"
+    $r = Resolve-Json $d @('-Target', 'src/Lib/x.cs')
+    Check 'an adoption record makes a profile library-owned' ((@($r.Json.Profiles.leaf.ChainDetail | Where-Object Id -eq 'base')[0].Ownership) -eq 'library')
+    Remove-Item -LiteralPath (Join-Path $d '.cogniva/adopted') -Recurse -Force
+
+    $dAfter = @(& git -C $d status --porcelain)
+    Check 'delta resolution leaves the repository unchanged' (($dBefore -join "`n") -eq ($dAfter -join "`n"))
+
+    Write-Fixture $d '.cogniva/profiles/leaf/standards/architecture/owner.md' (Std 'Same id.')
+    $r = Resolve-Json $d @('-Target', 'x')
+    Check 'a same-id file in standards/ is an ambiguous ERROR pointing at amendments/ and replacements/' (Test-TargetError $r 'ambiguous.*amendments/architecture/owner\.md.*replacements/architecture/owner\.md')
+    Remove-Item -LiteralPath (Join-Path $d '.cogniva/profiles/leaf/standards/architecture/owner.md')
+    Write-Fixture $d '.cogniva/profiles/leaf/replacements/architecture/owner.md' (Delta 'Also replaces.' 'aaaaaaaaaaaa')
+    $r = Resolve-Json $d @('-Target', 'x')
+    Check 'amending and replacing one id in one profile is an ERROR' (Test-TargetError $r 'both amends and replaces')
+    Remove-Item -LiteralPath (Join-Path $d '.cogniva/profiles/leaf/replacements') -Recurse -Force
+    Write-Fixture $d '.cogniva/profiles/leaf/amendments/leaf/own.md' (Delta 'Own.' 'aaaaaaaaaaaa')
+    $r = Resolve-Json $d @('-Target', 'x')
+    Check "amending the profile's own standard is an ERROR" (Test-TargetError $r 'edit it there')
+    Remove-Item -LiteralPath (Join-Path $d '.cogniva/profiles/leaf/amendments/leaf') -Recurse -Force
+    Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/edges.md' "# no frontmatter`n"
+    $r = Resolve-Json $d @('-Target', 'x')
+    Check 'an amendment without a description is an ERROR' (Test-TargetError $r "amendments/architecture/edges\.md: missing frontmatter 'description'")
+    Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/edges.md' (Delta 'Bad basis.' 'XYZ')
+    $r = Resolve-Json $d @('-Target', 'x')
+    Check 'a malformed basis is an ERROR' (Test-TargetError $r "'basis' must be 12 lowercase hex characters")
+    Write-Fixture $d '.cogniva/profiles/leaf/amendments/architecture/edges.md' (Delta 'Leaf on mid edges.' (Basis @($midEdges)))
 
     # --- undeclared repos and suggestions ------------------------------------
     $bare = New-Repo 'undeclared'

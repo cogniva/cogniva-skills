@@ -6,6 +6,12 @@
 # the plugin library (-LibraryRoot) is consulted only for suggestions and hints.
 # Each target resolves independently: a broken marker or profile marks only the
 # targets that use it as ERROR.
+# Standards compose root ancestor first: standards/ adds new ids, amendments/<id>
+# layers onto the inherited text, replacements/<id> supersedes it (flagged as
+# REPLACED). Each amendment or replacement records the inherited text it was
+# reviewed against (basis:); one that is UNREVIEWED, STALE or ORPHANED still
+# applies but is listed under Review, and the target is marked NeedsReview
+# (text: NEEDS HUMAN REVIEW). Review state never changes the exit code.
 # Exit 0 = every target resolved (including MIXED / UNDECLARED); 1 = the report
 # was produced but at least one target is ERROR; 2 = usage error, nothing reported.
 [CmdletBinding()]
@@ -40,24 +46,26 @@ try {
 catch { Fail (Get-ProfileErrorText $_) }
 
 $warnings = [System.Collections.Generic.List[string]]::new()
-$repoProfiles = New-ProfileSource (Join-Path $repoFull $script:RepoProfilesRelative) $script:RepoProfilesRelative
-$library = New-ProfileSource $LibraryRoot 'plugin-library'
+$repoProfiles = New-ProfileSource (Join-Path $repoFull $script:RepoProfilesRelative) $script:RepoProfilesRelative (Join-Path $repoFull $script:AdoptedRelative)
+$library = New-ProfileSource $LibraryRoot 'plugin-library' $null -IsLibrary
 $libraryEntries = $null
 $profileResults = @{}
 
-# Chain + merged standards for one profile id. A success is computed once and
+# Chain + effective standards for one profile id. A success is computed once and
 # shared by every target using it; a failure is recomputed per target so its
 # message names that target's own marker.
 function Get-ProfileResult([string]$Id, [string]$Origin) {
     if ($profileResults.ContainsKey($Id)) { return $profileResults[$Id] }
     try {
         $chain = Resolve-ProfileChain $Id $repoProfiles $library $Origin
+        $effective = Get-EffectiveStandards $chain $repoProfiles $warnings
         $result = [pscustomobject]@{
             Error = $null; Chain = @($chain); Description = (Get-ProfileEntry $repoProfiles $Id).Description
-            Standards = @(Get-MergedStandards $chain $repoProfiles $warnings)
+            Effective = $effective; Standards = @($effective.Standards); Review = @($effective.Review)
+            ChainDetail = @($chain | ForEach-Object { [pscustomobject]@{ Id = $_; Ownership = (Get-ProfileOwnership $repoProfiles $_) } })
         }
     }
-    catch { return [pscustomobject]@{ Error = (Get-ProfileErrorText $_); Chain = @(); Description = $null; Standards = @() } }
+    catch { return [pscustomobject]@{ Error = (Get-ProfileErrorText $_); Chain = @(); Description = $null; Standards = @(); Review = @(); ChainDetail = @() } }
     $script:profileResults[$Id] = $result
     return $result
 }
@@ -103,17 +111,33 @@ foreach ($full in $fullTargets) {
     }
     catch { $status = 'ERROR'; $errorText = Get-ProfileErrorText $_ }
 
+    # NeedsReview: the resolved profile has any delta awaiting human review.
+    # MatchedStandards: standards whose applies-to globs match this target.
+    $needsReview = $false
+    $matched = @()
+    if ($status -eq 'RESOLVED') {
+        $resolved = $profileResults[$profileId]
+        $needsReview = @($resolved.Review).Count -gt 0
+        $matched = @($resolved.Standards | Where-Object { @($_.AppliesTo | Where-Object { Test-GlobMatch $_ $relative }).Count -gt 0 } | ForEach-Object Id)
+    }
+
     $targets += [pscustomobject]@{
         Target = $relative; Status = $status; Profile = $profileId; Error = $errorText
         Winner = if ($winner) { [pscustomobject]@{ Kind = $winner.Kind; Source = $winner.Source } } else { $null }
         Considered = @($considered); Suggestion = $suggestion
+        NeedsReview = $needsReview; MatchedStandards = @($matched)
     }
 }
 
 $profiles = [ordered]@{}
 foreach ($id in @($targets | Where-Object Status -eq 'RESOLVED' | ForEach-Object Profile | Sort-Object -Unique)) {
     $r = $profileResults[$id]
-    $profiles[$id] = [pscustomobject]@{ Chain = $r.Chain; Description = $r.Description; Standards = $r.Standards }
+    # Parts (the composition inputs) stay internal; they never reach the report.
+    $profiles[$id] = [pscustomobject]@{
+        Chain = $r.Chain; ChainDetail = $r.ChainDetail; Description = $r.Description
+        Standards = @($r.Standards | Select-Object Id, Description, From, Overrides, Path, ReplacedBy, Amendments, AppliesTo, NeedsReview)
+        Review = $r.Review
+    }
 }
 
 $groups = [ordered]@{}
@@ -140,7 +164,10 @@ foreach ($t in $report.Targets) {
     Write-Output ''
     Write-Output "Target: $($t.Target)"
     switch ($t.Status) {
-        'RESOLVED' { Write-Output "  PROFILE: $($t.Profile) ($($t.Winner.Kind): $($t.Winner.Source))" }
+        'RESOLVED' {
+            Write-Output "  PROFILE: $($t.Profile) ($($t.Winner.Kind): $($t.Winner.Source))"
+            if ($t.NeedsReview) { Write-Output '  NEEDS HUMAN REVIEW' }
+        }
         'NONE' { Write-Output "  PROFILE: none ($($t.Winner.Kind): $($t.Winner.Source))" }
         'ERROR' { Write-Output "  PROFILE: error - $($t.Error)" }
         default { Write-Output '  PROFILE: undeclared' }
@@ -158,9 +185,16 @@ foreach ($id in $report.Profiles.Keys) {
     Write-Output ''
     Write-Output "Profile $id (chain: $($p.Chain -join ' -> ')) - $($p.Description)"
     foreach ($s in $p.Standards) {
-        $over = if ($s.Overrides.Count) { " overrides $($s.Overrides -join ', ')" } else { '' }
-        Write-Output "  STANDARD $($s.Id) [$($s.From)$over] - $($s.Description)"
+        Write-Output "  STANDARD $($s.Id) [$($s.From)] - $($s.Description)"
         Write-Output "    $($s.Path)"
+        if ($s.ReplacedBy -and @($s.Overrides).Count) { Write-Output "    REPLACED - no longer receives $(@($s.Overrides)[-1]) updates" }
+        foreach ($a in $s.Amendments) { Write-Output "    AMENDED BY $($a.From) ($($a.Ownership), $($a.State)): $($a.Path)" }
+        if (@($s.AppliesTo).Count) { Write-Output "    APPLIES TO: $($s.AppliesTo -join ', ')" }
+    }
+    foreach ($i in $p.Review) {
+        $basisShown = if ($i.Basis) { $i.Basis } else { 'none' }
+        $inheritedShown = if ($i.Inherited) { $i.Inherited } else { 'n/a' }
+        Write-Output "  REVIEW: $($i.Standard) - $($i.Profile) ($($i.Ownership)) $($i.Delta) is $($i.State) (basis $basisShown -> $inheritedShown)"
     }
 }
 foreach ($w in $report.Warnings) { Write-Output "WARN: $w" }
