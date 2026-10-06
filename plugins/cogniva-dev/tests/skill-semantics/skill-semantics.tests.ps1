@@ -26,6 +26,7 @@ $cb      = ReadDoc 'skills\backlog\CAPTURE-BAR.md'
 $ar      = ReadDoc 'skills\applicable-rules\SKILL.md'
 $fc      = ReadDoc 'skills\feature-check\SKILL.md'
 $gc      = ReadDoc 'skills\gate-check\SKILL.md'
+$ri      = ReadDoc 'skills\repo-init\SKILL.md'
 
 $failures = @()
 function Check($label, $cond) {
@@ -137,6 +138,18 @@ Check 'applicable-rules: placement checks come from the resolved profile' `
     ($ar -match 'applies-to')
 Check 'PLAN-FORMAT header defers committing to the commits= policy' `
     ($fmt -notmatch 'tasks commit on the branch they are already on' -and ($fmt -replace '\s+', ' ') -match 'commit step applies only when the run''s .commits=. policy commits')
+
+# --- repo-init scaffolds the dotnet skeleton -----------------------------------
+Check 'repo-init no longer calls add-module' ($ri -notmatch 'add-module')
+Check 'repo-init scaffolds no src/Modules' ($ri -notmatch 'src/Modules')
+Check 'repo-init carries no literal net8.0' ($ri -notmatch 'net8\.0')
+Check 'repo-init drops docs/superpowers' ($ri -notmatch 'superpowers')
+Check 'repo-init checks the SDK before writing' ($ri -match 'dotnet --list-sdks')
+Check 'repo-init checks the newest SDK can write .slnx' ($ri -match '9\.0\.200' -and $ri -match 'newest listed SDK')
+Check 'repo-init asks for .slnx explicitly' ($ri -match 'dotnet new sln -n <Repo> --format slnx')
+Check 'repo-init adopts and declares dotnet' ($ri -match 'adopt-architecture-profile\.ps1' -and $ri -match 'profile: dotnet')
+Check 'repo-init gates with -Require like other architecture-dependent skills' ($ri -match '-Require')
+Check 'repo-init template files exist' ((@('templates\repo\AGENTS.md', 'templates\repo\CLAUDE.md', 'templates\repo\Directory.Build.props', 'templates\repo\docs\glossary\README.md') | Where-Object { -not (Test-Path (Join-Path $plugin $_)) }).Count -eq 0)
 
 if ($failures.Count -gt 0) {
     Write-Host ""

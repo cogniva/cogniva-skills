@@ -44,7 +44,7 @@ plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1   # repo-ini
 **Files:**
 - Test: `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`
 
-- [ ] **Step 1 (failing tests):** Add `$ri = ReadDoc 'skills\repo-init\SKILL.md'` after the `$gc = …` line, and append before the final `if ($failures.Count -gt 0)`:
+- [x] **Step 1 (failing tests):** Add `$ri = ReadDoc 'skills\repo-init\SKILL.md'` after the `$gc = …` line, and append before the final `if ($failures.Count -gt 0)`:
   ```powershell
   # --- repo-init scaffolds the dotnet skeleton -----------------------------------
   Check 'repo-init no longer calls add-module' ($ri -notmatch 'add-module')
@@ -58,8 +58,8 @@ plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1   # repo-ini
   Check 'repo-init gates with -Require like other architecture-dependent skills' ($ri -match '-Require')
   Check 'repo-init template files exist' ((@('templates\repo\AGENTS.md', 'templates\repo\CLAUDE.md', 'templates\repo\Directory.Build.props', 'templates\repo\docs\glossary\README.md') | Where-Object { -not (Test-Path (Join-Path $plugin $_)) }).Count -eq 0)
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the repo-init pins (the template files already exist from Sub-plan 04).
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "test(repo-init): pin the dotnet-skeleton contract"`
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the repo-init pins (the template files already exist from Sub-plan 04).
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "test(repo-init): pin the dotnet-skeleton contract"`
 
 ## Task 2: Rewrite `repo-init`
 
