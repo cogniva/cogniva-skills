@@ -76,7 +76,7 @@ the library ships no layout-specific profile.
 
 Write every file below exactly (LF line endings, a final newline).
 
-- [ ] **Step 1:** `plugins/cogniva-dev/profiles/cogniva-base/standards/architecture/ownership-and-placement.md`:
+- [x] **Step 1:** `plugins/cogniva-dev/profiles/cogniva-base/standards/architecture/ownership-and-placement.md`:
   ```markdown
   ---
   description: Every piece of substantive behaviour has one owning unit, as the repository defines its units; name the owner before placing code, and stop when it is unclear.
@@ -93,7 +93,7 @@ Write every file below exactly (LF line endings, a final newline).
   - When the owner is unclear, or two applicable rules disagree about it, stop and
     ask for a human architecture decision instead of choosing one.
   ```
-- [ ] **Step 2:** `.../cogniva-base/standards/architecture/dependency-direction.md`:
+- [x] **Step 2:** `.../cogniva-base/standards/architecture/dependency-direction.md`:
   ```markdown
   ---
   description: Dependencies follow the direction the repository declares, a new edge never bypasses it, and the graph between owning units has no cycles.
@@ -107,7 +107,7 @@ Write every file below exactly (LF line endings, a final newline).
   - The dependency graph between owning units is acyclic. A cycle is allowed only
     as a recorded exception (`architecture/architecture-exceptions.md`).
   ```
-- [ ] **Step 3:** `.../cogniva-base/standards/architecture/common-and-published-types.md`:
+- [x] **Step 3:** `.../cogniva-base/standards/architecture/common-and-published-types.md`:
   ```markdown
   ---
   description: Who owns the types other units use - published types belong to their publisher, common types to a small unit that depends on no owning unit; neither holds implementation.
@@ -123,7 +123,7 @@ Write every file below exactly (LF line endings, a final newline).
   - A published or common surface holds no implementation: no persistence,
     orchestration, or domain behaviour lives there.
   ```
-- [ ] **Step 4:** `.../cogniva-base/standards/architecture/external-integrations.md`:
+- [x] **Step 4:** `.../cogniva-base/standards/architecture/external-integrations.md`:
   ```markdown
   ---
   description: Outside systems are reached only through a port the owning unit declares; code specific to one system is isolated and depends only on its owner and that system.
@@ -138,7 +138,7 @@ Write every file below exactly (LF line endings, a final newline).
     is isolated from the owner, normally in its own unit when the system warrants
     it. It depends only on its owner and on what it needs to reach the system.
   ```
-- [ ] **Step 5:** `.../cogniva-base/standards/architecture/architecture-exceptions.md`:
+- [x] **Step 5:** `.../cogniva-base/standards/architecture/architecture-exceptions.md`:
   ```markdown
   ---
   description: An exception to an architecture rule is narrow, named, and recorded with its reason where the rule lives; existing code never justifies itself.
@@ -154,7 +154,7 @@ Write every file below exactly (LF line endings, a final newline).
     a recorded exception is a departure to surface, not a precedent.
   ```
   Leave `composition-roots.md` and `cogniva-base/profile.yml` unchanged.
-- [ ] **Step 6:** `plugins/cogniva-dev/profiles/dotnet/profile.yml`:
+- [x] **Step 6:** `plugins/cogniva-dev/profiles/dotnet/profile.yml`:
   ```yaml
   description: Cogniva's .NET architecture - shared principles and the default conventions for new repos. Inherits cogniva-base; a repository's own layout belongs in a repo-owned profile.
   inherits: cogniva-base
@@ -163,7 +163,7 @@ Write every file below exactly (LF line endings, a final newline).
     - "*.sln"
     - "Directory.Build.props"
   ```
-- [ ] **Step 7:** `.../dotnet/standards/dotnet/projects-and-references.md`:
+- [x] **Step 7:** `.../dotnet/standards/dotnet/projects-and-references.md`:
   ```markdown
   ---
   description: Projects are the unit of compile-time dependency; the ProjectReference graph is the one internal dependency graph tooling reads, and any other coupling must be explicit.
@@ -183,7 +183,7 @@ Write every file below exactly (LF line endings, a final newline).
   - References point in the direction the repository declares.
   - Nothing references a runnable host project except that host's own tests.
   ```
-- [ ] **Step 8:** `.../dotnet/standards/dotnet/project-layout.md`:
+- [x] **Step 8:** `.../dotnet/standards/dotnet/project-layout.md`:
   ```markdown
   ---
   description: Default layout for new repos - the first folder under src/ names a project's kind, src/Hosts/ is the one fixed kind, and projects and shared code appear only when needed.
@@ -204,7 +204,7 @@ Write every file below exactly (LF line endings, a final newline).
   - Tests mirror `src/` under `tests/`.
   - One solution file (`.slnx`) at the repository root.
   ```
-- [ ] **Step 9:** `.../dotnet/standards/dotnet/build-settings.md`:
+- [x] **Step 9:** `.../dotnet/standards/dotnet/build-settings.md`:
   ```markdown
   ---
   description: One target framework set centrally in Directory.Build.props, nullable on, warnings as errors; only a platform host overrides the target framework.
@@ -223,7 +223,7 @@ Write every file below exactly (LF line endings, a final newline).
   - The framework value itself is chosen when the repository is created; this
     standard does not fix it.
   ```
-- [ ] **Step 10:** `.../dotnet/standards/dotnet/ui.md`:
+- [x] **Step 10:** `.../dotnet/standards/dotnet/ui.md`:
   ```markdown
   ---
   description: Default for new repos with UI - UI is Blazor component libraries that do not depend on a particular host, so one UI runs in web and desktop hosts.
@@ -239,7 +239,7 @@ Write every file below exactly (LF line endings, a final newline).
   - What a UI library may reference is the repository's decision, recorded in its
     own profile.
   ```
-- [ ] **Step 11:** `.../dotnet/amendments/architecture/composition-roots.md`:
+- [x] **Step 11:** `.../dotnet/amendments/architecture/composition-roots.md`:
   ```markdown
   ---
   description: In .NET a composition root is a runnable host project under src/Hosts/; a library that needs registration owns its Add<Name>() entry point, and hosts call it.
@@ -254,7 +254,7 @@ Write every file below exactly (LF line endings, a final newline).
     `Add<Name>()`. Libraries that require no registration do not need one.
   - Hosts compose by calling those entry points.
   ```
-- [ ] **Step 12:** `.../dotnet/amendments/architecture/external-integrations.md`:
+- [x] **Step 12:** `.../dotnet/amendments/architecture/external-integrations.md`:
   ```markdown
   ---
   description: In .NET the adapter for an outside system is a separate project that references only its owner's projects and that system's SDK; naming is the repository's choice.
@@ -265,7 +265,7 @@ Write every file below exactly (LF line endings, a final newline).
   - Its name and location are the repository's choice (for example
     `<Owner>.<System>` or `Connectors.<System>`).
   ```
-- [ ] **Step 13:** `.../dotnet/amendments/architecture/common-and-published-types.md`:
+- [x] **Step 13:** `.../dotnet/amendments/architecture/common-and-published-types.md`:
   ```markdown
   ---
   description: In .NET common and published types are projects; a common-types project references no owning project, and published types live in a project the publisher owns.
@@ -277,11 +277,11 @@ Write every file below exactly (LF line endings, a final newline).
     projects sit is the repository's decision, so this standard declares no
     `applies-to`; a repository's own profile can add one.
   ```
-- [ ] **Step 14:** Delete `plugins/cogniva-dev/profiles/dotnet/standards/dotnet/module-layout.md` and `.../module-dependencies.md` (`git rm`).
-- [ ] **Step 15 (record the bases):** `pwsh -NoProfile -File plugins/cogniva-dev/scripts/accept-profile-delta.ps1 -Library -Profile dotnet -All` → three `ACCEPTED:` lines (one per amendment), exit 0. Each amendment now has a `basis:` line after `description:`.
-- [ ] **Step 16 (drop the Stage 1 drift check):** In `plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` delete the `$template = …` line and the whole `# --- drift: dotnet standard vs the repo template it was extracted from ---` block (its three lines through the second `Check`). The Stage 1 rule text it compared no longer exists in the library.
-- [ ] **Step 17 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.` (the shipped-library section adopts and resolves the new content with no warnings).
-- [ ] **Step 18 (commit):** `git add -A plugins/cogniva-dev/profiles plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "feat(profiles): dotnet is shared principles plus default conventions; cogniva-base gains three standards"`
+- [x] **Step 14:** Delete `plugins/cogniva-dev/profiles/dotnet/standards/dotnet/module-layout.md` and `.../module-dependencies.md` (`git rm`).
+- [x] **Step 15 (record the bases):** `pwsh -NoProfile -File plugins/cogniva-dev/scripts/accept-profile-delta.ps1 -Library -Profile dotnet -All` → three `ACCEPTED:` lines (one per amendment), exit 0. Each amendment now has a `basis:` line after `description:`.
+- [x] **Step 16 (drop the Stage 1 drift check):** In `plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` delete the `$template = …` line and the whole `# --- drift: dotnet standard vs the repo template it was extracted from ---` block (its three lines through the second `Check`). The Stage 1 rule text it compared no longer exists in the library.
+- [x] **Step 17 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.` (the shipped-library section adopts and resolves the new content with no warnings).
+- [x] **Step 18 (commit):** `git add -A plugins/cogniva-dev/profiles plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "feat(profiles): dotnet is shared principles plus default conventions; cogniva-base gains three standards"`
 
 ## Task 2: `profile-library` suite, gate registration, ADR C4
 

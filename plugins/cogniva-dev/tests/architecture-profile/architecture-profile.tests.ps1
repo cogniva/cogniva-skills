@@ -8,7 +8,6 @@ $resolver = Join-Path $plugin 'scripts\resolve-architecture-profile.ps1'
 $adopter = Join-Path $plugin 'scripts\adopt-architecture-profile.ps1'
 $accepter = Join-Path $plugin 'scripts\accept-profile-delta.ps1'
 $shippedLibrary = Join-Path $plugin 'profiles'
-$template = Join-Path $plugin 'templates\repo\CLAUDE.md'
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ("cogniva-architecture-profile-" + [guid]::NewGuid().ToString('N'))
 $failures = @()
 . (Join-Path $plugin 'scripts\profile-lib.ps1')
@@ -508,12 +507,6 @@ try {
         Check "every standard in '$($dir.Name)' has a description" ($json -and @($json.Profiles.($dir.Name).Standards | Where-Object { -not $_.Description }).Count -eq 0)
     }
     Check 'the library ships cogniva-base and dotnet, and dotnet inherits cogniva-base' ((Test-Path (Join-Path $shippedLibrary 'cogniva-base/profile.yml')) -and ((Get-Content -Raw (Join-Path $shippedLibrary 'dotnet/profile.yml')) -match '(?m)^inherits: cogniva-base'))
-
-    # --- drift: dotnet standard vs the repo template it was extracted from ---
-    $ruleLines = @(Get-Content -LiteralPath $template | Where-Object { $_ -match '^\s+- `<Name>\.' } | ForEach-Object { $_.Trim() })
-    $standard = Get-Content -Raw -LiteralPath (Join-Path $shippedLibrary 'dotnet/standards/dotnet/module-dependencies.md')
-    Check 'template CLAUDE.md still has per-Module dependency rules to compare' ($ruleLines.Count -ge 6)
-    Check 'dotnet module-dependencies standard matches the template rules verbatim' (@($ruleLines | Where-Object { -not $standard.Contains($_) }).Count -eq 0)
 }
 finally {
     if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }

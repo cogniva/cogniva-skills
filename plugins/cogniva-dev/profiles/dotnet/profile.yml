@@ -1,4 +1,4 @@
-description: .NET Module (vertical-slice) architecture - Contracts, Domain, Application, Infrastructure, optional Client, and Blazor UI per Module.
+description: Cogniva's .NET architecture - shared principles and the default conventions for new repos. Inherits cogniva-base; a repository's own layout belongs in a repo-owned profile.
 inherits: cogniva-base
 detect:
   - "*.slnx"
