@@ -407,9 +407,9 @@ Outcomes, per profile in the adopted chain (repo copy vs plugin library, compare
 
 Record format (YAML subset, LF): `source: plugin-library/<id>`, `plugin-version: <version from <plugin>/.claude-plugin/plugin.json, or unknown>`, `content: <Get-TreeHash of the library profile>`. Records are written only after every swap succeeded. `-Refresh` (instead of `-Profile`) refreshes every profile that has a record, plus any record-less copy whose id is in the library and whose hash equals the library or a Stage 1 hash; repo-owned profiles are never written. After writing, adopt prints `REMOVED: <id>/<file>` for files the refresh dropped, a pointer to the migration guide when a retired Stage 1 standard was dropped, and a `REVIEW:` line for every non-`CURRENT` delta of every repo-owned profile.
 
-- [ ] **Step 1 (freeze Stage 1):** Copy `plugins/cogniva-dev/profiles/cogniva-base` and `plugins/cogniva-dev/profiles/dotnet` unchanged to `plugins/cogniva-dev/tests/architecture-profile/fixtures/stage1/cogniva-base` and `.../fixtures/stage1/dotnet` (`Copy-Item -Recurse`). These are the Stage 1 library profiles; Sub-plan 02 rewrites the live ones.
-- [ ] **Step 2 (check the Stage 1 hashes):** `pwsh -NoProfile -Command ". ./plugins/cogniva-dev/scripts/profile-lib.ps1; Get-TreeHash plugins/cogniva-dev/tests/architecture-profile/fixtures/stage1/cogniva-base; Get-TreeHash plugins/cogniva-dev/tests/architecture-profile/fixtures/stage1/dotnet"` → `ae8f8cbe9d33` then `d38faa90eaf1` (computed at planning time from the Stage 1 library with the normalisation defined in Task 1). A different value means Task 1's `Get-NormalisedText` / `Get-TreeHash` drifted from the definition — fix the code, not the constants.
-- [ ] **Step 3 (failing tests):** In the `# --- adoption` section:
+- [x] **Step 1 (freeze Stage 1):** Copy `plugins/cogniva-dev/profiles/cogniva-base` and `plugins/cogniva-dev/profiles/dotnet` unchanged to `plugins/cogniva-dev/tests/architecture-profile/fixtures/stage1/cogniva-base` and `.../fixtures/stage1/dotnet` (`Copy-Item -Recurse`). These are the Stage 1 library profiles; Sub-plan 02 rewrites the live ones.
+- [x] **Step 2 (check the Stage 1 hashes):** `pwsh -NoProfile -Command ". ./plugins/cogniva-dev/scripts/profile-lib.ps1; Get-TreeHash plugins/cogniva-dev/tests/architecture-profile/fixtures/stage1/cogniva-base; Get-TreeHash plugins/cogniva-dev/tests/architecture-profile/fixtures/stage1/dotnet"` → `ae8f8cbe9d33` then `d38faa90eaf1` (computed at planning time from the Stage 1 library with the normalisation defined in Task 1). A different value means Task 1's `Get-NormalisedText` / `Get-TreeHash` drifted from the definition — fix the code, not the constants.
+- [x] **Step 3 (failing tests):** In the `# --- adoption` section:
   - After `'adopt never writes a marker'` add:
     ```powershell
     $rec = Join-Path $adopt '.cogniva/adopted/python.yml'
@@ -460,7 +460,7 @@ Record format (YAML subset, LF): `source: plugin-library/<id>`, `plugin-version:
     Check 'a Stage 1 adoption with no record refreshes without -Force' ($a.Code -eq 0 -and $a.Out -match 'REFRESHED: dotnet' -and $a.Out -match 'UP-TO-DATE: cogniva-base' -and (Test-Path (Join-Path $migrate '.cogniva/adopted/dotnet.yml')))
     Check 'a dropped Stage 1 standard is reported with the migration guide' ($a.Out -match 'REMOVED: dotnet/standards/dotnet/module-layout\.md' -and $a.Out -match 'module-bundle-migration\.md')
     ```
-- [ ] **Step 4 (implement):** In `adopt-architecture-profile.ps1`:
+- [x] **Step 4 (implement):** In `adopt-architecture-profile.ps1`:
   - Param block: `[string]$Profile` (no longer Mandatory), `[switch]$Refresh`, keep `$LibraryRoot`, `$Force`. Exactly one of `-Profile` / `-Refresh`, else `Fail 'pass -Profile <id> or -Refresh'`.
   - Add near the top:
     ```powershell
@@ -478,8 +478,8 @@ Record format (YAML subset, LF): `source: plugin-library/<id>`, `plugin-version:
   - After a successful swap: write the record for every step that is not `UP-TO-DATE`, and for an `UP-TO-DATE` step whose record is missing or whose `content` differs from `$libHash` (`[System.IO.File]::WriteAllText` with LF, creating `.cogniva/adopted/`). For each swapped step whose previous copy existed, print `REMOVED: <id>/<file>` for every file in the old snapshot absent from the library; if any is in `$script:RetiredStandards[$id]`, print once: `NOTE: these standards left the library; their text is in the Module bundle layout migration guide (docs/module-bundle-migration.md in the cogniva-dev plugin).`
   - Then print the outcome lines (`ADOPTED: <id> -> .cogniva/profiles/<id>`, `UP-TO-DATE: <id>`, `REFRESHED: <id> -> …`, `REPLACED: <id> -> …`), then for every repo-owned profile folder in `.cogniva/profiles` (`Get-ProfileOwnership` on a `New-ProfileSource $destRoot $script:RepoProfilesRelative $recordsRoot`), resolve its chain and `Get-EffectiveStandards`, and print `REVIEW: <profile> <delta> <standard> is <STATE> - review it, then run accept-profile-delta.ps1 -Profile <profile> -Standard <standard>` for each of its own Review entries (`Profile -eq` that folder); a resolution error there prints `WARN: <message>` and does not change the exit code. Keep the final "To declare it" line for `-Profile` runs.
   - Update the header comment with the outcome table and exit codes (0 adopted/refreshed/up to date; 1 blocked, nothing written; 2 usage, profile or copy error).
-- [ ] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.`
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/adopt-architecture-profile.ps1 plugins/cogniva-dev/tests/architecture-profile` then `git commit -m "feat(profiles): adoption records, clean refresh, -Refresh and Stage 1 migration"`
+- [x] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.`
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/adopt-architecture-profile.ps1 plugins/cogniva-dev/tests/architecture-profile` then `git commit -m "feat(profiles): adoption records, clean refresh, -Refresh and Stage 1 migration"`
 
 ## Task 4: `accept-profile-delta.ps1` and ADRs
 

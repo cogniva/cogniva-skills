@@ -384,6 +384,8 @@ try {
     $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library)
     Check 'adopt copies the profile and its whole chain' ($a.Code -eq 0 -and (Test-Path (Join-Path $adopt '.cogniva/profiles/python/standards/python/layout.md')) -and (Test-Path (Join-Path $adopt '.cogniva/profiles/base/profile.yml')))
     Check 'adopt never writes a marker' (-not (Test-Path (Join-Path $adopt '.cogniva-profile.yml')))
+    $rec = Join-Path $adopt '.cogniva/adopted/python.yml'
+    Check 'adopt writes an adoption record per adopted profile' ((Test-Path $rec) -and (Test-Path (Join-Path $adopt '.cogniva/adopted/base.yml')) -and (Get-Content -Raw $rec) -match '(?m)^source: plugin-library/python$' -and (Get-Content -Raw $rec) -match '(?m)^content: [0-9a-f]{12}$' -and (Get-Content -Raw $rec) -match '(?m)^plugin-version: ')
     $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library)
     Check 're-adopting an unchanged copy is UP-TO-DATE' ($a.Code -eq 0 -and $a.Out -match 'UP-TO-DATE: python' -and $a.Out -match 'UP-TO-DATE: base')
     $layout = Join-Path $adopt '.cogniva/profiles/python/standards/python/layout.md'
@@ -392,10 +394,48 @@ try {
     Check 'line-ending-only differences count as up to date' ($a.Code -eq 0 -and $a.Out -match 'UP-TO-DATE: python')
     Add-Content -LiteralPath $layout -Value 'Local edit.'
     $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library)
-    Check 'a locally edited copy blocks re-adoption and names the file' ($a.Code -eq 1 -and $a.Out -match 'DIFFERS: \.cogniva/profiles/python - standards/python/layout\.md' -and (Get-Content -Raw $layout) -match 'Local edit')
+    Check 'a locally edited copy is LOCALLY-EDITED, blocked, and names the file' ($a.Code -eq 1 -and $a.Out -match 'LOCALLY-EDITED: \.cogniva/profiles/python - standards/python/layout\.md' -and $a.Out -match 'repo-owned profile' -and (Get-Content -Raw $layout) -match 'Local edit')
     $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library, '-Force')
     Check '-Force replaces the edited copy' ($a.Code -eq 0 -and $a.Out -match 'REPLACED: python' -and -not ((Get-Content -Raw $layout) -match 'Local edit'))
     Check 'a successful replacement leaves no staging or backup folders' (@(Get-ChildItem -LiteralPath (Join-Path $adopt '.cogniva/profiles') -Directory -Force | Where-Object Name -like '.*').Count -eq 0)
+    Write-Fixture $library 'python/standards/python/layout.md' (Std 'Python layout rule, revised.')
+    $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library)
+    Check 'a library update over an unedited copy is REFRESHED without -Force' ($a.Code -eq 0 -and $a.Out -match 'REFRESHED: python' -and (Get-Content -Raw $layout) -match 'revised' -and (Get-Content -Raw $rec) -match ('content: ' + (Get-TreeHash (Join-Path $library 'python'))))
+    Remove-Item -LiteralPath $rec
+    $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library)
+    Check 'a copy equal to the library with no record is UP-TO-DATE and gains a record' ($a.Code -eq 0 -and $a.Out -match 'UP-TO-DATE: python' -and (Test-Path $rec))
+    Remove-Item -LiteralPath $rec
+    Add-Content -LiteralPath $layout -Value 'Unrecorded edit.'
+    $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library)
+    Check 'a differing copy with no record is DIFFERS and blocked' ($a.Code -eq 1 -and $a.Out -match 'DIFFERS: \.cogniva/profiles/python' -and -not (Test-Path $rec))
+    $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'python', '-LibraryRoot', $library, '-Force')
+    Check '-Force replaces an unrecorded copy and records it' ($a.Code -eq 0 -and $a.Out -match 'REPLACED: python' -and (Test-Path $rec))
+
+    # -Refresh: library profiles refresh, repo-owned profiles are byte-identical and get REVIEW lines.
+    Add-Profile $adopt 'acme' "description: Acme.`ninherits: python`n" @{ 'amendments/python/layout.md' = (Delta 'Acme layout.' (Basis @((Std 'Python layout rule, revised.')))) }
+    $acmeBefore = @(Get-ChildItem -LiteralPath (Join-Path $adopt '.cogniva/profiles/acme') -Recurse -File | Get-FileHash | ForEach-Object Hash) -join ','
+    Write-Fixture $library 'python/standards/python/layout.md' (Std 'Python layout rule, third.')
+    $a = Invoke-Script $adopter @('-Repo', $adopt, '-Refresh', '-LibraryRoot', $library)
+    $acmeAfter = @(Get-ChildItem -LiteralPath (Join-Path $adopt '.cogniva/profiles/acme') -Recurse -File | Get-FileHash | ForEach-Object Hash) -join ','
+    Check '-Refresh refreshes every adopted library profile' ($a.Code -eq 0 -and $a.Out -match 'REFRESHED: python' -and $a.Out -match 'UP-TO-DATE: base')
+    Check '-Refresh leaves a repo-owned profile byte-identical' ($acmeBefore -eq $acmeAfter -and -not (Test-Path (Join-Path $adopt '.cogniva/adopted/acme.yml')))
+    Check 'adopt prints REVIEW for a repo-owned delta that went stale' ($a.Out -match 'REVIEW: acme amendment python/layout\.md is STALE')
+    $a = Invoke-Script $adopter @('-Repo', $adopt, '-Refresh', '-Profile', 'python', '-LibraryRoot', $library)
+    Check '-Refresh and -Profile together are a usage error' ($a.Code -eq 2)
+    Remove-Item -LiteralPath (Join-Path $adopt '.cogniva/profiles/acme') -Recurse -Force
+
+    # Stage 1 migration: a record-less copy of the Stage 1 library refreshes cleanly.
+    $stage1 = Join-Path $here 'fixtures\stage1'
+    $migrate = New-Repo 'stage1'
+    $newLibrary = Join-Path $root 'library-next'
+    New-Item -ItemType Directory -Path (Join-Path $migrate '.cogniva/profiles'), $newLibrary -Force | Out-Null
+    foreach ($id in 'cogniva-base', 'dotnet') { Copy-Item -LiteralPath (Join-Path $stage1 $id) -Destination (Join-Path $migrate ".cogniva/profiles/$id") -Recurse -Force }
+    foreach ($id in 'cogniva-base', 'dotnet') { Copy-Item -LiteralPath (Join-Path $stage1 $id) -Destination (Join-Path $newLibrary $id) -Recurse -Force }
+    Remove-Item -LiteralPath (Join-Path $newLibrary 'dotnet/standards/dotnet/module-layout.md')
+    Write-Fixture $newLibrary 'dotnet/standards/dotnet/project-layout.md' (Std 'Next layout.')
+    $a = Invoke-Script $adopter @('-Repo', $migrate, '-Profile', 'dotnet', '-LibraryRoot', $newLibrary)
+    Check 'a Stage 1 adoption with no record refreshes without -Force' ($a.Code -eq 0 -and $a.Out -match 'REFRESHED: dotnet' -and $a.Out -match 'UP-TO-DATE: cogniva-base' -and (Test-Path (Join-Path $migrate '.cogniva/adopted/dotnet.yml')))
+    Check 'a dropped Stage 1 standard is reported with the migration guide' ($a.Out -match 'REMOVED: dotnet/standards/dotnet/module-layout\.md' -and $a.Out -match 'module-bundle-migration\.md')
     $a = Invoke-Script $adopter @('-Repo', $adopt, '-Profile', 'missing', '-LibraryRoot', $library)
     Check 'adopting an unknown profile fails' ($a.Code -eq 2 -and $a.All -match "profile 'missing' is not in the plugin library")
     $fresh = New-Repo 'adopt-ids'
