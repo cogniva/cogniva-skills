@@ -65,7 +65,7 @@ declares nothing sees no change.
 - Test: `plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1`
 - Test: `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`
 
-- [ ] **Step 1 (failing tests):** In `applicable-rules.tests.ps1`, insert before the final `}` of the outer `try` (after the "without pwsh" check):
+- [x] **Step 1 (failing tests):** In `applicable-rules.tests.ps1`, insert before the final `}` of the outer `try` (after the "without pwsh" check):
   ```powershell
       # --- profile-driven placement (needs pwsh to adopt the shipped dotnet profile) ---
       $pwshCmd = Get-Command pwsh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -128,8 +128,8 @@ declares nothing sees no change.
   Check 'applicable-rules: placement checks come from the resolved profile' `
       ($ar -match 'applies-to')
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → FAIL lines for the profile-driven cases; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the two new pins.
-- [ ] **Step 3 (implement the script):** In `resolve-applicable-rules.ps1`, inside the per-target loop:
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → FAIL lines for the profile-driven cases; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the two new pins.
+- [x] **Step 3 (implement the script):** In `resolve-applicable-rules.ps1`, inside the per-target loop:
   1. Move the architecture-profile block (the `if (-not $profileReport.Available) … else …` that builds `$architectureProfile`) **above** the placement checks, and keep `$resolved` (the per-target resolver entry, `$null` when unavailable or on a usage error).
   2. Replace the two placement `if` blocks with:
      ```powershell
@@ -168,10 +168,10 @@ declares nothing sees no change.
      Keep the existing per-target `ERROR` review reason. Note `$conflicts` must be initialised before this block, and the existing `CONFLICT:` → `$reviewReasons` loop must still run after it.
   3. Add `MatchedStandards = @($matchedStandards)` and `ReviewNotes = @($reviewNotes | Select-Object -Unique)` to each item.
   4. Text output, after the `PLACEMENT:` lines: `foreach ($s in $item.MatchedStandards) { Write-Output "  STANDARD: $($s.Id) - $($s.Description)" }` and, after the `REVIEW_REQUIRED:` lines, `foreach ($note in $item.ReviewNotes) { Write-Output "  REVIEW: $note" }`.
-- [ ] **Step 4 (implement the SKILL contract):** In `plugins/cogniva-dev/skills/applicable-rules/SKILL.md`:
+- [x] **Step 4 (implement the SKILL contract):** In `plugins/cogniva-dev/skills/applicable-rules/SKILL.md`:
   - Replace "and highlights Host and Contracts placement risks." with: "and highlights placement risks. Where a target has a resolved architecture profile, the placement checks come from it: a message fires only for standards whose `applies-to` globs match the path (`MatchedStandards`, printed as `STANDARD:` lines). `profile: none` turns them off; undeclared paths keep the path heuristics for Hosts and Contracts folders."
   - Replace "State the intended owning Module or layer" with "State the intended owning unit (as the repository defines its units)".
   - After the sentence ending "a natural-language policy engine.", add: "A standard that needs human review (an amendment or replacement standard whose inherited text changed) makes `Decision` `REVIEW_REQUIRED` only for targets whose matched standards include it. `REVIEW:` lines are informational: they report review items on other standards and never change `Decision`."
-- [ ] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → `All applicable-rules assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → passes (its Linux-only applicable-rules check is unaffected).
-- [ ] **Step 6 (write ADR):** scan `docs/adr/` for the next number and write ADR-C5 from this sub-plan's `## Candidate ADRs` verbatim (heading without the `ADR-C5:` label; keep Provenance and `**Relitigation:** Open to discussion`) to `docs/adr/NNNN-placement-warnings-come-from-the-resolved-profile.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/resolve-applicable-rules.ps1 plugins/cogniva-dev/skills/applicable-rules/SKILL.md plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1 plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "feat(applicable-rules): placement checks and review escalation come from the resolved profile"`
+- [x] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → `All applicable-rules assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → passes (its Linux-only applicable-rules check is unaffected).
+- [x] **Step 6 (write ADR):** scan `docs/adr/` for the next number and write ADR-C5 from this sub-plan's `## Candidate ADRs` verbatim (heading without the `ADR-C5:` label; keep Provenance and `**Relitigation:** Open to discussion`) to `docs/adr/NNNN-placement-warnings-come-from-the-resolved-profile.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/resolve-applicable-rules.ps1 plugins/cogniva-dev/skills/applicable-rules/SKILL.md plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1 plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "feat(applicable-rules): placement checks and review escalation come from the resolved profile"`

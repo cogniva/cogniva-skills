@@ -23,17 +23,26 @@ For more than one planned path, pass a comma-separated `-Target` value (or run
 the command once per path). The resolver walks from the repository root through
 each existing target parent, reports all applicable `AGENTS.md` files
 first-class, preserves applicable substantive `CLAUDE.md` authority, and
-highlights Host and Contracts placement risks. Its machine-readable result
+highlights placement risks. Where a target has a resolved architecture profile,
+the placement checks come from it: a message fires only for standards whose
+`applies-to` globs match the path (`MatchedStandards`, printed as `STANDARD:`
+lines). `profile: none` turns them off; undeclared paths keep the path
+heuristics for Hosts and Contracts folders. Its machine-readable result
 states the effective authority order and the AGENTS precedence rule: a
 more-specific AGENTS.md adds to or explicitly overrides broader instructions,
 but cannot silently weaken broader safety or architecture guardrails.
 
 Read the reported instruction files before acting. State the intended owning
-Module or layer, permitted dependency direction, and validation obligations.
+unit (as the repository defines its units), permitted dependency direction, and
+validation obligations.
 If `Decision` is `REVIEW_REQUIRED`, do not derive placement or ownership
 conclusions automatically. Stop before implementation and request a human
 architecture decision. The conservative conflict heuristic is a review aid, not
-a natural-language policy engine.
+a natural-language policy engine. A standard that needs human review (an
+amendment or replacement standard whose inherited text changed) makes
+`Decision` `REVIEW_REQUIRED` only for targets whose matched standards include
+it. `REVIEW:` lines are informational: they report review items on other
+standards and never change `Decision`.
 
 Each target also reports `ArchitectureProfile`: the profile that applies there
 and the `.cogniva-profile.yml` marker it came from, or `UNDECLARED`, `NONE`,

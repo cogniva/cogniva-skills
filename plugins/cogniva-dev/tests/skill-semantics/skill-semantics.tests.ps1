@@ -131,6 +131,10 @@ Check 'PLAN-FORMAT carries the Architecture profile header line' `
     ($fmt -match '\*\*Architecture profile:\*\*')
 Check 'applicable-rules documents the ArchitectureProfile field' `
     ($ar -match 'ArchitectureProfile')
+Check 'applicable-rules: REVIEW: lines are informational, REVIEW_REQUIRED stops' `
+    ($ar -match '`REVIEW:` lines are informational' -and $ar -match 'Decision` is `REVIEW_REQUIRED`')
+Check 'applicable-rules: placement checks come from the resolved profile' `
+    ($ar -match 'applies-to')
 Check 'PLAN-FORMAT header defers committing to the commits= policy' `
     ($fmt -notmatch 'tasks commit on the branch they are already on' -and ($fmt -replace '\s+', ' ') -match 'commit step applies only when the run''s .commits=. policy commits')
 
