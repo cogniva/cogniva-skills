@@ -5,7 +5,7 @@ Cogniva's plugin marketplace (`cogniva`) for Claude Code and OpenAI Codex — bo
 | Plugin | Purpose |
 |---|---|
 | **cogniva-skills** | General-purpose skills for any project |
-| **cogniva-dev** | Development-specific skills for the Module architecture |
+| **cogniva-dev** | Development-specific skills: the feature lifecycle, ADRs, backlog, .NET scaffolding and architecture profiles |
 
 ### cogniva-skills
 
@@ -24,15 +24,15 @@ Cogniva's plugin marketplace (`cogniva`) for Claude Code and OpenAI Codex — bo
 |---|---|
 | `plugins/cogniva-dev/skills/adr` | Record architectural decisions as ADRs (confirm-first) |
 | `plugins/cogniva-dev/skills/backlog` | Capture planned deferrals — work with a stated reason to wait |
-| `plugins/cogniva-dev/skills/repo-init` | Scaffold a brand-new Module-architecture .NET repo |
-| `plugins/cogniva-dev/skills/add-module` | Add a Module (vertical slice) to an existing repo |
+| `plugins/cogniva-dev/skills/repo-init` | Scaffold a brand-new .NET repo on the `dotnet` architecture profile |
+| `plugins/cogniva-dev/skills/add-module` | Add a Module to a repo on the Module bundle layout |
 | `plugins/cogniva-dev/skills/explore-idea` | Brainstorm and develop an idea before any planning |
 | `plugins/cogniva-dev/skills/plan-feature` | Design one feature with a strong model before implementation |
 | `plugins/cogniva-dev/skills/execute-feature` | Execute a feature plan task-by-task in isolated worktrees |
 | `plugins/cogniva-dev/skills/quick-fix` | Planless sibling of execute-feature for small changes |
 | `plugins/cogniva-dev/skills/cleanup-work` | Close out this session's integrated worktrees |
 | `plugins/cogniva-dev/skills/cleanup-allwork` | Checkout-wide reap of every cleanupable worktree |
-| `plugins/cogniva-dev/skills/module-deps` | Legacy Module layout: regenerate the Module dependency graph from .csproj references, or check it for cycles (`-Check`) |
+| `plugins/cogniva-dev/skills/module-deps` | Module bundle layout: regenerate the Module dependency graph from .csproj references, or check it for cycles (`-Check`) |
 | `plugins/cogniva-dev/skills/feature-status` | Read-only scan of per-feature task progress |
 | `plugins/cogniva-dev/skills/module-status` | Read-only view of one Module's features and backlog |
 | `plugins/cogniva-dev/skills/repo-status` | Cross-Module roll-up of the live roadmap |
@@ -76,7 +76,7 @@ In Claude Code, from the consuming repo (GitHub, or substitute the path of a loc
 /plugin install cogniva-dev@cogniva
 ```
 
-Then run the `repo-init` skill in an empty repo, or `add-module` in an existing one.
+Then run the `repo-init` skill in an empty repo (or `add-module` in a repo on the Module bundle layout).
 
 Under OpenAI Codex:
 

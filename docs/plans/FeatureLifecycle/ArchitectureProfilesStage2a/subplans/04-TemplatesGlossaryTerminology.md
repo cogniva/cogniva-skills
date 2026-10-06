@@ -170,8 +170,8 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
 **Files:**
 - Modify: `docs/glossary/README.md`, `docs/strategy.md`, `README.md`
 
-- [ ] **Step 1 (glossary — relabel):** In `docs/glossary/README.md`, prefix the definition paragraph of each of **Module**, **Contracts**, **Domain**, **Application**, **Infrastructure**, **Client** and **Module UI** with `Part of the [Module bundle layout](#module-bundle-layout). ` (same paragraph, before the existing first word). Change nothing else in those entries.
-- [ ] **Step 2 (glossary — new entry before `## Module`):**
+- [x] **Step 1 (glossary — relabel):** In `docs/glossary/README.md`, prefix the definition paragraph of each of **Module**, **Contracts**, **Domain**, **Application**, **Infrastructure**, **Client** and **Module UI** with `Part of the [Module bundle layout](#module-bundle-layout). ` (same paragraph, before the existing first word). Change nothing else in those entries.
+- [x] **Step 2 (glossary — new entry before `## Module`):**
   ```markdown
   ## Module bundle layout
 
@@ -179,7 +179,7 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
   _Avoid_: legacy layout, Module architecture
 
   ```
-- [ ] **Step 3 (glossary — rewrite Host, add Common types after it):** Replace the `## Host` entry's definition and keep its `_Avoid_` line:
+- [x] **Step 3 (glossary — rewrite Host, add Common types after it):** Replace the `## Host` entry's definition and keep its `_Avoid_` line:
   ```markdown
   ## Host
 
@@ -191,13 +191,13 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
   A small, slow-changing project of types used across the codebase. It references no project that owns behaviour, so anything may depend on it. It is an ordinary referenced project, not a Visual Studio Shared Project (`.shproj`) or linked source.
   _Avoid_: shared types, shared project, utilities
   ```
-- [ ] **Step 4 (glossary — rewrite Vertical Slice):**
+- [x] **Step 4 (glossary — rewrite Vertical Slice):**
   ```markdown
   ## Vertical Slice
 
   The style of dividing a system by business capability rather than technical layer. In the [Module bundle layout](#module-bundle-layout), each slice is a [Module](#module).
   ```
-- [ ] **Step 5 (glossary — Plan and Spec):**
+- [x] **Step 5 (glossary — Plan and Spec):**
   ```markdown
   ## Plan
 
@@ -207,14 +207,14 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
 
   A validated design document in `docs/specs/`, written before a [Plan](#plan).
   ```
-- [ ] **Step 6 (glossary — rewrite Architecture profile):**
+- [x] **Step 6 (glossary — rewrite Architecture profile):**
   ```markdown
   ## Architecture profile
 
   A named set of declarative architectural standards for one kind of codebase (e.g. `dotnet`): a folder holding a `profile.yml` and Markdown files under `standards/`. It may inherit one other profile. It adds new standards under `standards/`, changes inherited ones with [Amendments](#amendment), or, rarely, supersedes them with a [Replacement standard](#replacement-standard); a same-name file in `standards/` is an error. A profile is either a [Library profile](#library-profile) or a [Repo-owned profile](#repo-owned-profile), and tools read only the repo's copies. Selected per path by a [Profile marker](#profile-marker).
   _Avoid_: stack, tech profile, template
   ```
-- [ ] **Step 7 (glossary — four new entries after `## Profile marker`):**
+- [x] **Step 7 (glossary — four new entries after `## Profile marker`):**
   ```markdown
   ## Amendment
 
@@ -236,7 +236,7 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
   An [Architecture profile](#architecture-profile) a repository writes for itself under `.cogniva/profiles/`. It usually inherits a [Library profile](#library-profile) and adds the repo's own standards, amendments and exceptions. Adopt and refresh never touch it.
   _Avoid_: child profile, custom profile
   ```
-- [ ] **Step 8 (strategy):** In `docs/strategy.md`, replace the bullets of `## Conventions (canonical definitions: docs/glossary/README.md)` with:
+- [x] **Step 8 (strategy):** In `docs/strategy.md`, replace the bullets of `## Conventions (canonical definitions: docs/glossary/README.md)` with:
   ```markdown
   - New .NET repos follow the `dotnet` [Architecture profile](glossary/README.md#architecture-profile):
     Cogniva's shared .NET principles plus default conventions - the first folder
@@ -252,9 +252,9 @@ plugins/cogniva-dev/skills/workflow-status/workflow-status.ps1   # invented exam
   - Plans in `docs/plans/`.
   ```
   In `## Architecture profiles`, after the first sentence, add: "Library profiles are copied in with an adoption record (`.cogniva/adopted/<id>.yml`) so a refresh can tell a library update from a local edit; a repo's own rules go in a [Repo-owned profile](glossary/README.md#repo-owned-profile) that amends or adds to them."
-- [ ] **Step 9 (README):** In `README.md`: the cogniva-dev row's "Development-specific skills for the Module architecture" → "Development-specific skills: the feature lifecycle, ADRs, backlog, .NET scaffolding and architecture profiles"; the `repo-init` row → "Scaffold a brand-new .NET repo on the `dotnet` architecture profile"; the `add-module` row → "Add a Module to a repo on the Module bundle layout"; the `module-deps` row's "Legacy Module layout:" → "Module bundle layout:"; "Then run the `repo-init` skill in an empty repo, or `add-module` in an existing one." → "Then run the `repo-init` skill in an empty repo (or `add-module` in a repo on the Module bundle layout)."
-- [ ] **Step 10 (check):** `grep -n "Module bundle layout" docs/glossary/README.md docs/strategy.md README.md` → hits in all three; `grep -n "superpowers" docs/glossary/README.md docs/strategy.md` → none.
-- [ ] **Step 11 (commit):** `git add docs/glossary/README.md docs/strategy.md README.md` then `git commit -m "docs: glossary gains the profile vocabulary and Module bundle layout; strategy follows dotnet"`
+- [x] **Step 9 (README):** In `README.md`: the cogniva-dev row's "Development-specific skills for the Module architecture" → "Development-specific skills: the feature lifecycle, ADRs, backlog, .NET scaffolding and architecture profiles"; the `repo-init` row → "Scaffold a brand-new .NET repo on the `dotnet` architecture profile"; the `add-module` row → "Add a Module to a repo on the Module bundle layout"; the `module-deps` row's "Legacy Module layout:" → "Module bundle layout:"; "Then run the `repo-init` skill in an empty repo, or `add-module` in an existing one." → "Then run the `repo-init` skill in an empty repo (or `add-module` in a repo on the Module bundle layout)."
+- [x] **Step 10 (check):** `grep -n "Module bundle layout" docs/glossary/README.md docs/strategy.md README.md` → hits in all three; `grep -n "superpowers" docs/glossary/README.md docs/strategy.md` → none.
+- [x] **Step 11 (commit):** `git add docs/glossary/README.md docs/strategy.md README.md` then `git commit -m "docs: glossary gains the profile vocabulary and Module bundle layout; strategy follows dotnet"`
 
 ## Task 3: Module bundle layout rename and the plugin-wide leak check
 
