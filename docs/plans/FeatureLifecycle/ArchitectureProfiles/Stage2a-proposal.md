@@ -1,17 +1,12 @@
 # Architecture profiles — Stage 2a proposal (rev 3)
 
-> Status: **Stage 2a.0 (§4.0, `module-deps`) is implemented by PR #15**, from
-> the plan in `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`. **The rest of
-> Stage 2a remains a proposal for review**: not an executable plan, and not
-> implemented. Once approved, it becomes the Stage 2a `plan-feature` plan.
->
-> - Rev 2 recorded D1–D8 and gave CognivaShell more evidentiary weight.
-> - Rev 3.1 records D11 (option a), D12 and the softer shared-code wording.
-> - Rev 3 drops `dotnet-modules` (D9) and refines the `cogniva-base` / `dotnet`
->   split (D10).
-> - Because of D9, rev 3 also treats the old Module bundle as *legacy* rather
->   than something the library preserves, and re-scopes `repo-init` and
->   `add-module` accordingly.
+> Status: **Stage 2a is implemented.** 2a.0 (`module-deps`) by PR #15, from
+> `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`; the rest from the plan in
+> `docs/plans/FeatureLifecycle/ArchitectureProfilesStage2a/`, which records
+> where it departs from this text (naming: Library profile, Repo-owned profile,
+> Module bundle layout, Common types; `.cogniva/adopted/` records; no `Kind`
+> field; block-list `applies-to`; an automated repo-init check). This document
+> is kept as the design record; the plan and the shipped docs win where they differ.
 
 **Stage 2a goal:**
 - Put Cogniva's shared .NET principles, and the defaults we want future repos

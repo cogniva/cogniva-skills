@@ -91,7 +91,7 @@ docs/plans/FeatureLifecycle/ArchitectureProfiles/Stage2a-proposal.md # status he
 **Files:**
 - Modify: `docs/plans/FeatureLifecycle/ArchitectureProfiles/Stage2a-proposal.md`
 
-- [ ] **Step 1:** Replace the proposal's opening status blockquote (every `>` line from `> Status:` down to the blank line before `**Stage 2a goal:**`) with:
+- [x] **Step 1:** Replace the proposal's opening status blockquote (every `>` line from `> Status:` down to the blank line before `**Stage 2a goal:**`) with:
   ```markdown
   > Status: **Stage 2a is implemented.** 2a.0 (`module-deps`) by PR #15, from
   > `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`; the rest from the plan in
@@ -101,5 +101,5 @@ docs/plans/FeatureLifecycle/ArchitectureProfiles/Stage2a-proposal.md # status he
   > field; block-list `applies-to`; an automated repo-init check). This document
   > is kept as the design record; the plan and the shipped docs win where they differ.
   ```
-- [ ] **Step 2 (full gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → every command in `.claude/cogniva-dev/green-gate.json` exits 0 (including `claude plugin validate .`, manifest parity, `architecture-profile` and `profile-library`). A failing command is a defect to fix before finishing.
-- [ ] **Step 3 (commit):** `git add docs/plans/FeatureLifecycle/ArchitectureProfiles/Stage2a-proposal.md` then `git commit -m "docs(plans): mark Stage 2a implemented"`
+- [x] **Step 2 (full gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → every command in `.claude/cogniva-dev/green-gate.json` exits 0 (including `claude plugin validate .`, manifest parity, `architecture-profile` and `profile-library`). A failing command is a defect to fix before finishing.
+- [x] **Step 3 (commit):** `git add docs/plans/FeatureLifecycle/ArchitectureProfiles/Stage2a-proposal.md` then `git commit -m "docs(plans): mark Stage 2a implemented"`
