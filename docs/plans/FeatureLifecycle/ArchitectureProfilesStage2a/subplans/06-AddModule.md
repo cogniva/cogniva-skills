@@ -45,7 +45,7 @@ plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1   # -Require
 - Test: `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`
 - Test: `plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1`
 
-- [ ] **Step 1 (skill pins):** Add `$am = ReadDoc 'skills\add-module\SKILL.md'` after the `$gc = …` line, and append before the final `if ($failures.Count -gt 0)`:
+- [x] **Step 1 (skill pins):** Add `$am = ReadDoc 'skills\add-module\SKILL.md'` after the `$gc = …` line, and append before the final `if ($failures.Count -gt 0)`:
   ```powershell
   # --- add-module is the Module bundle layout scaffolder -------------------------
   Check 'add-module keeps the undeclared steps' ($am -match 'undeclared' -and $am -match 'dotnet new classlib -n <M>\.Contracts')
@@ -56,7 +56,7 @@ plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1   # -Require
   Check 'add-module stops on none or error' ($am -match 'PROFILE: none')
   Check 'add-module scaffolds only the selected projects in a declared repo' ($am -match 'selected projects only' -and $am -match 'Application was chosen')
   ```
-- [ ] **Step 2 (gate fixture):** In `profile-library.tests.ps1`, insert directly above `# --- sections appended by later sub-plans go above this line ---`:
+- [x] **Step 2 (gate fixture):** In `profile-library.tests.ps1`, insert directly above `# --- sections appended by later sub-plans go above this line ---`:
   ```powershell
       # --- add-module's gate: only the standards it depends on can block it -------
       $gate = New-DotnetRepo 'add-module-gate'
@@ -77,8 +77,8 @@ plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1   # -Require
       $r = Resolve-Json $gate @('-Target', 'src/Modules', '-Require', $requireSet)
       Check 'a stale standard in the dependency set blocks add-module (exit 3)' ($r.Code -eq 3 -and @($r.Json.Require.Blocked.Standard) -contains 'dotnet/project-layout.md')
   ```
-- [ ] **Step 3 (run them):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the add-module pins (expected until Task 2). `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → the three gate checks PASS already (they exercise Sub-plan 01's resolver); a failure there is a Sub-plan 01 defect to fix now.
-- [ ] **Step 4 (commit):** `git add plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` then `git commit -m "test(add-module): pin the layout check and prove its -Require gate"`
+- [x] **Step 3 (run them):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the add-module pins (expected until Task 2). `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → the three gate checks PASS already (they exercise Sub-plan 01's resolver); a failure there is a Sub-plan 01 defect to fix now.
+- [x] **Step 4 (commit):** `git add plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` then `git commit -m "test(add-module): pin the layout check and prove its -Require gate"`
 
 ## Task 2: Rewrite the top of `add-module`
 

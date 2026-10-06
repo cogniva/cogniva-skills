@@ -131,6 +131,25 @@ try {
     $stale = @(Get-ChildItem -LiteralPath $plugin -Recurse -File | Where-Object { $_.Name -ne 'profile-library.tests.ps1' -and (Get-Content -Raw -LiteralPath $_.FullName -ErrorAction SilentlyContinue) -match '(?i)legacy Module[- ]layout' } | ForEach-Object Name)
     Check "no 'legacy Module layout' wording remains ($($stale -join ', '))" ($stale.Count -eq 0)
 
+    # --- add-module's gate: only the standards it depends on can block it -------
+    $gate = New-DotnetRepo 'add-module-gate'
+    Write-Fixture $gate '.cogniva/profiles/acme/profile.yml' "description: Acme's Module bundle layout on dotnet.`ninherits: dotnet`n"
+    Write-Fixture $gate '.cogniva/profiles/acme/amendments/dotnet/project-layout.md' "---`ndescription: Acme adds a Modules kind.`n---`n`n- ``src/Modules/<Name>/`` is a kind: one folder per Module.`n"
+    Write-Fixture $gate '.cogniva/profiles/acme/amendments/dotnet/ui.md' "---`ndescription: Acme UI note.`n---`n`n- Acme UI.`n"
+    Write-Fixture $gate '.cogniva-profile.yml' "profile: acme`n"
+    Invoke-Script $accepter @('-Repo', $gate, '-Profile', 'acme', '-All') | Out-Null
+    $requireSet = 'dotnet/project-layout.md,dotnet/projects-and-references.md,architecture/composition-roots.md,architecture/common-and-published-types.md'
+    $r = Resolve-Json $gate @('-Target', 'src/Modules', '-Require', $requireSet)
+    Check "add-module's dependency set passes on a current profile" ($r.Code -eq 0)
+    $uiFile = Join-Path $gate '.cogniva/profiles/acme/amendments/dotnet/ui.md'
+    Write-Fixture $gate '.cogniva/profiles/acme/amendments/dotnet/ui.md' ((Get-Content -Raw -LiteralPath $uiFile) -replace 'basis: [0-9a-f]{12}', 'basis: aaaaaaaaaaaa')
+    $r = Resolve-Json $gate @('-Target', 'src/Modules', '-Require', $requireSet)
+    Check "a stale standard outside add-module's dependency set does not block it" ($r.Code -eq 0 -and $r.Json.Targets[0].NeedsReview -eq $true)
+    $layoutFile = Join-Path $gate '.cogniva/profiles/acme/amendments/dotnet/project-layout.md'
+    Write-Fixture $gate '.cogniva/profiles/acme/amendments/dotnet/project-layout.md' ((Get-Content -Raw -LiteralPath $layoutFile) -replace 'basis: [0-9a-f]{12}', 'basis: aaaaaaaaaaaa')
+    $r = Resolve-Json $gate @('-Target', 'src/Modules', '-Require', $requireSet)
+    Check 'a stale standard in the dependency set blocks add-module (exit 3)' ($r.Code -eq 3 -and @($r.Json.Require.Blocked.Standard) -contains 'dotnet/project-layout.md')
+
     # --- sections appended by later sub-plans go above this line ---
 }
 finally {

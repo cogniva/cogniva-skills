@@ -26,6 +26,7 @@ $cb      = ReadDoc 'skills\backlog\CAPTURE-BAR.md'
 $ar      = ReadDoc 'skills\applicable-rules\SKILL.md'
 $fc      = ReadDoc 'skills\feature-check\SKILL.md'
 $gc      = ReadDoc 'skills\gate-check\SKILL.md'
+$am = ReadDoc 'skills\add-module\SKILL.md'
 $ri      = ReadDoc 'skills\repo-init\SKILL.md'
 
 $failures = @()
@@ -150,6 +151,15 @@ Check 'repo-init asks for .slnx explicitly' ($ri -match 'dotnet new sln -n <Repo
 Check 'repo-init adopts and declares dotnet' ($ri -match 'adopt-architecture-profile\.ps1' -and $ri -match 'profile: dotnet')
 Check 'repo-init gates with -Require like other architecture-dependent skills' ($ri -match '-Require')
 Check 'repo-init template files exist' ((@('templates\repo\AGENTS.md', 'templates\repo\CLAUDE.md', 'templates\repo\Directory.Build.props', 'templates\repo\docs\glossary\README.md') | Where-Object { -not (Test-Path (Join-Path $plugin $_)) }).Count -eq 0)
+
+# --- add-module is the Module bundle layout scaffolder -------------------------
+Check 'add-module keeps the undeclared steps' ($am -match 'undeclared' -and $am -match 'dotnet new classlib -n <M>\.Contracts')
+Check 'add-module reads the effective layout with -Show' ($am -match '-Show dotnet/project-layout\.md')
+Check 'add-module gates a declared repo with -Require on its dependency set' ($am -match '-Require' -and $am -match 'dotnet/projects-and-references\.md' -and $am -match 'architecture/common-and-published-types\.md')
+Check 'add-module stops on exit 3' ($am -match 'Exit 3')
+Check 'add-module stops in a repo without a Modules kind' ($am -match 'does not use the Module bundle layout')
+Check 'add-module stops on none or error' ($am -match 'PROFILE: none')
+Check 'add-module scaffolds only the selected projects in a declared repo' ($am -match 'selected projects only' -and $am -match 'Application was chosen')
 
 if ($failures.Count -gt 0) {
     Write-Host ""
