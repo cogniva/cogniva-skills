@@ -496,6 +496,94 @@ try {
     }
     else { Write-Host '  SKIP  swap rollback (needs Windows file locking)' }
 
+    # --- structural-change policy: kinds, detectors, structure-requires ---------
+    $st = New-Repo 'structure'
+    $stBaseYaml = "description: Base.`nstructure-kinds:`n  - unit-added`n  - dependency-added`nstructure-requires:`n  - `"unit-added architecture/owner.md`"`n  - `"dependency-added architecture/edges.md`"`n"
+    Add-Profile $st 'base' $stBaseYaml @{ 'architecture/owner.md' = (Std 'Base owner.'); 'architecture/edges.md' = (Std 'Base edges.'); 'architecture/other.md' = (Std 'Base other.') }
+    Add-Profile $st 'tech' "description: Tech.`ninherits: base`nstructure-detectors:`n  - tech-detector`nstructure-requires:`n  - `"unit-added tech/layout.md`"`n" @{ 'tech/layout.md' = (Std 'Tech layout.'); 'amendments/architecture/owner.md' = (Delta 'Tech owner.' (Basis @((Std 'Base owner.')))); 'amendments/architecture/other.md' = (Delta 'Tech other.' (Basis @((Std 'Base other.')))) }
+    $stRepoYaml = "description: Repo.`ninherits: tech`nstructure-kinds:`n  - code-moved`nstructure-detectors:`n  - repo-detector`n  - tech-detector`nstructure-requires-dropped:`n  - `"unit-added tech/layout.md`"`nstructure-requires:`n  - `"code-moved architecture/owner.md`"`n  - `"dependency-added repo/edges.md`"`n"
+    Add-Profile $st 'repo' $stRepoYaml @{ 'repo/edges.md' = (Std 'Repo edges.') }
+    Write-Fixture $st '.cogniva-profile.yml' "profile: repo`n"
+
+    $r = Resolve-Json $st @('-Target', 'src')
+    $s = $r.Json.Profiles.repo.Structure
+    Check 'structure policy resolves with no warnings' ($r.Code -eq 0 -and @($r.Json.Warnings).Count -eq 0)
+    Check 'structure kinds add up, root first' ((@($s.Kinds) -join ',') -eq 'unit-added,dependency-added,code-moved')
+    Check 'structure detectors add up, root first, without duplicates' ((@($s.Detectors) -join ',') -eq 'tech-detector,repo-detector')
+    Check 'a child adds pairs to inherited and own kinds' ((@($s.Requires.'dependency-added') -join ',') -eq 'architecture/edges.md,repo/edges.md' -and (@($s.Requires.'code-moved') -join ',') -eq 'architecture/owner.md')
+    Check 'a child drops one inherited pair by name' ((@($s.Requires.'unit-added') -join ',') -eq 'architecture/owner.md')
+    $r = Resolve-Json $st @('-Target', 'src', '-Profile', 'tech')
+    Check 'the parent keeps the pair its child dropped' ((@($r.Json.Profiles.tech.Structure.Requires.'unit-added') -join ',') -eq 'architecture/owner.md,tech/layout.md')
+    $text = Invoke-Script $resolver @('-Repo', $st, '-Target', 'src', '-LibraryRoot', $library)
+    Check 'text output lists the structure policy' ($text.Out -match 'STRUCTURE DETECTORS: tech-detector, repo-detector' -and $text.Out -match 'STRUCTURE REQUIRES dependency-added: architecture/edges\.md, repo/edges\.md')
+
+    # -Kinds feeds the -Require gate
+    $r = Resolve-Json $st @('-Target', 'src', '-Kinds', 'dependency-added')
+    Check '-Kinds requires the standards its kinds map to' ($r.Code -eq 0 -and (@($r.Json.Require.ByTarget[0].Standards) -join ',') -eq 'architecture/edges.md,repo/edges.md' -and @($r.Json.Require.Blocked).Count -eq 0 -and (@($r.Json.Require.Kinds) -join ',') -eq 'dependency-added')
+    $text = Invoke-Script $resolver @('-Repo', $st, '-Target', 'src', '-Kinds', 'dependency-added', '-LibraryRoot', $library)
+    Check '-Kinds text output lists the required standards' ($text.Code -eq 0 -and $text.Out -match 'REQUIRE: ok \(architecture/edges\.md, repo/edges\.md\)')
+    $r = Resolve-Json $st @('-Target', 'src', '-Kinds', 'unit-removed')
+    Check 'a kind the profile does not declare requires nothing and is reported' ($r.Code -eq 0 -and @($r.Json.Require.ByTarget[0].Standards).Count -eq 0 -and (@($r.Json.Require.ByTarget[0].UnknownKinds) -join ',') -eq 'unit-removed')
+    $text = Invoke-Script $resolver @('-Repo', $st, '-Target', 'src', '-Kinds', 'unit-removed', '-LibraryRoot', $library)
+    Check 'an undeclared kind prints REQUIRE ok with nothing required and a KIND NOT DECLARED line' ($text.Code -eq 0 -and $text.Out -match 'REQUIRE: ok \(no standards required\)' -and $text.Out -match 'KIND NOT DECLARED: src unit-removed \(profile repo\)')
+    $r = Resolve-Json $st @('-Target', 'src', '-Kinds', 'Not_A_Kind')
+    Check '-Kinds rejects a malformed kind as a usage error' ($r.Code -eq 2)
+
+    # MIXED targets: each target keeps its own profile's list, and -Show takes that list
+    Write-Fixture $st 'tools/.cogniva-profile.yml' "profile: tech`n"
+    $r = Resolve-Json $st @('-Target', 'src,tools', '-Kinds', 'dependency-added')
+    $bySrc = @($r.Json.Require.ByTarget | Where-Object Target -eq 'src')
+    $byTools = @($r.Json.Require.ByTarget | Where-Object Target -eq 'tools')
+    Check '-Kinds on MIXED targets keeps each profile''s own list' ($r.Code -eq 0 -and $bySrc.Count -eq 1 -and (@($bySrc[0].Standards) -join ',') -eq 'architecture/edges.md,repo/edges.md' -and $byTools.Count -eq 1 -and $byTools[0].Profile -eq 'tech' -and (@($byTools[0].Standards) -join ',') -eq 'architecture/edges.md')
+    $text = Invoke-Script $resolver @('-Repo', $st, '-Target', 'src,tools', '-Kinds', 'dependency-added', '-LibraryRoot', $library)
+    Check '-Kinds text output prints one REQUIRE FOR line per target' ($text.Code -eq 0 -and $text.Out -match 'REQUIRE FOR src \(repo\): architecture/edges\.md, repo/edges\.md' -and $text.Out -match 'REQUIRE FOR tools \(tech\): architecture/edges\.md')
+    $show = Invoke-Script $resolver @('-Repo', $st, '-Target', 'tools', '-Show', 'architecture/edges.md', '-LibraryRoot', $library)
+    Check '-Show with a target''s own REQUIRE FOR list succeeds' ($show.Code -eq 0 -and $show.Out -match 'SHOW architecture/edges\.md - profile tech')
+    $show = Invoke-Script $resolver @('-Repo', $st, '-Target', 'tools', '-Show', 'architecture/edges.md,repo/edges.md', '-LibraryRoot', $library)
+    Check '-Show with another profile''s standard in the list is a usage error' ($show.Code -eq 2)
+    Remove-Item -LiteralPath (Join-Path $st 'tools') -Recurse -Force
+
+    # only the standards a kind requires can block it
+    Write-Fixture $st '.cogniva/profiles/base/standards/architecture/other.md' (Std 'Base other, changed.')
+    $r = Resolve-Json $st @('-Target', 'src', '-Kinds', 'unit-added')
+    Check '-Kinds passes when only an unrelated standard is stale' ($r.Code -eq 0 -and $r.Json.Targets[0].NeedsReview -eq $true)
+    Write-Fixture $st '.cogniva/profiles/base/standards/architecture/other.md' (Std 'Base other.')
+    Write-Fixture $st '.cogniva/profiles/base/standards/architecture/owner.md' (Std 'Base owner, changed.')
+    $r = Resolve-Json $st @('-Target', 'src', '-Kinds', 'unit-added')
+    Check '-Kinds exits 3 when a standard the kind requires is stale' ($r.Code -eq 3 -and @($r.Json.Require.Blocked | Where-Object { $_.Standard -eq 'architecture/owner.md' -and $_.Reason -match 'needs human review' }).Count -eq 1)
+    Write-Fixture $st '.cogniva/profiles/base/standards/architecture/owner.md' (Std 'Base owner.')
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' ($stRepoYaml + "  - `"code-moved repo/missing.md`"`n")
+    $r = Resolve-Json $st @('-Target', 'src', '-Kinds', 'code-moved')
+    Check '-Kinds exits 3 when a kind maps to a standard the profile lacks' ($r.Code -eq 3 -and @($r.Json.Require.Blocked | Where-Object { $_.Standard -eq 'repo/missing.md' -and $_.Reason -match "not in profile 'repo'" }).Count -eq 1)
+    Check 'a pair naming a missing standard is warned about' (@($r.Json.Warnings | Where-Object { $_ -match 'repo/missing\.md' }).Count -ge 1)
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' $stRepoYaml
+
+    # malformed policy is an ERROR for the profile's targets
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' ($stRepoYaml + "  - `"code-movd architecture/owner.md`"`n")
+    $r = Resolve-Json $st @('-Target', 'src')
+    Check 'a pair naming an undeclared kind is an ERROR' (Test-TargetError $r "structure kind 'code-movd' is not declared")
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' ($stRepoYaml + "  - `"unit-added tech/layout.md`"`n")
+    $r = Resolve-Json $st @('-Target', 'src')
+    Check 'requiring and dropping one pair in one profile is an ERROR' (Test-TargetError $r 'in both structure-requires and structure-requires-dropped')
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' ($stRepoYaml + "  - `"code-moved`"`n")
+    $r = Resolve-Json $st @('-Target', 'src')
+    Check 'a pair without a .md standard id is an ERROR' (Test-TargetError $r "must be '<kind> <standard id>'")
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' ($stRepoYaml.Replace('  - repo-detector', '  - Repo_Detector'))
+    $r = Resolve-Json $st @('-Target', 'src')
+    Check 'a malformed detector id is an ERROR' (Test-TargetError $r "structure detector 'Repo_Detector' is not a valid detector id")
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' ($stRepoYaml.Replace('  - "unit-added tech/layout.md"', '  - "unit-added repo/edges.md"'))
+    $r = Resolve-Json $st @('-Target', 'src')
+    Check 'dropping a pair the profile does not inherit is a warning' ($r.Code -eq 0 -and @($r.Json.Warnings | Where-Object { $_ -match 'drops nothing it inherits' }).Count -eq 1)
+    Write-Fixture $st '.cogniva/profiles/repo/profile.yml' $stRepoYaml
+
+    # -Show takes a list: the full composed text of each listed standard
+    $show = Invoke-Script $resolver @('-Repo', $st, '-Target', 'src', '-Show', 'architecture/owner.md,repo/edges.md', '-LibraryRoot', $library)
+    $iOwner = $show.Out.IndexOf('SHOW architecture/owner.md - profile repo')
+    $iEdges = $show.Out.IndexOf('SHOW repo/edges.md - profile repo')
+    Check '-Show prints every listed standard in full, in the order listed' ($show.Code -eq 0 -and $iOwner -ge 0 -and $iEdges -gt $iOwner -and $show.Out -match '--- amendment from tech \(repo-owned, CURRENT\)' -and $show.Out -match '# Delta body' -and ([regex]::Matches($show.Out, '# Body')).Count -eq 2)
+    $show = Invoke-Script $resolver @('-Repo', $st, '-Target', 'src', '-Show', 'architecture/owner.md,architecture/nope.md', '-LibraryRoot', $library)
+    Check '-Show with one unknown standard in the list is a usage error' ($show.Code -eq 2)
+
     # --- the shipped library ---------------------------------------------------
     $shipped = New-Repo 'shipped'
     foreach ($dir in Get-ChildItem -LiteralPath $shippedLibrary -Directory) {

@@ -133,7 +133,7 @@ departure from a standard, or a choice the standards leave open, does.
 **Files:**
 - Test: `plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1`
 
-- [ ] **Step 1 (failing tests):** In `architecture-profile.tests.ps1`, insert this block directly above the line `    # --- the shipped library ---------------------------------------------------`:
+- [x] **Step 1 (failing tests):** In `architecture-profile.tests.ps1`, insert this block directly above the line `    # --- the shipped library ---------------------------------------------------`:
   ```powershell
       # --- structural-change policy: kinds, detectors, structure-requires ---------
       $st = New-Repo 'structure'
@@ -223,8 +223,8 @@ departure from a standard, or a choice the standards leave open, does.
       $show = Invoke-Script $resolver @('-Repo', $st, '-Target', 'src', '-Show', 'architecture/owner.md,architecture/nope.md', '-LibraryRoot', $library)
       Check '-Show with one unknown standard in the list is a usage error' ($show.Code -eq 2)
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → the new checks FAIL (the profile parser rejects `structure-kinds` as an unknown key, and `-Kinds` does not exist yet); every older check still PASSES.
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "test(profiles): pin the structural-change policy, -Kinds and the -Show list"`
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → the new checks FAIL (the profile parser rejects `structure-kinds` as an unknown key, and `-Kinds` does not exist yet); every older check still PASSES.
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` then `git commit -m "test(profiles): pin the structural-change policy, -Kinds and the -Show list"`
 
 ## Task 2: Profile core — structure keys, shared target resolution, `-Kinds`, `-Show` list
 
