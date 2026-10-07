@@ -89,8 +89,8 @@ library of them (`plugins/cogniva-dev/profiles/`); a repo adopts one by copying
 it into `.cogniva/profiles/` and selects it per path with a
 [Profile marker](glossary/README.md#profile-marker). Tools read only the repo's
 copy, so a repo's standards change only through a deliberate re-adoption.
-plan-feature designs under the resolved profile and applicable-rules reports it
-per target; executing agents see only what a plan's tasks restate. How to
+plan-feature designs under the resolved profile, quick-fix checks structural
+changes against it before landing, and applicable-rules reports it per target; executing agents see only what a plan's tasks restate. How to
 adopt, declare, and write profiles: `plugins/cogniva-dev/docs/architecture-profiles.md`.
 
 ## Roadmap (deliberately not yet)

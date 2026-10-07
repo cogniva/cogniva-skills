@@ -111,9 +111,12 @@ Profile <id> (chain: <id> -> dotnet -> cogniva-base) - <description>
 - `REVIEW: <id> - <profile> (<ownership>) <amendment|replacement> is <state>`:
   an item awaiting human review. A target whose profile has any review item
   is marked `NEEDS HUMAN REVIEW`.
+- `STRUCTURE DETECTORS:` and `STRUCTURE REQUIRES <kind>:` - the profile's
+  structural-change policy, composed root first (see
+  [Structural changes](#structural-changes)).
 
-To read one standard's effective text, add `-Show <id>` with exactly one
-target. It prints the standard (or the replacement standard that superseded it) and
+To read the effective text of one or more standards, add `-Show <id>` (or a
+comma-separated list of ids) with exactly one target. It prints the standard (or the replacement standard that superseded it) and
 then every amendment that applies, root first, each under a provenance line
 naming the part, the
 profile it came from, its ownership and its review state:
@@ -129,15 +132,17 @@ report:
   shadowed, `Suggestion`, `NeedsReview` (its profile has a review item) and
   `MatchedStandards` (ids whose `applies-to` globs match the target);
 - per profile: `Chain`, `ChainDetail` (`Id`, `Ownership`: `library` or
-  `repo-owned`), `Description`, `Standards` and `Review`;
+  `repo-owned`), `Description`, `Standards`, `Review` and `Structure`
+  (`Kinds`, `Detectors`, and `Requires`: each kind with its standard ids);
 - per standard: `Id`, `Description`, `From`, `Path`, `Overrides`, `ReplacedBy`
   (the profile whose replacement standard won, or null), `Amendments[]`
   (`From`, `Ownership`, `Path`, `Description`, `State`), `AppliesTo` and
   `NeedsReview`;
 - per review item: `Standard`, `Profile`, `Ownership`, `Delta`, `State`,
   `Basis`, `Inherited`, `Path`;
-- with `-Require`: `Require.Standards` and `Require.Blocked[]` (`Target`,
-  `Standard`, `Reason`).
+- with `-Require` or `-Kinds`: `Require.Standards`, `Require.Kinds`,
+  `Require.ByTarget[]` (`Target`, `Profile`, `Standards`, `UnknownKinds`)
+  and `Require.Blocked[]` (`Target`, `Profile`, `Standard`, `Reason`).
 
 ## Writing a profile
 
@@ -153,7 +158,10 @@ report:
   id). `none` is reserved for markers.
 - `profile.yml` keys: `description` (required, one line), `inherits` (one
   parent profile id), `detect` (quoted file-name patterns, used only for
-  suggestions). Any other key is an error.
+  suggestions), and the structural-change keys `structure-kinds`,
+  `structure-detectors`, `structure-requires` and
+  `structure-requires-dropped` (see [Structural changes](#structural-changes)).
+  Any other key is an error.
 - A standard's id is its path under `standards/`, `amendments/` or
   `replacements/`, compared case-insensitively.
 - `standards/` takes new ids only. A file there whose id the profile inherits
@@ -255,12 +263,150 @@ resolve); `2` a usage error (no report); `3` a standard named by `-Require` is
 missing or needs human review. When several apply, `2` beats `1`, which beats
 `3`.
 
+## Structural changes
+
+A structural change adds or removes a unit, adds or removes a dependency
+between units, or moves code from one unit to another. What a unit is
+depends on the technology: in .NET it is a project. Which units are
+*owning* units is the repository's call
+(`architecture/ownership-and-placement.md`), so detectors report units and
+leave that judgement to the standards.
+
+### Profile keys
+
+```yaml
+structure-kinds:
+  - unit-added
+structure-detectors:
+  - dotnet-projects
+structure-requires:
+  - "dependency-added architecture/dependency-direction.md"
+structure-requires-dropped:
+  - "unit-added dotnet/build-settings.md"
+```
+
+- `structure-kinds` names kinds of structural change. `cogniva-base`
+  declares `unit-added`, `unit-removed`, `dependency-added`,
+  `dependency-removed` and `code-moved`; a profile may declare more.
+- `structure-detectors` names the detectors the profile selects.
+- `structure-requires` items are `"<kind> <standard id>"`: a change of that
+  kind depends on that standard. The kind must be declared by the profile
+  or an ancestor.
+- All three add up down the chain, root first. A child removes a pair it
+  inherits with `structure-requires-dropped`. Dropping a pair it does not
+  inherit is a warning; requiring and dropping one pair in one profile is an
+  error.
+- A pair naming a standard the profile does not provide is a warning, and a
+  change of that kind is blocked until it is fixed.
+- The keys live in `profile.yml`, not in standard frontmatter: frontmatter
+  is part of the text an amendment's `basis` hashes, so changing the mapping
+  never makes an amendment STALE.
+- `-Kinds <kind,...>` on the resolver adds, per target, the standards its
+  profile maps those kinds to, to the same gate as `-Require`. On success it
+  prints `REQUIRE FOR <target> (<profile>): <ids>` for each target, which is
+  that profile's own list to pass to `-Show`. Targets on different profiles
+  can need different standards. `KIND NOT DECLARED:` names a listed kind a
+  profile does not declare; it requires nothing.
+
+### Detectors
+
+A detector is a plugin script, `scripts/structure-detectors/<id>.ps1`,
+named by id in `structure-detectors`. It runs as
+`pwsh -NoProfile -File <script> -Repo <repo> -Base <tree> -Head <tree>` and
+reports facts only: it never reads standards or decides what is allowed.
+Contract 1:
+
+- exit 0 and print one JSON object,
+  `{ "contract": 1, "detector": "<id>", "facts": [ ... ] }`;
+- each fact has a `kind`, `units` (one or more, such as the two ends of a
+  dependency), `paths` and `evidence` (one line a person can check).
+  `paths` lists every repo-relative path the fact is about, because the
+  profile of each one governs it: both ends of a dependency, for example;
+- `"facts": []` is the only way to say nothing was found. Any other exit
+  code, missing or malformed JSON, or a missing script is a failed check.
+
+`dotnet-projects` (selected by `dotnet`) treats each project file
+(`*.csproj`, `*.fsproj`, `*.vbproj`) as a unit. It reports:
+
+- projects added or removed (a moved or renamed project file is both);
+- literal `<ProjectReference Include>` items added or removed, in project
+  files and in `Directory.Build.props`/`.targets`. A reference in a
+  `Directory.Build` file applies to every project under its folder, so all
+  of those projects are among its paths;
+- files moved from one project's folder to another's. A file belongs to
+  the project in its nearest folder that holds one, and files that move
+  with their project are not reported. A move is caught when git pairs it
+  as a rename (the contents are at least half the same). It is also caught,
+  as a *possible* move, when a file is deleted from one project and a file
+  with the same name is added to another. A move that also renames the file
+  and rewrites most of it is not caught.
+
+It does not evaluate MSBuild. Other imported files, conditions and items
+added by targets are not followed, and an `Include` that uses a property or
+a wildcard is reported as written, marked `(unevaluated)`.
+
+### The check
+
+```powershell
+pwsh -NoProfile -File "<plugin>/scripts/check-structural-changes.ps1" -Repo . -Snapshot
+pwsh -NoProfile -File "<plugin>/scripts/check-structural-changes.ps1" -Repo . -Since <START_TREE> -Expected "dependency-added:src/A|src/B"
+```
+
+`-Snapshot` records the working state as a git tree (tracked, staged,
+unstaged and untracked files; ignored files left out) and prints
+`START_TREE: <sha>`. It writes git objects only, never refs, the index or
+the working tree.
+
+`-Since` takes that tree, or any commit, and compares it with the working
+state now. Commits made since then and uncommitted work both count; work
+that was already dirty at the snapshot does not.
+
+- **Detectors.** The check runs every detector selected by any profile a
+  marker in the repo declares, now or at the start. A change in a parent
+  folder can affect units governed by markers below it.
+- **Gating.** It gates each fact with the standards its kind requires in
+  the profile of each of its paths, under the same rule as `-Require`.
+- **Profiles at the start.** If the fix changed a `.cogniva-profile.yml` or
+  anything under `.cogniva/`, each path is also governed by the profile its
+  nearest marker named at the start, read from the start tree. Deleting a
+  folder together with its marker therefore cannot hide the standards that
+  governed it. Text output marks those requirements `at start`.
+- **Current text.** What every governing profile requires, and the review
+  state of those standards, always comes from the profiles as they are now.
+  Adding a missing standard or accepting a reviewed amendment clears a block
+  on re-check. A profile named at the start that no longer exists is
+  `FAILED`. Read a requirement's text by profile, not by path:
+  `resolve-architecture-profile.ps1 -Target . -Profile <id> -Show "<ids>"`.
+- **Profile edits.** Any change to profile files since the start is a
+  `profile-changed` fact, always `UNEXPECTED`, so it needs the user's OK.
+- **`-Expected`.** It takes `<kind>:<path>[|<path>...]` items. A fact is
+  expected only when an item of its kind has paths containing every path
+  of the fact; every other fact is marked `UNEXPECTED`.
+
+Add `-Format Json` for the machine-readable report.
+
+| `STRUCTURE:` | Meaning | Exit |
+|---|---|---|
+| `NONE` | no changes, or the detectors ran and found nothing | 0 |
+| `NOT-CHECKED` | no profile is declared in the repo, or the declared profiles select no detector | 0 |
+| `FOUND` | structural changes, each with `EVIDENCE` and `REQUIRES`; nothing blocked | 4 |
+| `BLOCKED` | a standard a change requires is missing (fix the profile's mapping or add the standard) or needs human review (review it, then `accept-profile-delta.ps1`) | 3 |
+| `FAILED` | a detector failed, was not found or broke the contract, or a declared profile is in `ERROR` | 1 |
+
+Usage errors exit 2. When several apply, `2` beats `1`, which beats `3`,
+which beats `4`. `quick-fix` snapshots at its start and runs the check
+before landing.
+
 ## Where profiles are used
 
 - `plan-feature` resolves the profile for the paths a design touches, designs
   under its composed standards, asks before designing on standards that need
   human review, and restates the relevant standards in the plan's tasks.
   Executing agents see only what a plan's tasks restate.
+- `quick-fix` checks structural changes before landing (see
+  [Structural changes](#structural-changes)). It gives a task the full text
+  of the required standards only when the fix is expected to make such a
+  change.
 - `applicable-rules` reports the profile for each target, takes its placement
   messages from `MatchedStandards`, and returns `REVIEW_REQUIRED` only for a
   review item on a standard the target matches; other review items are listed

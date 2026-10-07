@@ -2209,7 +2209,7 @@ What the skill must keep true:
 - Modify: `plugins/cogniva-dev/docs/architecture-profiles.md`
 - Modify: `docs/strategy.md`
 
-- [ ] **Step 1 (profile keys):** In `plugins/cogniva-dev/docs/architecture-profiles.md`, replace
+- [x] **Step 1 (profile keys):** In `plugins/cogniva-dev/docs/architecture-profiles.md`, replace
   ```markdown
   - `profile.yml` keys: `description` (required, one line), `inherits` (one
     parent profile id), `detect` (quoted file-name patterns, used only for
@@ -2224,7 +2224,7 @@ What the skill must keep true:
     `structure-requires-dropped` (see [Structural changes](#structural-changes)).
     Any other key is an error.
   ```
-- [ ] **Step 2 (index lines):** In the same file, replace
+- [x] **Step 2 (index lines):** In the same file, replace
   ```markdown
   - `REVIEW: <id> - <profile> (<ownership>) <amendment|replacement> is <state>`:
     an item awaiting human review. A target whose profile has any review item
@@ -2239,7 +2239,7 @@ What the skill must keep true:
     structural-change policy, composed root first (see
     [Structural changes](#structural-changes)).
   ```
-- [ ] **Step 3 (-Show list):** Replace
+- [x] **Step 3 (-Show list):** Replace
   ```markdown
   To read one standard's effective text, add `-Show <id>` with exactly one
   target.
@@ -2249,7 +2249,7 @@ What the skill must keep true:
   To read the effective text of one or more standards, add `-Show <id>` (or a
   comma-separated list of ids) with exactly one target.
   ```
-- [ ] **Step 4 (JSON fields):** Replace
+- [x] **Step 4 (JSON fields):** Replace
   ```markdown
   - per profile: `Chain`, `ChainDetail` (`Id`, `Ownership`: `library` or
     `repo-owned`), `Description`, `Standards` and `Review`;
@@ -2271,7 +2271,7 @@ What the skill must keep true:
     `Require.ByTarget[]` (`Target`, `Profile`, `Standards`, `UnknownKinds`)
     and `Require.Blocked[]` (`Target`, `Profile`, `Standard`, `Reason`).
   ```
-- [ ] **Step 5 (new section):** Insert directly above the heading `## Where profiles are used`:
+- [x] **Step 5 (new section):** Insert directly above the heading `## Where profiles are used`:
   ````markdown
   ## Structural changes
 
@@ -2407,7 +2407,7 @@ What the skill must keep true:
   which beats `4`. `quick-fix` snapshots at its start and runs the check
   before landing.
   ````
-- [ ] **Step 6 (where used):** Directly after the bullet
+- [x] **Step 6 (where used):** Directly after the bullet
   ```markdown
   - `plan-feature` resolves the profile for the paths a design touches, designs
     under its composed standards, asks before designing on standards that need
@@ -2421,7 +2421,7 @@ What the skill must keep true:
     of the required standards only when the fix is expected to make such a
     change.
   ```
-- [ ] **Step 7 (strategy):** In `docs/strategy.md`, replace
+- [x] **Step 7 (strategy):** In `docs/strategy.md`, replace
   ```markdown
   plan-feature designs under the resolved profile and applicable-rules reports it
   per target;
@@ -2431,11 +2431,11 @@ What the skill must keep true:
   plan-feature designs under the resolved profile, quick-fix checks structural
   changes against it before landing, and applicable-rules reports it per target;
   ```
-- [ ] **Step 8 (verify everything):** Run each and expect it to pass:
+- [x] **Step 8 (verify everything):** Run each and expect it to pass:
   - `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.`
   - `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.`
   - `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → `All structural-changes assertions passed.`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → all PASS
   - `claude plugin validate .` → valid
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/docs/architecture-profiles.md docs/strategy.md` then `git commit -m "docs(profiles): structural changes - profile keys, detector contract, the check"`
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/docs/architecture-profiles.md docs/strategy.md` then `git commit -m "docs(profiles): structural changes - profile keys, detector contract, the check"`
