@@ -3,7 +3,9 @@
 # loading, inheritance, delta composition (amendments and replacement standards
 # with their basis and review state), text normalisation and hashing, globs,
 # ownership, marker walk, and suggestions.
-# Dot-sourced by resolve-architecture-profile.ps1 and adopt-architecture-profile.ps1.
+# Dot-sourced by resolve-architecture-profile.ps1, adopt-architecture-profile.ps1
+# and check-structural-changes.ps1. Also holds the structural-change policy
+# (profile.yml structure-* keys) and the per-target resolution they share.
 # Every failure throws a ProfileError whose message names the file (and line).
 
 $script:MarkerName = '.cogniva-profile.yml'
@@ -14,6 +16,8 @@ $script:AdoptedRelative = '.cogniva/adopted'
 $script:BasisPattern = '^[0-9a-f]{12}$'
 $script:MaxChainDepth = 8
 $script:ProfileIdPattern = '^[a-z0-9][a-z0-9-]*$'
+# Structural change kinds: lowercase letters, digits and '-', starting with a letter.
+$script:StructureKindPattern = '^[a-z][a-z0-9-]*$'
 # Same rule .NET uses for paths: case-sensitive on Linux, insensitive on Windows and macOS.
 $script:PathComparison = if ($IsLinux) { [StringComparison]::Ordinal } else { [StringComparison]::OrdinalIgnoreCase }
 
@@ -222,6 +226,17 @@ function New-ProfileSource([string]$Root, [string]$DisplayRoot, [string]$Records
     return [pscustomobject]@{ Root = $Root; Display = $DisplayRoot; RecordsRoot = $RecordsRoot; IsLibrary = [bool]$IsLibrary; Cache = @{} }
 }
 
+# structure-requires and structure-requires-dropped items are
+# '<kind> <standard id>': a kind, whitespace, then a .md standard id.
+function ConvertFrom-StructurePairs([string[]]$Items, [string]$Key, [string]$Display) {
+    $pairs = @()
+    foreach ($item in $Items) {
+        if ($item -cnotmatch '^(?<kind>[a-z][a-z0-9-]*)\s+(?<id>\S.*\.(?i:md))$') { Throw-ProfileError "${Display}: $Key item '$item' must be '<kind> <standard id>' with a .md standard id" }
+        $pairs += [pscustomobject]@{ Kind = $Matches['kind']; Standard = $Matches['id'].Trim().Replace('\', '/') }
+    }
+    return $pairs
+}
+
 # Returns the profile entry, $null when the folder does not exist, or throws when it is malformed.
 function Get-ProfileEntry($Source, [string]$Id) {
     if ($Source.Cache.ContainsKey($Id)) { return $Source.Cache[$Id] }
@@ -235,7 +250,7 @@ function Get-ProfileEntry($Source, [string]$Id) {
     $display = "$($Source.Display)/$Id/profile.yml"
     $file = Join-Path $dir 'profile.yml'
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { Throw-ProfileError "${display}: missing" }
-    $data = Read-CognivaYamlFile $file @('description', 'inherits', 'detect') @('description') $display
+    $data = Read-CognivaYamlFile $file @('description', 'inherits', 'detect', 'structure-kinds', 'structure-detectors', 'structure-requires', 'structure-requires-dropped') @('description') $display
     if ($data['description'] -isnot [string]) { Throw-ProfileError "${display}: 'description' must be a single value" }
     $inherits = $null
     if ($data.Contains('inherits')) {
@@ -243,10 +258,20 @@ function Get-ProfileEntry($Source, [string]$Id) {
         Assert-ProfileId $data['inherits'] "$display inherits"
         $inherits = $data['inherits']
     }
+    $kinds = @(if ($data.Contains('structure-kinds')) { $data['structure-kinds'] })
+    foreach ($k in $kinds) { if ($k -cnotmatch $script:StructureKindPattern) { Throw-ProfileError "${display}: structure kind '$k' is not valid (lowercase letters, digits and '-', starting with a letter)" } }
+    $detectors = @(if ($data.Contains('structure-detectors')) { $data['structure-detectors'] })
+    foreach ($d in $detectors) { if ($d -cnotmatch $script:ProfileIdPattern) { Throw-ProfileError "${display}: structure detector '$d' is not a valid detector id (lowercase letters, digits and '-')" } }
+    $requires = @(ConvertFrom-StructurePairs @(if ($data.Contains('structure-requires')) { $data['structure-requires'] }) 'structure-requires' $display)
+    $dropped = @(ConvertFrom-StructurePairs @(if ($data.Contains('structure-requires-dropped')) { $data['structure-requires-dropped'] }) 'structure-requires-dropped' $display)
+    foreach ($p in $dropped) {
+        if (@($requires | Where-Object { $_.Kind -ceq $p.Kind -and $_.Standard -ieq $p.Standard }).Count) { Throw-ProfileError "${display}: '$($p.Kind) $($p.Standard)' is in both structure-requires and structure-requires-dropped; keep one" }
+    }
     $entry = [pscustomobject]@{
         Id = $Id; Path = $dir; Display = "$($Source.Display)/$Id"
         Description = $data['description']; Inherits = $inherits
         Detect = if ($data.Contains('detect')) { @($data['detect']) } else { @() }
+        StructureKinds = $kinds; StructureDetectors = $detectors; StructureRequires = $requires; StructureDropped = $dropped
     }
     $Source.Cache[$Id] = $entry
     return $entry
@@ -430,6 +455,40 @@ function Get-EffectiveStandards([string[]]$Chain, $Source, [System.Collections.G
     }
 }
 
+# The chain's structural-change policy, root ancestor first: kinds and detectors
+# are unioned; at each level the profile's structure-requires-dropped removes
+# inherited pairs, then its structure-requires adds pairs. Every pair's kind must
+# be declared at that level or above. Returns { Kinds, Detectors, Requires }
+# where Requires maps each kind to its standard ids (root first).
+function Get-EffectiveStructure([string[]]$Chain, $Source, [object[]]$Standards, [System.Collections.Generic.List[string]]$Warnings) {
+    $kinds = [System.Collections.Generic.List[string]]::new()
+    $detectors = [System.Collections.Generic.List[string]]::new()
+    $pairs = [System.Collections.Generic.List[object]]::new()
+    for ($c = $Chain.Count - 1; $c -ge 0; $c--) {
+        $entry = Get-ProfileEntry $Source $Chain[$c]
+        foreach ($k in $entry.StructureKinds) { if (-not $kinds.Contains($k)) { $kinds.Add($k) } }
+        foreach ($d in $entry.StructureDetectors) { if (-not $detectors.Contains($d)) { $detectors.Add($d) } }
+        foreach ($p in @($entry.StructureRequires) + @($entry.StructureDropped)) {
+            if (-not $kinds.Contains($p.Kind)) { Throw-ProfileError "$($entry.Display)/profile.yml: structure kind '$($p.Kind)' is not declared by structure-kinds in this profile or an ancestor" }
+        }
+        foreach ($p in $entry.StructureDropped) {
+            $hits = @($pairs | Where-Object { $_.Kind -ceq $p.Kind -and $_.Standard -ieq $p.Standard })
+            if (-not $hits.Count) { $Warnings.Add("$($entry.Display)/profile.yml: structure-requires-dropped '$($p.Kind) $($p.Standard)' drops nothing it inherits") }
+            foreach ($h in $hits) { [void]$pairs.Remove($h) }
+        }
+        foreach ($p in $entry.StructureRequires) {
+            if (@($pairs | Where-Object { $_.Kind -ceq $p.Kind -and $_.Standard -ieq $p.Standard }).Count) { continue }
+            $pairs.Add([pscustomobject]@{ Kind = $p.Kind; Standard = $p.Standard; From = $entry.Id })
+        }
+    }
+    foreach ($p in $pairs) {
+        if (-not @($Standards | Where-Object { $_.Id -ieq $p.Standard }).Count) { $Warnings.Add("profile '$($Chain[0])': structure-requires '$($p.Kind) $($p.Standard)' (from $($p.From)) names a standard the profile does not provide; a $($p.Kind) change is blocked until it does") }
+    }
+    $requires = [ordered]@{}
+    foreach ($k in $kinds) { $requires[$k] = @($pairs | Where-Object Kind -ceq $k | ForEach-Object Standard) }
+    return [pscustomobject]@{ Kinds = @($kinds); Detectors = @($detectors); Requires = $requires }
+}
+
 # Directories from the target's nearest existing directory up to the repo root, nearest first.
 function Get-DirectoryWalk([string]$RepoRoot, [string]$TargetFull) {
     $cursor = $TargetFull
@@ -491,4 +550,127 @@ function Get-ProfileSuggestion([string]$RepoRoot, [string[]]$Walk, [object[]]$Li
         }
     }
     return $null
+}
+
+# --- per-target resolution, shared by the resolver and the structural check ---
+
+function Get-ProfileErrorText($ErrorRecord) { return ($ErrorRecord.Exception.Message -replace '^ProfileError: ', '') }
+
+# One resolution run: the repo's profiles, the library, the warnings, and each
+# profile id's result, computed once and shared by every target that uses it.
+function New-ResolutionContext([string]$RepoFull, [string]$LibraryRoot) {
+    return [pscustomobject]@{
+        RepoFull = $RepoFull
+        RepoProfiles = New-ProfileSource (Join-Path $RepoFull $script:RepoProfilesRelative) $script:RepoProfilesRelative (Join-Path $RepoFull $script:AdoptedRelative)
+        Library = New-ProfileSource $LibraryRoot 'plugin-library' $null -IsLibrary
+        LibraryEntries = $null
+        Results = @{}
+        Warnings = [System.Collections.Generic.List[string]]::new()
+    }
+}
+
+# Chain, effective standards and structure policy for one profile id. A success
+# is cached and shared; a failure is recomputed per target so its message names
+# that target's own marker.
+function Get-ContextProfileResult($Ctx, [string]$Id, [string]$Origin) {
+    if ($Ctx.Results.ContainsKey($Id)) { return $Ctx.Results[$Id] }
+    try {
+        $chain = Resolve-ProfileChain $Id $Ctx.RepoProfiles $Ctx.Library $Origin
+        $effective = Get-EffectiveStandards $chain $Ctx.RepoProfiles $Ctx.Warnings
+        $structure = Get-EffectiveStructure $chain $Ctx.RepoProfiles @($effective.Standards) $Ctx.Warnings
+        $result = [pscustomobject]@{
+            Error = $null; Chain = @($chain); Description = (Get-ProfileEntry $Ctx.RepoProfiles $Id).Description
+            Effective = $effective; Standards = @($effective.Standards); Review = @($effective.Review); Structure = $structure
+            ChainDetail = @($chain | ForEach-Object { [pscustomobject]@{ Id = $_; Ownership = (Get-ProfileOwnership $Ctx.RepoProfiles $_) } })
+        }
+    }
+    catch { return [pscustomobject]@{ Error = (Get-ProfileErrorText $_); Chain = @(); Description = $null; Standards = @(); Review = @(); Structure = $null; ChainDetail = @() } }
+    $Ctx.Results[$Id] = $result
+    return $result
+}
+
+# One target's resolution report: Target, Status (RESOLVED | NONE | UNDECLARED |
+# ERROR), Profile, Error, Winner, Considered, Suggestion, NeedsReview, MatchedStandards.
+function Resolve-TargetProfile($Ctx, [string]$Full, [string]$ExplicitProfile) {
+    $relative = Get-RelativeDisplay $Ctx.RepoFull $Full
+    $considered = @()
+    $winner = $null
+    $suggestion = $null
+    $status = 'UNDECLARED'
+    $profileId = $null
+    $errorText = $null
+    try {
+        $walk = Get-DirectoryWalk $Ctx.RepoFull $Full
+        # An explicit profile beats every marker, malformed ones included: they are
+        # recorded as overridden and reported as warnings, never as the target's error.
+        $markers = Get-ProfileMarkers $Ctx.RepoFull $walk -Tolerant:([bool]$ExplicitProfile)
+        if ($ExplicitProfile) {
+            $winner = [pscustomobject]@{ Kind = 'explicit'; Source = '-Profile'; Profile = $ExplicitProfile }
+            foreach ($m in $markers) {
+                $considered += [pscustomobject]@{ Kind = $m.Kind; Source = $m.Source; Profile = $m.Profile; Outcome = 'overridden-by-explicit' }
+                if ($m.Error) { $Ctx.Warnings.Add("$($m.Error) (overridden by -Profile)") }
+            }
+        }
+        else {
+            for ($i = 0; $i -lt $markers.Count; $i++) {
+                $m = $markers[$i]
+                $considered += [pscustomobject]@{ Kind = $m.Kind; Source = $m.Source; Profile = $m.Profile; Outcome = if ($i -eq 0) { 'won' } else { 'shadowed' } }
+            }
+            if ($markers.Count) { $winner = [pscustomobject]@{ Kind = $markers[0].Kind; Source = $markers[0].Source; Profile = $markers[0].Profile } }
+        }
+        if ($winner -and $winner.Profile -eq 'none') { $status = 'NONE' }
+        elseif ($winner) {
+            $result = Get-ContextProfileResult $Ctx $winner.Profile $winner.Source
+            if ($result.Error) { $status = 'ERROR'; $errorText = $result.Error }
+            else { $status = 'RESOLVED'; $profileId = $winner.Profile }
+        }
+        else {
+            if ($null -eq $Ctx.LibraryEntries) { $Ctx.LibraryEntries = @(Get-AllProfileEntries $Ctx.Library $Ctx.Warnings) }
+            $suggestion = Get-ProfileSuggestion $Ctx.RepoFull $walk $Ctx.LibraryEntries
+        }
+    }
+    catch { $status = 'ERROR'; $errorText = Get-ProfileErrorText $_ }
+
+    # NeedsReview: the resolved profile has any delta awaiting human review.
+    # MatchedStandards: standards whose applies-to globs match this target.
+    $needsReview = $false
+    $matched = @()
+    if ($status -eq 'RESOLVED') {
+        $resolved = $Ctx.Results[$profileId]
+        $needsReview = @($resolved.Review).Count -gt 0
+        $matched = @($resolved.Standards | Where-Object { @($_.AppliesTo | Where-Object { Test-GlobMatch $_ $relative }).Count -gt 0 } | ForEach-Object Id)
+    }
+    return [pscustomobject]@{
+        Target = $relative; Status = $status; Profile = $profileId; Error = $errorText
+        Winner = if ($winner) { [pscustomobject]@{ Kind = $winner.Kind; Source = $winner.Source } } else { $null }
+        Considered = @($considered); Suggestion = $suggestion
+        NeedsReview = $needsReview; MatchedStandards = @($matched)
+    }
+}
+
+# The -Require gate. For each RESOLVED target the required set is $Ids plus every
+# standard its profile's structure-requires maps one of $Kinds to. A required
+# standard blocks when the profile lacks it or it needs human review; review
+# items on other standards never block. UnknownKinds: listed kinds the profile
+# does not declare (they require nothing). Returns { ByTarget, Blocked }.
+function Get-RequireResult($Ctx, [object[]]$Targets, [string[]]$Ids, [string[]]$Kinds) {
+    $Ids = @($Ids | Where-Object { $_ })
+    $Kinds = @($Kinds | Where-Object { $_ })
+    $byTarget = @()
+    $blocked = @()
+    foreach ($t in @($Targets | Where-Object Status -eq 'RESOLVED')) {
+        $p = $Ctx.Results[$t.Profile]
+        $wanted = [System.Collections.Generic.List[string]]::new()
+        $candidates = @($Ids) + @($Kinds | ForEach-Object { if ($p.Structure.Requires.Contains($_)) { $p.Structure.Requires[$_] } })
+        foreach ($id in $candidates) { if ($id -and -not @($wanted | Where-Object { $_ -ieq $id }).Count) { $wanted.Add($id) } }
+        $byTarget += [pscustomobject]@{ Target = $t.Target; Profile = $t.Profile; Standards = @($wanted); UnknownKinds = @($Kinds | Where-Object { @($p.Structure.Kinds) -cnotcontains $_ }) }
+        foreach ($id in $wanted) {
+            $s = @($p.Standards | Where-Object { $_.Id -ieq $id }) | Select-Object -First 1
+            $reason = if (-not $s) { "not in profile '$($t.Profile)'" }
+            elseif ($s.NeedsReview) { 'needs human review: ' + (@($s.Parts | Where-Object { $_.State -and $_.State -ne 'CURRENT' } | ForEach-Object { "$($_.From) $($_.Role) $($_.State)" }) -join '; ') }
+            else { $null }
+            if ($reason) { $blocked += [pscustomobject]@{ Target = $t.Target; Profile = $t.Profile; Standard = $id; Reason = $reason } }
+        }
+    }
+    return [pscustomobject]@{ ByTarget = @($byTarget); Blocked = @($blocked) }
 }

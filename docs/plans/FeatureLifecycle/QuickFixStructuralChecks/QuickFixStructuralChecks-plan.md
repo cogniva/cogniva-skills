@@ -244,7 +244,7 @@ is not inherited is a warning. A pair naming a standard the composed profile
 lacks is a warning, and `-Require` later blocks on it. `profile.yml` is not
 part of any `basis` hash, so none of this affects review state.
 
-- [ ] **Step 1 (header and pattern):** In `profile-lib.ps1`, change the header line `# Dot-sourced by resolve-architecture-profile.ps1 and adopt-architecture-profile.ps1.` to:
+- [x] **Step 1 (header and pattern):** In `profile-lib.ps1`, change the header line `# Dot-sourced by resolve-architecture-profile.ps1 and adopt-architecture-profile.ps1.` to:
   ```powershell
   # Dot-sourced by resolve-architecture-profile.ps1, adopt-architecture-profile.ps1
   # and check-structural-changes.ps1. Also holds the structural-change policy
@@ -255,7 +255,7 @@ part of any `basis` hash, so none of this affects review state.
   # Structural change kinds: lowercase letters, digits and '-', starting with a letter.
   $script:StructureKindPattern = '^[a-z][a-z0-9-]*$'
   ```
-- [ ] **Step 2 (pair parser):** In `profile-lib.ps1`, directly above the comment `# Returns the profile entry, $null when the folder does not exist, or throws when it is malformed.`, add:
+- [x] **Step 2 (pair parser):** In `profile-lib.ps1`, directly above the comment `# Returns the profile entry, $null when the folder does not exist, or throws when it is malformed.`, add:
   ```powershell
   # structure-requires and structure-requires-dropped items are
   # '<kind> <standard id>': a kind, whitespace, then a .md standard id.
@@ -268,7 +268,7 @@ part of any `basis` hash, so none of this affects review state.
       return $pairs
   }
   ```
-- [ ] **Step 3 (profile.yml keys):** In `Get-ProfileEntry`, replace the line
+- [x] **Step 3 (profile.yml keys):** In `Get-ProfileEntry`, replace the line
   `    $data = Read-CognivaYamlFile $file @('description', 'inherits', 'detect') @('description') $display`
   with
   `    $data = Read-CognivaYamlFile $file @('description', 'inherits', 'detect', 'structure-kinds', 'structure-detectors', 'structure-requires', 'structure-requires-dropped') @('description') $display`
@@ -290,7 +290,7 @@ part of any `basis` hash, so none of this affects review state.
           StructureKinds = $kinds; StructureDetectors = $detectors; StructureRequires = $requires; StructureDropped = $dropped
       }
   ```
-- [ ] **Step 4 (compose the policy):** In `profile-lib.ps1`, directly above the comment `# Directories from the target's nearest existing directory up to the repo root, nearest first.`, add:
+- [x] **Step 4 (compose the policy):** In `profile-lib.ps1`, directly above the comment `# Directories from the target's nearest existing directory up to the repo root, nearest first.`, add:
   ```powershell
   # The chain's structural-change policy, root ancestor first: kinds and detectors
   # are unioned; at each level the profile's structure-requires-dropped removes
@@ -326,7 +326,7 @@ part of any `basis` hash, so none of this affects review state.
       return [pscustomobject]@{ Kinds = @($kinds); Detectors = @($detectors); Requires = $requires }
   }
   ```
-- [ ] **Step 5 (shared resolution):** Append to the end of `profile-lib.ps1`:
+- [x] **Step 5 (shared resolution):** Append to the end of `profile-lib.ps1`:
   ```powershell
   # --- per-target resolution, shared by the resolver and the structural check ---
 
@@ -451,7 +451,7 @@ part of any `basis` hash, so none of this affects review state.
       return [pscustomobject]@{ ByTarget = @($byTarget); Blocked = @($blocked) }
   }
   ```
-- [ ] **Step 6 (resolver):** Replace the whole content of `plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1` with:
+- [x] **Step 6 (resolver):** Replace the whole content of `plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1` with:
   ```powershell
   #Requires -Version 7.0
   # Resolve the architecture profile for one or more target paths, explain why it
@@ -649,9 +649,9 @@ part of any `basis` hash, so none of this affects review state.
   foreach ($w in $report.Warnings) { Write-Output "WARN: $w" }
   exit $exitCode
   ```
-- [ ] **Step 7 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.` Then confirm the refactor changed nothing for existing callers: `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → all PASS (it calls the resolver as a process and reads its JSON).
-- [ ] **Step 8 (write ADR):** scan `docs/adr/` for the next number and write ADR-C1 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-profiles-map-structural-change-kinds-in-profile-yml.md` per the adr skill's ADR-FORMAT (heading = the title; `**Provenance:** Suggested by agent`; no Relitigation line; the body paragraph).
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/scripts/profile-lib.ps1 plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1 docs/adr/` then `git commit -m "feat(profiles): structural-change policy in profile.yml, -Kinds and a -Show list"`
+- [x] **Step 7 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.` Then confirm the refactor changed nothing for existing callers: `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → all PASS (it calls the resolver as a process and reads its JSON).
+- [x] **Step 8 (write ADR):** scan `docs/adr/` for the next number and write ADR-C1 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-profiles-map-structural-change-kinds-in-profile-yml.md` per the adr skill's ADR-FORMAT (heading = the title; `**Provenance:** Suggested by agent`; no Relitigation line; the body paragraph).
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/scripts/profile-lib.ps1 plugins/cogniva-dev/scripts/resolve-architecture-profile.ps1 docs/adr/` then `git commit -m "feat(profiles): structural-change policy in profile.yml, -Kinds and a -Show list"`
 
 ## Task 3: Structure library and the `dotnet-projects` detector
 
