@@ -9,6 +9,7 @@ $plugin = [System.IO.Path]::GetFullPath((Join-Path $here '..\..'))
 $resolver = Join-Path $plugin 'scripts\resolve-architecture-profile.ps1'
 $adopter = Join-Path $plugin 'scripts\adopt-architecture-profile.ps1'
 $accepter = Join-Path $plugin 'scripts\accept-profile-delta.ps1'
+$checker = Join-Path $plugin 'scripts\check-structural-changes.ps1'
 $library = Join-Path $plugin 'profiles'
 $templates = Join-Path $plugin 'templates\repo'
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ("cogniva-profile-library-" + [guid]::NewGuid().ToString('N'))
@@ -149,6 +150,38 @@ try {
     Write-Fixture $gate '.cogniva/profiles/acme/amendments/dotnet/project-layout.md' ((Get-Content -Raw -LiteralPath $layoutFile) -replace 'basis: [0-9a-f]{12}', 'basis: aaaaaaaaaaaa')
     $r = Resolve-Json $gate @('-Target', 'src/Modules', '-Require', $requireSet)
     Check 'a stale standard in the dependency set blocks add-module (exit 3)' ($r.Code -eq 3 -and @($r.Json.Require.Blocked.Standard) -contains 'dotnet/project-layout.md')
+
+    # --- the shipped structural-change policy ----------------------------------
+    $sdn = (Resolve-Json $shipped @('-Target', 'src')).Json.Profiles.dotnet.Structure
+    Check 'cogniva-base declares the five technology-neutral kinds' ((@($sdn.Kinds) -join ',') -eq 'unit-added,unit-removed,dependency-added,dependency-removed,code-moved')
+    Check 'dotnet selects the dotnet-projects detector' ((@($sdn.Detectors) -join ',') -eq 'dotnet-projects')
+    $expectMap = [ordered]@{
+        'unit-added' = 'architecture/ownership-and-placement.md,architecture/common-and-published-types.md,architecture/composition-roots.md,dotnet/project-layout.md,dotnet/projects-and-references.md,dotnet/build-settings.md'
+        'unit-removed' = 'architecture/ownership-and-placement.md,dotnet/projects-and-references.md'
+        'dependency-added' = 'architecture/dependency-direction.md,architecture/common-and-published-types.md,dotnet/projects-and-references.md'
+        'dependency-removed' = 'architecture/dependency-direction.md,dotnet/projects-and-references.md'
+        'code-moved' = 'architecture/ownership-and-placement.md,dotnet/project-layout.md'
+    }
+    foreach ($k in $expectMap.Keys) { Check "dotnet maps $k to exactly its standards" ((@($sdn.Requires.$k) -join ',') -eq $expectMap[$k]) }
+    $detectorRoot = Join-Path $plugin 'scripts\structure-detectors'
+    Check 'every detector the library names ships in scripts/structure-detectors' (@($sdn.Detectors | Where-Object { -not (Test-Path -LiteralPath (Join-Path $detectorRoot "$_.ps1") -PathType Leaf) }).Count -eq 0)
+
+    # the shipped dotnet profile, end to end: adopt, declare, add a project with a reference
+    $live = New-DotnetRepo 'structure-live'
+    & git -C $live config user.email 'tests@cogniva.invalid'
+    & git -C $live config user.name 'Cogniva tests'
+    Write-Fixture $live 'src/Lib/Acme.Lib/Acme.Lib.csproj' "<Project Sdk=`"Microsoft.NET.Sdk`" />`n"
+    & git -C $live add -A 2>$null
+    & git -C $live commit -q -m init 2>$null | Out-Null
+    $snap = Invoke-Script $checker @('-Repo', $live, '-Snapshot')
+    $liveStart = if ($snap.Out -match 'START_TREE: ([0-9a-f]+)') { $Matches[1] } else { 'missing' }
+    Write-Fixture $live 'src/Engines/Acme.Pricing/Acme.Pricing.csproj' "<Project Sdk=`"Microsoft.NET.Sdk`">`n  <ItemGroup>`n    <ProjectReference Include=`"..\..\Lib\Acme.Lib\Acme.Lib.csproj`" />`n  </ItemGroup>`n</Project>`n"
+    $chk = Invoke-Script $checker @('-Repo', $live, '-Since', $liveStart, '-Format', 'Json')
+    $cj = if ($chk.Code -eq 4) { $chk.Out | ConvertFrom-Json } else { $null }
+    $added = @($cj.Facts | Where-Object Kind -eq 'unit-added')
+    $dep = @($cj.Facts | Where-Object Kind -eq 'dependency-added')
+    Check 'shipped dotnet: a new project is unit-added and requires the unit-added set' ($added.Count -eq 1 -and $added[0].Units[0] -eq 'src/Engines/Acme.Pricing/Acme.Pricing.csproj' -and (@($added[0].Requires[0].Standards) -join ',') -eq $expectMap['unit-added'])
+    Check 'shipped dotnet: its new reference is dependency-added and requires the dependency-added set' ($dep.Count -eq 1 -and ($dep[0].Units -join '>') -eq 'src/Engines/Acme.Pricing/Acme.Pricing.csproj>src/Lib/Acme.Lib/Acme.Lib.csproj' -and (@($dep[0].Requires[0].Standards) -join ',') -eq $expectMap['dependency-added'])
 
     # --- sections appended by later sub-plans go above this line ---
 }

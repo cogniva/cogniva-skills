@@ -1827,7 +1827,7 @@ Rules the script implements:
 - Modify: `plugins/cogniva-dev/profiles/dotnet/profile.yml`
 - Test: `plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1`
 
-- [ ] **Step 1 (failing tests):** In `profile-library.tests.ps1`, add `$checker = Join-Path $plugin 'scripts\check-structural-changes.ps1'` directly below the `$accepter = ...` line, and insert directly above `    # --- sections appended by later sub-plans go above this line ---`:
+- [x] **Step 1 (failing tests):** In `profile-library.tests.ps1`, add `$checker = Join-Path $plugin 'scripts\check-structural-changes.ps1'` directly below the `$accepter = ...` line, and insert directly above `    # --- sections appended by later sub-plans go above this line ---`:
   ```powershell
       # --- the shipped structural-change policy ----------------------------------
       $sdn = (Resolve-Json $shipped @('-Target', 'src')).Json.Profiles.dotnet.Structure
@@ -1861,8 +1861,8 @@ Rules the script implements:
       Check 'shipped dotnet: a new project is unit-added and requires the unit-added set' ($added.Count -eq 1 -and $added[0].Units[0] -eq 'src/Engines/Acme.Pricing/Acme.Pricing.csproj' -and (@($added[0].Requires[0].Standards) -join ',') -eq $expectMap['unit-added'])
       Check 'shipped dotnet: its new reference is dependency-added and requires the dependency-added set' ($dep.Count -eq 1 -and ($dep[0].Units -join '>') -eq 'src/Engines/Acme.Pricing/Acme.Pricing.csproj>src/Lib/Acme.Lib/Acme.Lib.csproj' -and (@($dep[0].Requires[0].Standards) -join ',') -eq $expectMap['dependency-added'])
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → the new policy checks FAIL (the shipped profiles declare no policy yet).
-- [ ] **Step 3 (cogniva-base):** Replace the content of `plugins/cogniva-dev/profiles/cogniva-base/profile.yml` with:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → the new policy checks FAIL (the shipped profiles declare no policy yet).
+- [x] **Step 3 (cogniva-base):** Replace the content of `plugins/cogniva-dev/profiles/cogniva-base/profile.yml` with:
   ```yaml
   description: Cogniva's technology-neutral architecture standards; the root every other profile inherits from.
   # Kinds of structural change a structure detector can report. Technology and
@@ -1885,7 +1885,7 @@ Rules the script implements:
     - "dependency-removed architecture/dependency-direction.md"
     - "code-moved architecture/ownership-and-placement.md"
   ```
-- [ ] **Step 4 (dotnet):** Replace the content of `plugins/cogniva-dev/profiles/dotnet/profile.yml` with:
+- [x] **Step 4 (dotnet):** Replace the content of `plugins/cogniva-dev/profiles/dotnet/profile.yml` with:
   ```yaml
   description: Cogniva's .NET architecture - shared principles and the default conventions for new repos. Inherits cogniva-base; a repository's own layout belongs in a repo-owned profile.
   inherits: cogniva-base
@@ -1906,8 +1906,8 @@ Rules the script implements:
     - "dependency-removed dotnet/projects-and-references.md"
     - "code-moved dotnet/project-layout.md"
   ```
-- [ ] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.` (its leak checks also cover the new `profile.yml` text); `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.` (its shipped-library loop requires both profiles to resolve with no warnings, so every mapped id must exist).
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/profiles/cogniva-base/profile.yml plugins/cogniva-dev/profiles/dotnet/profile.yml plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` then `git commit -m "feat(profiles): structural-change policy for cogniva-base and dotnet"`
+- [x] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → `All profile-library assertions passed.` (its leak checks also cover the new `profile.yml` text); `pwsh -NoProfile -File plugins/cogniva-dev/tests/architecture-profile/architecture-profile.tests.ps1` → `All architecture-profile assertions passed.` (its shipped-library loop requires both profiles to resolve with no warnings, so every mapped id must exist).
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/profiles/cogniva-base/profile.yml plugins/cogniva-dev/profiles/dotnet/profile.yml plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` then `git commit -m "feat(profiles): structural-change policy for cogniva-base and dotnet"`
 
 ## Task 6: Pin quick-fix's structural-change contract
 
