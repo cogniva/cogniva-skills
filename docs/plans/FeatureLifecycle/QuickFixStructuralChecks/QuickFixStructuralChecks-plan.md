@@ -688,7 +688,7 @@ A move is caught in two cases:
 A move that also renames the file *and* changes most of its content is not
 caught.
 
-- [ ] **Step 1 (failing tests):** Create `plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1`:
+- [x] **Step 1 (failing tests):** Create `plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Dependency-free tests for structural-change detection: the working-tree
@@ -887,8 +887,8 @@ caught.
   Write-Host 'All structural-changes assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → it stops with an error: `structure-lib.ps1` does not exist yet.
-- [ ] **Step 3 (implement the library):** Create `plugins/cogniva-dev/scripts/structure-lib.ps1`:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → it stops with an error: `structure-lib.ps1` does not exist yet.
+- [x] **Step 3 (implement the library):** Create `plugins/cogniva-dev/scripts/structure-lib.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Structural-change core: snapshot the working state as a git tree, list the
@@ -991,7 +991,7 @@ caught.
       return ([pscustomobject]@{ contract = 1; detector = $Detector; facts = $sorted } | ConvertTo-Json -Depth 6)
   }
   ```
-- [ ] **Step 4 (implement the detector):** Create `plugins/cogniva-dev/scripts/structure-detectors/dotnet-projects.ps1`:
+- [x] **Step 4 (implement the detector):** Create `plugins/cogniva-dev/scripts/structure-detectors/dotnet-projects.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Structure detector for .NET (contract 1; see docs/architecture-profiles.md).
@@ -1198,8 +1198,8 @@ caught.
       exit 1
   }
   ```
-- [ ] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → `All structural-changes assertions passed.`
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/structure-lib.ps1 plugins/cogniva-dev/scripts/structure-detectors/dotnet-projects.ps1 plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` then `git commit -m "feat(structure): working-tree snapshot and the dotnet-projects structure detector"`
+- [x] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → `All structural-changes assertions passed.`
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/scripts/structure-lib.ps1 plugins/cogniva-dev/scripts/structure-detectors/dotnet-projects.ps1 plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` then `git commit -m "feat(structure): working-tree snapshot and the dotnet-projects structure detector"`
 
 ## Task 4: `check-structural-changes.ps1` and the green gate
 
