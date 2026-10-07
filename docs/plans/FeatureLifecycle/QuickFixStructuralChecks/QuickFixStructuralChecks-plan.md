@@ -1972,7 +1972,7 @@ What the skill must keep true:
   Step 0.6 only moves the standards check earlier.
 - Nothing in the skill names a technology.
 
-- [ ] **Step 1 (SKILL.md):** Replace the whole content of `plugins/cogniva-dev/skills/quick-fix/SKILL.md` with:
+- [x] **Step 1 (SKILL.md):** Replace the whole content of `plugins/cogniva-dev/skills/quick-fix/SKILL.md` with:
   ````markdown
   ---
   name: quick-fix
@@ -2187,21 +2187,21 @@ What the skill must keep true:
     `BACKLOG.md` item: tick it and append `→ done` — a closure, not a
     capture, no gate needed.
   ````
-- [ ] **Step 2 (WORKTREE.md):** In `plugins/cogniva-dev/skills/quick-fix/WORKTREE.md`, directly after the paragraph that ends `lands the fix on code the target already changed.` (end of `## Replaces Step 0`), add a new paragraph:
+- [x] **Step 2 (WORKTREE.md):** In `plugins/cogniva-dev/skills/quick-fix/WORKTREE.md`, directly after the paragraph that ends `lands the fix on code the target already changed.` (end of `## Replaces Step 0`), add a new paragraph:
   ```markdown
   Then record `START_TREE` exactly as Step 0 says, in `WORKSPACE`, after any
   staleness merge is committed: the merge is not part of the fix.
   ```
-- [ ] **Step 3 (CODEX.md):** In `plugins/cogniva-dev/skills/execute-feature/CODEX.md`, in `## After the loop`, replace the line `final commit AFTER the green gate), and the run finishes the same way every` with:
+- [x] **Step 3 (CODEX.md):** In `plugins/cogniva-dev/skills/execute-feature/CODEX.md`, in `## After the loop`, replace the line `final commit AFTER the green gate), and the run finishes the same way every` with:
   ```markdown
   final commit AFTER the green gate; quick-fix also runs its structural check,
   between the repo obligations and the ADR check, exactly as its Step 2 says,
   and the architecture standards a task needs travel in its body, so both
   backends hand workers the same text), and the run finishes the same way every
   ```
-- [ ] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
-- [ ] **Step 5 (write ADR):** scan `docs/adr/` for the next number and write ADR-C3 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-quick-fix-checks-structural-changes-before-landing.md` per the adr skill's ADR-FORMAT (`**Provenance:** Suggested by agent`; no Relitigation line; keep its bullet list).
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md plugins/cogniva-dev/skills/quick-fix/WORKTREE.md plugins/cogniva-dev/skills/execute-feature/CODEX.md docs/adr/` then `git commit -m "feat(quick-fix): expected-change preflight and the structural check before landing"`
+- [x] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
+- [x] **Step 5 (write ADR):** scan `docs/adr/` for the next number and write ADR-C3 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-quick-fix-checks-structural-changes-before-landing.md` per the adr skill's ADR-FORMAT (`**Provenance:** Suggested by agent`; no Relitigation line; keep its bullet list).
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md plugins/cogniva-dev/skills/quick-fix/WORKTREE.md plugins/cogniva-dev/skills/execute-feature/CODEX.md docs/adr/` then `git commit -m "feat(quick-fix): expected-change preflight and the structural check before landing"`
 
 ## Task 8: Document the contract and verify everything
 

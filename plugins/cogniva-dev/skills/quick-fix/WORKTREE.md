@@ -15,6 +15,9 @@ continue; `stale: true` → STOP, merge `TARGET` into the feature branch in
 the worktree, commit, then dispatch — fixing a file against a stale tree
 lands the fix on code the target already changed.
 
+Then record `START_TREE` exactly as Step 0 says, in `WORKSPACE`, after any
+staleness merge is committed: the merge is not part of the fix.
+
 ## Replaces Step 2's ADR check and "done"
 
 - ADR check:
