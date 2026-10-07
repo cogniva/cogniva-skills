@@ -165,6 +165,43 @@ Check 'add-module stops in a repo without a Modules kind' ($am -match 'does not 
 Check 'add-module stops on none or error' ($am -match 'PROFILE: none')
 Check 'add-module scaffolds only the selected projects in a declared repo' ($am -match 'selected projects only' -and $am -match 'Application was chosen')
 
+# --- quick-fix structural checks ----------------------------------------------
+$qfFlat    = $qf -replace '\s+', ' '
+$wtQfFlat  = (ReadDoc 'skills\quick-fix\WORKTREE.md') -replace '\s+', ' '
+$codexFlat = $codex -replace '\s+', ' '
+$tpl       = ReadDoc 'templates\execute-feature.workflow.js'
+Check 'quick-fix records START_TREE with the snapshot at Step 0' ($qf -match 'check-structural-changes\.ps1" -Repo "<WORKSPACE>" -Snapshot' -and $qf -match 'START_TREE: <sha>')
+Check 'quick-fix: work already dirty is part of the start state' ($qfFlat -match 'none of that is attributed to this fix')
+Check 'quick-fix: an ordinary fix makes no profile call and adds nothing to tasks' ($qfFlat -match 'Otherwise skip this step: no profile call, nothing added to tasks')
+Check 'quick-fix: no valid START_TREE stops before dispatch' ($qfFlat -match 'Any other result \(a non-zero exit, or no `START_TREE:` line\) . stop before dispatching' -and $qfFlat -match 'without a valid `START_TREE` the structural check cannot run')
+Check 'quick-fix preflights each expected item with its own kind and paths, and stops on exit 3' ($qf -match '-Target "<that item''s paths>" -Kinds "<that item''s kind>"' -and $qfFlat -match 'Never pass one item''s kind against another item''s paths' -and $qfFlat -match 'Exit 3 . stop before dispatching')
+Check 'quick-fix reads landing requirements by profile, not by path' ($qf -match '-Target \. -Profile <the profile on that REQUIRES line> -Show' -and $qfFlat -match 'a path the fix deleted no longer resolves')
+Check 'quick-fix: a profile-changed fact always needs the user''s OK' ($qfFlat -match 'A `profile-changed` fact is always `UNEXPECTED`')
+Check 'quick-fix: expectations name paths as well as kinds' ($qf -match '<kind>:<path>\[\|<path>\.\.\.\]' -and $qfFlat -match 'A structural change outside the folders you name counts as unexpected at landing')
+Check 'quick-fix: each profile''s own standards are printed from its REQUIRE FOR line' ($qfFlat -match 'For each `REQUIRE FOR <target> \(<profile>\): <ids>` line that lists standards')
+Check 'quick-fix: a usage error never dispatches and never lands' ($qfFlat -match 'Exit 2 . the command is wrong: fix it and re-run; never dispatch on it' -and $qfFlat -match 'never treat it as no structural changes')
+Check 'quick-fix: a missing standard is fixed in the profile, a stale one is reviewed and accepted' ($qfFlat -match 'adds the standard or corrects the `structure-requires` pair' -and $qfFlat -match 'reviews (that|the) standard and runs `accept-profile-delta\.ps1`')
+Check 'quick-fix gives the full standards text only to tasks that make the change' ($qf -match '### Architecture standards for this task' -and $qfFlat -match 'Put the `-Show` output VERBATIM' -and $qfFlat -match 'Tasks that do not make the change get none of it')
+Check 'quick-fix workers stop on a structural change they were not asked for' ($qfFlat -match 'and this task does not ask for it, stop and return BLOCKED')
+$iObl    = $qf.IndexOf('### before-integrate')
+$iStruct = $qf.IndexOf('STRUCTURAL CHECK')
+$iAdr    = $qf.IndexOf('check-adrs.ps1')
+$iGate   = $qf.IndexOf('run-green-gate.ps1')
+Check 'quick-fix: the structural check runs after before-integrate, before the ADR check and green gate' ($iObl -ge 0 -and $iStruct -gt $iObl -and $iAdr -gt $iStruct -and $iGate -gt $iAdr)
+Check 'quick-fix: the landing check compares against START_TREE' ($qf -match '-Since <START_TREE>')
+Check 'quick-fix: an UNEXPECTED fact waits for the user' ($qfFlat -match 'wait for their OK before continuing')
+Check 'quick-fix: a blocked required standard stops landing' ($qfFlat -match 'BLOCKED` \| Stop landing')
+Check 'quick-fix: a failed check is never no structural changes' ($qfFlat -match 'Never treat a failed check as no structural changes')
+Check 'quick-fix: a waived check is recorded under Skipped validations' ($qfFlat -match 'land without the check; record that under Skipped validations')
+Check 'quick-fix: finding a structural change never alone leaves quick-fix' ($qfFlat -match 'Finding a structural change is never by itself a reason to leave quick-fix')
+Check 'quick-fix: a departure routes to plan-feature, never auto-run' ($qfFlat -match 'needed exception . stop landing' -and $qfFlat -match 'propose `/cogniva-dev:plan-feature` for the decision \(never auto-run it\)')
+Check 'quick-fix: no pwsh in a repo with profiles asks the user before dispatch' ($qfFlat -match 'if the repo has a `\.cogniva/profiles/` folder, say the structural check cannot run and ask the user before dispatching')
+Check 'quick-fix stays technology-neutral' ($qf -notmatch '(?i)csproj|ProjectReference|\.NET\b|pyproject')
+Check 'quick-fix does not use applicable-rules as its architecture check' ($qf -notmatch 'applicable-rules')
+Check 'worktree quick-fix snapshots after any staleness merge' ($wtQfFlat -match 'record `START_TREE` exactly as Step 0 says' -and $wtQfFlat -match 'after any staleness merge is committed')
+Check 'Codex parity: both backends pass the task body verbatim' ($codexFlat -match 'full `body` VERBATIM' -and $tpl -match 't\.body')
+Check 'Codex parity: quick-fix landing under Codex includes the structural check' ($codexFlat -match 'quick-fix also runs its structural check')
+
 if ($failures.Count -gt 0) {
     Write-Host ""
     Write-Host "FAILED: $($failures.Count) assertion(s)."

@@ -1916,7 +1916,7 @@ Rules the script implements:
 
 This file runs under Windows PowerShell 5.1: keep every added line ASCII.
 
-- [ ] **Step 1 (failing pins):** In `skill-semantics.tests.ps1`, insert directly above the line `if ($failures.Count -gt 0) {`:
+- [x] **Step 1 (failing pins):** In `skill-semantics.tests.ps1`, insert directly above the line `if ($failures.Count -gt 0) {`:
   ```powershell
   # --- quick-fix structural checks ----------------------------------------------
   $qfFlat    = $qf -replace '\s+', ' '
@@ -1955,8 +1955,8 @@ This file runs under Windows PowerShell 5.1: keep every added line ASCII.
   Check 'Codex parity: both backends pass the task body verbatim' ($codexFlat -match 'full `body` VERBATIM' -and $tpl -match 't\.body')
   Check 'Codex parity: quick-fix landing under Codex includes the structural check' ($codexFlat -match 'quick-fix also runs its structural check')
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → the new quick-fix pins FAIL, except three that already hold (both backends pass the body verbatim, technology-neutral, no applicable-rules); every older pin still PASSES.
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "test(quick-fix): pin the structural-change contract"`
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → the new quick-fix pins FAIL, except three that already hold (both backends pass the body verbatim, technology-neutral, no applicable-rules); every older pin still PASSES.
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "test(quick-fix): pin the structural-change contract"`
 
 ## Task 7: Wire the check into quick-fix (Claude and Codex)
 
