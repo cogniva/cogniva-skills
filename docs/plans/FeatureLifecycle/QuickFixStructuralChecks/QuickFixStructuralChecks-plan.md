@@ -1251,7 +1251,7 @@ Rules the script implements:
   one of the fact's paths. Anything else is `UNEXPECTED`. An item without
   paths is a usage error.
 
-- [ ] **Step 1 (failing tests):** In `structural-changes.tests.ps1`, insert directly above `      # --- sections appended by later tasks go above this line ---`:
+- [x] **Step 1 (failing tests):** In `structural-changes.tests.ps1`, insert directly above `      # --- sections appended by later tasks go above this line ---`:
   ```powershell
       # --- check-structural-changes.ps1 -----------------------------------------
       function Add-RepoProfile([string]$Repo, [string]$Id, [string]$Yaml, [hashtable]$Files) {
@@ -1506,8 +1506,8 @@ Rules the script implements:
       $r = Try-Detector 'ghost'
       Check 'checker: a detector the plugin does not ship is FAILED' ($r.Code -eq 1 -and $r.Json.Detectors[0].Reason -match "detector 'ghost'.*is not in")
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → the detector checks PASS; it then stops on `snapshot failed` because `check-structural-changes.ps1` does not exist yet.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/check-structural-changes.ps1`:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → the detector checks PASS; it then stops on `snapshot failed` because `check-structural-changes.ps1` does not exist yet.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/check-structural-changes.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Structural-change check (contract in docs/architecture-profiles.md).
@@ -1811,14 +1811,14 @@ Rules the script implements:
   if ($facts.Count) { Finish 'FOUND' "$($facts.Count) structural change(s) since the start" }
   Finish 'NONE' "detectors ran: $($detectorIds -join ', ')"
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → `All structural-changes assertions passed.`
-- [ ] **Step 5 (green gate):** In `.claude/cogniva-dev/green-gate.json`, insert this line directly after the line whose `"label"` is `"profile-library"` (keep the comma rules of the JSON array):
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` → `All structural-changes assertions passed.`
+- [x] **Step 5 (green gate):** In `.claude/cogniva-dev/green-gate.json`, insert this line directly after the line whose `"label"` is `"profile-library"` (keep the comma rules of the JSON array):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1", "label": "structural-changes", "note": "Pins the start snapshot, the dotnet-projects detector and the structural check's statuses and exit codes; needs PowerShell 7." },
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → exit 0.
-- [ ] **Step 6 (write ADR):** scan `docs/adr/` for the next number and write ADR-C2 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-structure-detectors-report-facts-and-fail-loudly.md` per the adr skill's ADR-FORMAT (`**Provenance:** Suggested by agent`; no Relitigation line).
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/check-structural-changes.ps1 plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1 .claude/cogniva-dev/green-gate.json docs/adr/` then `git commit -m "feat(structure): check-structural-changes.ps1 - start snapshot and landing check"`
+- [x] **Step 6 (write ADR):** scan `docs/adr/` for the next number and write ADR-C2 from `## Candidate ADRs` verbatim to `docs/adr/NNNN-structure-detectors-report-facts-and-fail-loudly.md` per the adr skill's ADR-FORMAT (`**Provenance:** Suggested by agent`; no Relitigation line).
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/check-structural-changes.ps1 plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1 .claude/cogniva-dev/green-gate.json docs/adr/` then `git commit -m "feat(structure): check-structural-changes.ps1 - start snapshot and landing check"`
 
 ## Task 5: The shipped library's structural-change policy
 
