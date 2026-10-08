@@ -49,7 +49,8 @@ already dirty, so none of that is attributed to this fix:
 prints `START_TREE: <sha>`. Any other result (a non-zero exit, or no
 `START_TREE:` line) → stop before dispatching and show its output: without
 a valid `START_TREE` the structural check cannot run. No `pwsh`: if the
-repo has a `.cogniva/profiles/` folder, say the structural check cannot run
+repo declares an architecture profile (a `.cogniva-profile.yml` anywhere in
+it) or has a `.cogniva/profiles/` folder, say the structural check cannot run
 and ask the user before dispatching whether to go ahead without it (yes →
 record that under Skipped validations); otherwise say so in one line and
 carry on. ⟦worktree⟧

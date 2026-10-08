@@ -5,18 +5,22 @@
 # - unit-added / unit-removed: a project file appears or disappears (a renamed
 #   or moved project file is both);
 # - dependency-added / dependency-removed: a literal <ProjectReference Include>
-#   appears or disappears in a project file, or in a Directory.Build.props or
-#   .targets file (which applies to every project under its folder);
+#   appears or disappears for a project, declared in its own project file or in
+#   the Directory.Build.props or .targets it imports. As in MSBuild, a project
+#   imports only the nearest of each in its folder or above, and an Include is
+#   resolved from the project's folder ($(MSBuildThisFileDirectory) from the
+#   imported file's);
 # - code-moved: files renamed from one project's folder into another's, and -
 #   as a possible move - a file deleted from one project while a file with the
 #   same name is added to another. A file belongs to the project in its nearest
 #   folder that holds one; files that move with their project are not reported.
 # Each fact's paths are every path whose profile governs it: both ends of a
-# reference, and every project under a Directory.Build file's folder.
+# reference, and every project that gets it from a Directory.Build file.
 # Facts only: it never reads a profile or decides what is allowed. It does not
-# evaluate MSBuild: other imported files, conditions and items added by targets
-# are not followed, and an Include that uses a property or wildcard is reported
-# as written, marked (unevaluated).
+# evaluate MSBuild: other imported files (including a parent Directory.Build
+# file a nearer one imports), conditions and items added by targets are not
+# followed, and an Include that uses any other property or a wildcard is
+# reported as written, marked (unevaluated).
 # Exit 0 with the JSON report on stdout; any failure exits 1 with the reason on stderr.
 [CmdletBinding()]
 param(
@@ -49,13 +53,27 @@ function Get-ProjectsUnder([string]$Tree, [string]$Dir) {
     $prefix = if ($Dir) { "$Dir/" } else { '' }
     return @(Get-PathsOf $Tree | Where-Object { $_ -match $projectPattern -and $_.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase) })
 }
-# The paths whose profiles govern one reference: the file declaring it, every
-# project a Directory.Build file applies to, and the referenced project when literal.
-function Get-ReferencePaths([string]$Tree, [string]$File, $Ref) {
-    $paths = @($File)
-    if ($File -match $buildFilePattern) { $paths += @(Get-ProjectsUnder $Tree (Get-Dir $File)) }
-    if (-not $Ref.Target.StartsWith('(unevaluated)')) { $paths += $Ref.Target }
-    return @($paths | Select-Object -Unique)
+# Lowercase path -> path, for every file in a tree, built once per tree.
+$treeIndex = @{}
+function Get-IndexOf([string]$Tree) {
+    if (-not $script:treeIndex.ContainsKey($Tree)) {
+        $map = @{}
+        foreach ($p in @(Get-PathsOf $Tree)) { $map[$p.ToLowerInvariant()] = $p }
+        $script:treeIndex[$Tree] = $map
+    }
+    return $script:treeIndex[$Tree]
+}
+# The Directory.Build.<Ext> MSBuild imports for $Project in $Tree: the nearest
+# one in the project's folder or above, or $null.
+function Get-NearestBuildFile([string]$Tree, [string]$Project, [string]$Ext) {
+    $index = Get-IndexOf $Tree
+    $dir = Get-Dir $Project
+    while ($true) {
+        $candidate = if ($dir) { "$dir/Directory.Build.$Ext" } else { "Directory.Build.$Ext" }
+        if ($index.ContainsKey($candidate.ToLowerInvariant())) { return $index[$candidate.ToLowerInvariant()] }
+        if ($dir -eq '') { return $null }
+        $dir = Get-Dir $dir
+    }
 }
 
 # Repo-relative '/' path of $Relative joined to $Dir, or $null when it is rooted
@@ -75,19 +93,42 @@ function Join-RepoPath([string]$Dir, [string]$Relative) {
     return ($parts -join '/')
 }
 
-# The ProjectReference targets a file declares, keyed case-insensitively: the
-# repo-relative project path, or "(unevaluated) <Include>" when the Include is not
-# a literal relative path. XML comments are ignored.
-function Get-ProjectReferences([string]$Text, [string]$FilePath) {
+# The ProjectReference targets a file declares for a project in $ProjectDir,
+# keyed case-insensitively: the repo-relative project path, or
+# "(unevaluated) <Include>" when the Include is not a literal relative path.
+# $ThisFileDir is the declaring file's folder, for $(MSBuildThisFileDirectory).
+# XML comments are ignored.
+function Get-ProjectReferences([string]$Text, [string]$ProjectDir, [string]$ThisFileDir) {
     $refs = [ordered]@{}
     if ($null -eq $Text) { return $refs }
     $clean = [regex]::Replace($Text, '<!--.*?-->', '', 'Singleline')
     foreach ($m in [regex]::Matches($clean, '<ProjectReference\b[^>]*?\bInclude\s*=\s*("([^"]*)"|''([^'']*)'')', 'IgnoreCase')) {
         $include = if ($m.Groups[2].Success) { $m.Groups[2].Value } else { $m.Groups[3].Value }
         foreach ($one in @($include -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
-            $target = if ($one -match '[$*?%@]') { $null } else { Join-RepoPath (Get-Dir $FilePath) $one }
+            $relative = $one
+            $from = $ProjectDir
+            if ($one -match '^\$\(MSBuildThisFileDirectory\)(?<rest>.*)$') { $relative = $Matches['rest']; $from = $ThisFileDir }
+            elseif ($one -match '^\$\(MSBuildProjectDirectory\)[\\/](?<rest>.*)$') { $relative = $Matches['rest'] }
+            $target = if ($relative -match '[$*?%@]') { $null } else { Join-RepoPath $from $relative }
             $key = if ($target) { $target } else { "(unevaluated) $one" }
             if (-not $refs.Contains($key.ToLowerInvariant())) { $refs[$key.ToLowerInvariant()] = [pscustomobject]@{ Target = $key; Include = $one } }
+        }
+    }
+    return $refs
+}
+
+# The references $Project gets in $Tree from the Directory.Build.props and
+# .targets it imports, keyed like Get-ProjectReferences: { Target; Include; Via }.
+# A reference back to the project itself is left out.
+function Get-InheritedReferences([string]$Tree, [string]$Project) {
+    $refs = [ordered]@{}
+    foreach ($ext in 'props', 'targets') {
+        $via = Get-NearestBuildFile $Tree $Project $ext
+        if (-not $via) { continue }
+        $found = Get-ProjectReferences (Get-TreeFileText $Repo $Tree $via) (Get-Dir $Project) (Get-Dir $via)
+        foreach ($k in @($found.Keys)) {
+            if ($refs.Contains($k) -or $found[$k].Target -ieq $Project) { continue }
+            $refs[$k] = [pscustomobject]@{ Target = $found[$k].Target; Include = $found[$k].Include; Via = $via }
         }
     }
     return $refs
@@ -131,34 +172,61 @@ try {
         if ($c.Status -eq 'R' -and $old -match $projectPattern -and $new -match $projectPattern) { $projectRenames[$old.ToLowerInvariant()] = $new }
     }
 
-    # Dependencies. A removed project's own references go with it (its
-    # unit-removed fact covers them); an added project's references are all new;
-    # a removed Directory.Build file removes its references from every project under it.
+    # A project file's own references. A removed project's references go with
+    # it (its unit-removed fact covers them); an added project's are all new.
+    $literal = { param($Ref) -not $Ref.Target.StartsWith('(unevaluated)') }
     foreach ($c in $changes) {
-        if ($c.Status -eq 'D') {
-            if ($c.Path -match $buildFilePattern) {
-                $gone = Get-ProjectReferences (Get-TreeFileText $Repo $Base $c.Path) $c.Path
-                $scope = " (applied to every project under $(if (Get-Dir $c.Path) { Get-Dir $c.Path } else { 'the repository root' }))"
-                foreach ($t in $gone.Values) { $facts.Add((New-StructureFact 'dependency-removed' @($c.Path, $t.Target) (Get-ReferencePaths $Base $c.Path $t) "$($c.Path) was removed with <ProjectReference Include=`"$($t.Include)`">$scope")) }
-            }
-            continue
-        }
+        if ($c.Status -eq 'D' -or $c.Path -notmatch $projectPattern) { continue }
         $newPath = $c.Path
-        if (-not (Test-ReferenceFile $newPath)) { continue }
         $oldPath = if ($c.Status -eq 'R') { $c.OldPath } elseif ($c.Status -in 'M', 'T') { $c.Path } else { $null }
-        $before = if (Test-ReferenceFile $oldPath) { Get-ProjectReferences (Get-TreeFileText $Repo $Base $oldPath) $oldPath } else { [ordered]@{} }
-        $after = Get-ProjectReferences (Get-TreeFileText $Repo $Head $newPath) $newPath
-        $scope = if ($newPath -match $buildFilePattern) { " (applies to every project under $(if (Get-Dir $newPath) { Get-Dir $newPath } else { 'the repository root' }))" } else { '' }
+        $before = if ($oldPath -and $oldPath -match $projectPattern) { Get-ProjectReferences (Get-TreeFileText $Repo $Base $oldPath) (Get-Dir $oldPath) (Get-Dir $oldPath) } else { [ordered]@{} }
+        $after = Get-ProjectReferences (Get-TreeFileText $Repo $Head $newPath) (Get-Dir $newPath) (Get-Dir $newPath)
         foreach ($k in @($after.Keys)) {
             if ($before.Contains($k)) { continue }
             $t = $after[$k]
-            $facts.Add((New-StructureFact 'dependency-added' @($newPath, $t.Target) (Get-ReferencePaths $Head $newPath $t) "$newPath adds <ProjectReference Include=`"$($t.Include)`">$scope"))
+            $paths = @($newPath) + @(if (& $literal $t) { $t.Target })
+            $facts.Add((New-StructureFact 'dependency-added' @($newPath, $t.Target) $paths "$newPath adds <ProjectReference Include=`"$($t.Include)`">"))
         }
         foreach ($k in @($before.Keys)) {
             if ($after.Contains($k)) { continue }
             $t = $before[$k]
-            $facts.Add((New-StructureFact 'dependency-removed' @($newPath, $t.Target) (Get-ReferencePaths $Head $newPath $t) "$newPath removes <ProjectReference Include=`"$($t.Include)`">$scope"))
+            $paths = @($newPath) + @(if (& $literal $t) { $t.Target })
+            $facts.Add((New-StructureFact 'dependency-removed' @($newPath, $t.Target) $paths "$newPath removes <ProjectReference Include=`"$($t.Include)`">"))
         }
+    }
+
+    # References a project gets from the Directory.Build files it imports,
+    # compared per project: for every project added, and every project under a
+    # Directory.Build file that was added, changed or removed (a new, nearer one
+    # replaces what a parent gave). One fact per file and Include.
+    $buildDirs = @($changes | ForEach-Object { $_.Path; $_.OldPath } | Where-Object { $_ -and $_ -match $buildFilePattern } | ForEach-Object { Get-Dir $_ } | Select-Object -Unique)
+    $affected = [ordered]@{}
+    foreach ($c in $changes) { if ($c.Status -in 'A', 'R' -and $c.Path -match $projectPattern) { $affected[$c.Path.ToLowerInvariant()] = $c.Path } }
+    foreach ($dir in $buildDirs) { foreach ($p in @(Get-ProjectsUnder $Head $dir)) { $affected[$p.ToLowerInvariant()] = $p } }
+    $inherited = [ordered]@{}
+    $baseIndex = Get-IndexOf $Base
+    foreach ($p in $affected.Values) {
+        $before = if ($baseIndex.ContainsKey($p.ToLowerInvariant())) { Get-InheritedReferences $Base $p } else { [ordered]@{} }
+        $after = Get-InheritedReferences $Head $p
+        $diff = @(@($after.Keys) | Where-Object { -not $before.Contains($_) } | ForEach-Object { , @('dependency-added', $after[$_]) }) +
+                @(@($before.Keys) | Where-Object { -not $after.Contains($_) } | ForEach-Object { , @('dependency-removed', $before[$_]) })
+        foreach ($pair in $diff) {
+            $kind, $t = $pair
+            $key = "$kind|$($t.Via)|$($t.Include)".ToLowerInvariant()
+            if (-not $inherited.Contains($key)) { $inherited[$key] = [pscustomobject]@{ Kind = $kind; Via = $t.Via; Include = $t.Include; Projects = [System.Collections.Generic.List[string]]::new(); Targets = [System.Collections.Generic.List[string]]::new() } }
+            $g = $inherited[$key]
+            $g.Projects.Add($p)
+            if (-not $g.Targets.Contains($t.Target)) { $g.Targets.Add($t.Target) }
+        }
+    }
+    foreach ($g in $inherited.Values) {
+        $targets = @($g.Targets | Where-Object { -not $_.StartsWith('(unevaluated)') })
+        $paths = @(@($g.Via) + @($g.Projects) + $targets | Select-Object -Unique)
+        $first = "$($g.Projects[0]) -> $($g.Targets[0])"
+        $more = if ($g.Projects.Count -gt 1) { " and $($g.Projects.Count - 1) more" } else { '' }
+        $why = if ($g.Kind -eq 'dependency-added') { "$($g.Via) gives $($g.Projects.Count) project(s) that import it <ProjectReference Include=`"$($g.Include)`">: $first$more" }
+               else { "$($g.Projects.Count) project(s) no longer get <ProjectReference Include=`"$($g.Include)`"> from $($g.Via): $first$more" }
+        $facts.Add((New-StructureFact $g.Kind (@($g.Via) + @($g.Targets)) $paths $why))
     }
 
     # Code moved between projects: renamed files whose owning project differs,

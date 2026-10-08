@@ -321,7 +321,10 @@ Contract 1:
 - each fact has a `kind`, `units` (one or more, such as the two ends of a
   dependency), `paths` and `evidence` (one line a person can check).
   `paths` lists every repo-relative path the fact is about, because the
-  profile of each one governs it: both ends of a dependency, for example;
+  profile of each one governs it: both ends of a dependency, for example.
+  A `kind` that no profile selecting the detector declares in
+  `structure-kinds` breaks the contract, so a typo cannot slip past the
+  standards that kind requires;
 - `"facts": []` is the only way to say nothing was found. Any other exit
   code, missing or malformed JSON, or a missing script is a failed check.
 
@@ -329,10 +332,13 @@ Contract 1:
 (`*.csproj`, `*.fsproj`, `*.vbproj`) as a unit. It reports:
 
 - projects added or removed (a moved or renamed project file is both);
-- literal `<ProjectReference Include>` items added or removed, in project
-  files and in `Directory.Build.props`/`.targets`. A reference in a
-  `Directory.Build` file applies to every project under its folder, so all
-  of those projects are among its paths;
+- literal `<ProjectReference Include>` items a project gains or loses, from
+  its own project file or from the `Directory.Build.props`/`.targets` it
+  imports. As in MSBuild, a project imports only the nearest of each in its
+  folder or above, so a new, nearer one replaces what a parent gave; and an
+  `Include` resolves from the project's folder (from the imported file's
+  with `$(MSBuildThisFileDirectory)`). The projects that get a reference
+  from a `Directory.Build` file are among its paths;
 - files moved from one project's folder to another's. A file belongs to
   the project in its nearest folder that holds one, and files that move
   with their project are not reported. A move is caught when git pairs it
@@ -341,9 +347,10 @@ Contract 1:
   with the same name is added to another. A move that also renames the file
   and rewrites most of it is not caught.
 
-It does not evaluate MSBuild. Other imported files, conditions and items
-added by targets are not followed, and an `Include` that uses a property or
-a wildcard is reported as written, marked `(unevaluated)`.
+It does not evaluate MSBuild. Other imported files (including a parent
+`Directory.Build` file that a nearer one imports), conditions and items
+added by targets are not followed, and an `Include` that uses any other
+property or a wildcard is reported as written, marked `(unevaluated)`.
 
 ### The check
 

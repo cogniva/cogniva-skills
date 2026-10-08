@@ -105,8 +105,9 @@ function Finish([string]$Status, [string]$Reason) {
     exit $code
 }
 
-# $null when $Json is a valid contract-1 report from detector $Id, else what is wrong.
-function Test-DetectorReport($Json, [string]$Id) {
+# $null when $Json is a valid contract-1 report from detector $Id whose fact
+# kinds are all in $Kinds (the kinds the profiles selecting it declare), else what is wrong.
+function Test-DetectorReport($Json, [string]$Id, [string[]]$Kinds) {
     if ($null -eq $Json) { return 'no JSON report on stdout' }
     if ($Json -isnot [System.Management.Automation.PSCustomObject]) { return 'the report is not a JSON object' }
     $names = @($Json.PSObject.Properties.Name)
@@ -116,6 +117,7 @@ function Test-DetectorReport($Json, [string]$Id) {
     foreach ($f in @($Json.facts)) {
         if ($f -isnot [System.Management.Automation.PSCustomObject]) { return 'every fact must be an object' }
         if ([string]$f.kind -cnotmatch $script:StructureKindPattern) { return "fact kind '$($f.kind)' is not a valid structure kind" }
+        if (@($Kinds) -cnotcontains [string]$f.kind) { return "fact kind '$($f.kind)' is not declared by structure-kinds in the profile(s) that select it" }
         if (@($f.units | Where-Object { $_ -is [string] -and $_ }).Count -lt 1) { return "a $($f.kind) fact has no units" }
         $paths = @($f.paths)
         $good = @($paths | Where-Object { $_ -is [string] -and $_ -and -not [System.IO.Path]::IsPathRooted($_) -and @($_ -split '/') -notcontains '..' })
@@ -253,7 +255,8 @@ foreach ($d in $detectorIds) {
         if ($code -ne 0) { throw [System.InvalidOperationException]::new("StructureError: detector '$d' exited $code$(if ($stderr) { ": $stderr" })") }
         $json = $null
         try { $json = $stdout | ConvertFrom-Json } catch { $json = $null }
-        $problem = Test-DetectorReport $json $d
+        $kinds = @($entry.Profiles | ForEach-Object { $ctx.Results[$_].Structure.Kinds } | Select-Object -Unique)
+        $problem = Test-DetectorReport $json $d $kinds
         if ($problem) { throw [System.InvalidOperationException]::new("StructureError: detector '$d' broke its contract: $problem") }
         foreach ($f in @($json.facts)) {
             $facts.Add([pscustomobject]@{ Detector = $d; Kind = $f.kind; Units = @($f.units); Paths = @($f.paths); Evidence = $f.evidence; Expected = $false; Requires = @(); Blocked = @() })
@@ -290,6 +293,7 @@ foreach ($f in $facts) {
         $targets += [pscustomobject]@{ Target = $p; Status = 'RESOLVED'; Profile = $id }
     }
     $gate = Get-RequireResult $ctx $targets @() @($f.Kind)
+    foreach ($bt in @($gate.ByTarget | Where-Object { @($_.UnknownKinds).Count })) { $ctx.Warnings.Add("profile '$($bt.Profile)' does not declare structure kind '$($f.Kind)', so it requires nothing for the $($f.Kind) change at $($bt.Target)") }
     $f.Requires = @($gate.ByTarget | ForEach-Object { [pscustomobject]@{ Profile = $_.Profile; When = $when[$_.Profile]; Standards = @($_.Standards) } })
     $f.Blocked = @($gate.Blocked | ForEach-Object { [pscustomobject]@{ Target = $_.Target; Profile = $_.Profile; Standard = $_.Standard; Reason = $_.Reason; When = $when[$_.Profile] } })
 }

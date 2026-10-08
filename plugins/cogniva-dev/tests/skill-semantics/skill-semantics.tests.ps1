@@ -195,7 +195,7 @@ Check 'quick-fix: a failed check is never no structural changes' ($qfFlat -match
 Check 'quick-fix: a waived check is recorded under Skipped validations' ($qfFlat -match 'land without the check; record that under Skipped validations')
 Check 'quick-fix: finding a structural change never alone leaves quick-fix' ($qfFlat -match 'Finding a structural change is never by itself a reason to leave quick-fix')
 Check 'quick-fix: a departure routes to plan-feature, never auto-run' ($qfFlat -match 'needed exception . stop landing' -and $qfFlat -match 'propose `/cogniva-dev:plan-feature` for the decision \(never auto-run it\)')
-Check 'quick-fix: no pwsh in a repo with profiles asks the user before dispatch' ($qfFlat -match 'if the repo has a `\.cogniva/profiles/` folder, say the structural check cannot run and ask the user before dispatching')
+Check 'quick-fix: no pwsh in a repo that declares or owns a profile asks the user before dispatch' ($qfFlat -match 'if the repo declares an architecture profile \(a `\.cogniva-profile\.yml` anywhere in it\) or has a `\.cogniva/profiles/` folder, say the structural check cannot run and ask the user before dispatching')
 Check 'quick-fix stays technology-neutral' ($qf -notmatch '(?i)csproj|ProjectReference|\.NET\b|pyproject')
 Check 'quick-fix does not use applicable-rules as its architecture check' ($qf -notmatch 'applicable-rules')
 Check 'worktree quick-fix snapshots after any staleness merge' ($wtQfFlat -match 'record `START_TREE` exactly as Step 0 says' -and $wtQfFlat -match 'after any staleness merge is committed')

@@ -146,11 +146,33 @@ try {
     Check 'detector: an Include it cannot evaluate is reported as written, marked (unevaluated)' ($f.Count -eq 1 -and $f[0].units[1] -eq '(unevaluated) $(RepoRoot)src\C\C.csproj')
     Reset-To $d $dInit
 
-    Write-Fixture $d 'src/Directory.Build.props' "<Project>`n  <ItemGroup>`n    <ProjectReference Include=`"C\C.csproj`" />`n  </ItemGroup>`n</Project>`n"
+    Write-Fixture $d 'src/Directory.Build.props' "<Project>`n  <ItemGroup>`n    <ProjectReference Include=`"`$(MSBuildThisFileDirectory)C\C.csproj`" />`n  </ItemGroup>`n</Project>`n"
     $r = Detect $d $t0 (Get-WorkingTreeSnapshot $d)
     $f = Facts $r 'dependency-added'
-    Check 'detector: a ProjectReference in Directory.Build.props is a dependency of every project under it' ($r.Facts.Count -eq 1 -and $f.Count -eq 1 -and ($f[0].units -join '>') -eq 'src/Directory.Build.props>src/C/C.csproj' -and $f[0].evidence -match 'applies to every project under src')
-    Check 'detector: a Directory.Build reference is governed by every project under its folder' ($f.Count -eq 1 -and @($f[0].paths) -contains 'src/Directory.Build.props' -and @($f[0].paths) -contains 'src/A/A.csproj' -and @($f[0].paths) -contains 'src/B/B.csproj' -and @($f[0].paths) -contains 'src/C/C.csproj')
+    Check 'detector: a ProjectReference in Directory.Build.props is a dependency of every project that imports it' ($r.Facts.Count -eq 1 -and $f.Count -eq 1 -and ($f[0].units -join '>') -eq 'src/Directory.Build.props>src/C/C.csproj' -and $f[0].evidence -match 'gives 2 project\(s\) that import it')
+    Check 'detector: a Directory.Build reference is governed by the file, the projects that import it, and the target' ($f.Count -eq 1 -and (@($f[0].paths | Sort-Object) -join ',') -eq 'src/A/A.csproj,src/B/B.csproj,src/C/C.csproj,src/Directory.Build.props')
+    Reset-To $d $dInit
+
+    # MSBuild resolves an imported Include from the project's folder, not the imported file's.
+    Write-Fixture $d 'src/Directory.Build.targets' "<Project>`n  <ItemGroup>`n    <ProjectReference Include=`"..\C\C.csproj`" />`n  </ItemGroup>`n</Project>`n"
+    $r = Detect $d $t0 (Get-WorkingTreeSnapshot $d)
+    $f = Facts $r 'dependency-added'
+    Check 'detector: a relative Include in a Directory.Build file resolves from each importing project' ($r.Facts.Count -eq 1 -and $f.Count -eq 1 -and ($f[0].units -join '>') -eq 'src/Directory.Build.targets>src/C/C.csproj')
+    Reset-To $d $dInit
+
+    # A project imports only the NEAREST Directory.Build.props: a new, nearer one replaces the parent's.
+    Write-Fixture $d 'src/Directory.Build.props' "<Project>`n  <ItemGroup>`n    <ProjectReference Include=`"`$(MSBuildThisFileDirectory)C\C.csproj`" />`n  </ItemGroup>`n</Project>`n"
+    Commit-All $d 'shared props'
+    $tProps = Get-WorkingTreeSnapshot $d
+    Write-Fixture $d 'src/A/Directory.Build.props' "<Project />`n"
+    $r = Detect $d $tProps (Get-WorkingTreeSnapshot $d)
+    $f = Facts $r 'dependency-removed'
+    Check 'detector: a nearer Directory.Build.props drops what the parent gave, for the projects under it only' ($r.Facts.Count -eq 1 -and $f.Count -eq 1 -and ($f[0].units -join '>') -eq 'src/Directory.Build.props>src/C/C.csproj' -and @($f[0].paths) -contains 'src/A/A.csproj' -and @($f[0].paths) -notcontains 'src/B/B.csproj')
+    Reset-To $d (& git -C $d rev-parse HEAD)
+    Write-Fixture $d 'src/D/D.csproj' (Proj @())
+    $r = Detect $d $tProps (Get-WorkingTreeSnapshot $d)
+    $f = Facts $r 'dependency-added'
+    Check 'detector: a new project gets the references of the Directory.Build file it imports' ((Facts $r 'unit-added').Count -eq 1 -and $f.Count -eq 1 -and ($f[0].units -join '>') -eq 'src/Directory.Build.props>src/C/C.csproj' -and @($f[0].paths) -contains 'src/D/D.csproj')
     Reset-To $d $dInit
 
     & git -C $d mv src/A/Foo.cs src/B/Foo.cs
@@ -403,7 +425,7 @@ try {
     Write-Fixture $ns 'src/C/.cogniva-profile.yml' "profile: tech`n"
     Commit-All $ns 'init'
     $nss = Start-Tree $ns
-    Write-Fixture $ns 'src/Directory.Build.props' "<Project>`n  <ItemGroup>`n    <ProjectReference Include=`"C\C.csproj`" />`n  </ItemGroup>`n</Project>`n"
+    Write-Fixture $ns 'src/Directory.Build.props' "<Project>`n  <ItemGroup>`n    <ProjectReference Include=`"..\C\C.csproj`" />`n  </ItemGroup>`n</Project>`n"
     $r = Check-Changes $ns $nss
     $f = @($r.Json.Facts | Where-Object Kind -eq 'dependency-added')
     Check 'checker: a shared build file above nested markers is checked by the profiles of the projects under it' ($r.Code -eq 4 -and $f.Count -eq 1 -and @($f[0].Paths) -contains 'src/A/A.csproj' -and @($f[0].Requires | Where-Object Profile -eq 'tech').Count -eq 1)
@@ -414,7 +436,8 @@ try {
     Write-Fixture $fx 'silent.ps1' "exit 0`n"
     Write-Fixture $fx 'sloppy.ps1' "'{`"contract`":1,`"detector`":`"sloppy`",`"facts`":[{`"kind`":`"unit-added`",`"units`":[`"x`"],`"paths`":[`"x`"]}]}'`nexit 0`n"
     Write-Fixture $fx 'quiet.ps1' "'{`"contract`":1,`"detector`":`"quiet`",`"facts`":[]}'`nexit 0`n"
-    foreach ($id in 'crashes', 'silent', 'sloppy', 'quiet', 'ghost') { Add-RepoProfile $c "uses-$id" "description: Uses $id.`ninherits: base`nstructure-detectors:`n  - $id`n" @{} }
+    Write-Fixture $fx 'typo.ps1' "'{`"contract`":1,`"detector`":`"typo`",`"facts`":[{`"kind`":`"unit-addded`",`"units`":[`"x`"],`"paths`":[`"x`"],`"evidence`":`"x`"}]}'`nexit 0`n"
+    foreach ($id in 'crashes', 'silent', 'sloppy', 'quiet', 'typo', 'ghost') { Add-RepoProfile $c "uses-$id" "description: Uses $id.`ninherits: base`nstructure-detectors:`n  - $id`n" @{} }
     Commit-All $c 'detector fixtures'
     $cFx = (& git -C $c rev-parse HEAD)
     function Try-Detector([string]$Id) {
@@ -434,6 +457,8 @@ try {
     Check 'checker: a detector that prints no report is FAILED' ($r.Code -eq 1 -and $r.Json.Detectors[0].Reason -match 'no JSON report')
     $r = Try-Detector 'sloppy'
     Check 'checker: a fact without evidence breaks the contract (FAILED)' ($r.Code -eq 1 -and $r.Json.Detectors[0].Reason -match 'broke its contract: a unit-added fact has no evidence')
+    $r = Try-Detector 'typo'
+    Check 'checker: a fact kind the selecting profiles do not declare breaks the contract (FAILED)' ($r.Code -eq 1 -and $r.Json.Detectors[0].Reason -match "broke its contract: fact kind 'unit-addded' is not declared")
     $r = Try-Detector 'ghost'
     Check 'checker: a detector the plugin does not ship is FAILED' ($r.Code -eq 1 -and $r.Json.Detectors[0].Reason -match "detector 'ghost'.*is not in")
 
