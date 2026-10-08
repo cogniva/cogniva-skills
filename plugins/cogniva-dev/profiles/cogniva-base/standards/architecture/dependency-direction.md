@@ -1,5 +1,5 @@
 ---
-description: Dependencies follow the direction the repository declares; a new dependency edge never bypasses it, and public surfaces stay pure.
+description: Dependencies follow the direction the repository declares, a new edge never bypasses it, and the graph between owning units has no cycles.
 ---
 
 # Dependency direction
@@ -7,5 +7,5 @@ description: Dependencies follow the direction the repository declares; a new de
 - Follow the dependency direction the repository declares. A new dependency
   edge that bypasses it is a design departure to surface, not a detail to
   implement.
-- A unit's public surface (its contracts or interface package) stays a pure
-  surface: it is never where implementation lives.
+- The dependency graph between owning units is acyclic. A cycle is allowed only
+  as a recorded exception (`architecture/architecture-exceptions.md`).

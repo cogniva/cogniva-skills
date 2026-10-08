@@ -1,6 +1,18 @@
-description: .NET Module (vertical-slice) architecture - Contracts, Domain, Application, Infrastructure, optional Client, and Blazor UI per Module.
+description: Cogniva's .NET architecture - shared principles and the default conventions for new repos. Inherits cogniva-base; a repository's own layout belongs in a repo-owned profile.
 inherits: cogniva-base
 detect:
   - "*.slnx"
   - "*.sln"
   - "Directory.Build.props"
+# In .NET a unit is a project. dotnet-projects reports projects added or
+# removed, project references added or removed, and files moved between projects.
+structure-detectors:
+  - dotnet-projects
+structure-requires:
+  - "unit-added dotnet/project-layout.md"
+  - "unit-added dotnet/projects-and-references.md"
+  - "unit-added dotnet/build-settings.md"
+  - "unit-removed dotnet/projects-and-references.md"
+  - "dependency-added dotnet/projects-and-references.md"
+  - "dependency-removed dotnet/projects-and-references.md"
+  - "code-moved dotnet/project-layout.md"

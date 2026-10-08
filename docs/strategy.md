@@ -14,16 +14,18 @@ tooling. Architecture profiles are the deliberate exception; see below.
 
 ## Conventions (canonical definitions: docs/glossary/README.md)
 
-- .NET solutions composed of [Modules](glossary/README.md#module) - vertical
-  slices, each with Contracts / Domain / Application / Infrastructure /
-  optional Client / Blazor UI.
-- Cross-Module communication only via [Contracts](glossary/README.md#contracts).
-- [Hosts](glossary/README.md#host) choose in-process (Application) or HTTP
-  (Client) per deployment; UIs are always Blazor so they run in web and WPF hosts.
+- New .NET repos follow the `dotnet` [Architecture profile](glossary/README.md#architecture-profile):
+  Cogniva's shared .NET principles plus default conventions - the first folder
+  under `src/` names a project's kind, [Hosts](glossary/README.md#host) under
+  `src/Hosts/` are the only composition roots, and UI is host-neutral Blazor
+  libraries. `repo-init` adopts and declares it.
+- A repo's own layout and exceptions live in its
+  [Repo-owned profile](glossary/README.md#repo-owned-profile). The
+  [Module bundle layout](glossary/README.md#module-bundle-layout) is one such
+  layout, supported by `add-module` and `module-deps`.
 - Every repo keeps a glossary at `docs/glossary/README.md` (seeded by repo-init)
   and grows it propose-then-confirm.
-- Specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/` or
-  `docs/plans/`.
+- Plans in `docs/plans/`.
 
 ## Tooling inventory
 
@@ -78,13 +80,17 @@ breadcrumb for older consumers.
 ## Architecture profiles
 
 An [Architecture profile](glossary/README.md#architecture-profile) is a set of
-declarative standards for one kind of codebase. The cogniva-dev plugin ships a
+declarative standards for one kind of codebase. Library profiles are copied in
+with an adoption record (`.cogniva/adopted/<id>.yml`) so a refresh can tell a
+library update from a local edit; a repo's own rules go in a
+[Repo-owned profile](glossary/README.md#repo-owned-profile) that amends or adds
+to them. The cogniva-dev plugin ships a
 library of them (`plugins/cogniva-dev/profiles/`); a repo adopts one by copying
 it into `.cogniva/profiles/` and selects it per path with a
 [Profile marker](glossary/README.md#profile-marker). Tools read only the repo's
 copy, so a repo's standards change only through a deliberate re-adoption.
-plan-feature designs under the resolved profile and applicable-rules reports it
-per target; executing agents see only what a plan's tasks restate. How to
+plan-feature designs under the resolved profile, quick-fix checks structural
+changes against it before landing, and applicable-rules reports it per target; executing agents see only what a plan's tasks restate. How to
 adopt, declare, and write profiles: `plugins/cogniva-dev/docs/architecture-profiles.md`.
 
 ## Roadmap (deliberately not yet)

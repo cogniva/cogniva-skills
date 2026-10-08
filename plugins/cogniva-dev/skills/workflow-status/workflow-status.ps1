@@ -93,7 +93,7 @@ function Resolve-ProjectsDir {
   $script:MainRepoRoot = $RepoRoot
   if ($ProjectsDir) { return $ProjectsDir }
   # Slug = repo path with separators -> '-', leading drive letter lowercased to
-  # match Claude's project-dir naming (e.g. c--WorkingGit-CognivaNewRepo).
+  # match Claude's project-dir naming (e.g. c--dev-MyRepo).
   $slug = ($RepoRoot.Trim() -replace '[:\\/]', '-')
   $slug = [regex]::Replace($slug, '^[A-Za-z]', { param($m) $m.Value.ToLower() })
   $candidate = Join-Path $projectsRoot $slug

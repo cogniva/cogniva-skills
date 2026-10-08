@@ -1,13 +1,23 @@
 #Requires -Version 7.0
 # Architecture-profile core: strict YAML-subset reader, on-demand profile
-# loading, inheritance, standards merging, marker walk, and suggestions.
-# Dot-sourced by resolve-architecture-profile.ps1 and adopt-architecture-profile.ps1.
+# loading, inheritance, delta composition (amendments and replacement standards
+# with their basis and review state), text normalisation and hashing, globs,
+# ownership, marker walk, and suggestions.
+# Dot-sourced by resolve-architecture-profile.ps1, adopt-architecture-profile.ps1
+# and check-structural-changes.ps1. Also holds the structural-change policy
+# (profile.yml structure-* keys) and the per-target resolution they share.
 # Every failure throws a ProfileError whose message names the file (and line).
 
 $script:MarkerName = '.cogniva-profile.yml'
 $script:RepoProfilesRelative = '.cogniva/profiles'
+# Adoption records: .cogniva/adopted/<id>.yml marks a library profile's adopted copy.
+$script:AdoptedRelative = '.cogniva/adopted'
+# basis: the first 12 lowercase hex characters of a SHA-256.
+$script:BasisPattern = '^[0-9a-f]{12}$'
 $script:MaxChainDepth = 8
 $script:ProfileIdPattern = '^[a-z0-9][a-z0-9-]*$'
+# Structural change kinds: lowercase letters, digits and '-', starting with a letter.
+$script:StructureKindPattern = '^[a-z][a-z0-9-]*$'
 # Same rule .NET uses for paths: case-sensitive on Linux, insensitive on Windows and macOS.
 $script:PathComparison = if ($IsLinux) { [StringComparison]::Ordinal } else { [StringComparison]::OrdinalIgnoreCase }
 
@@ -107,20 +117,102 @@ function Read-CognivaYamlFile([string]$Path, [string[]]$AllowedKeys, [string[]]$
     return $data
 }
 
-# Returns the frontmatter `description`, or $null when the file has none.
-function Read-StandardDescription([string]$Path, [string]$Display, [System.Collections.Generic.List[string]]$Warnings) {
+# Frontmatter of a standard, amendment or replacement standard. Description is
+# $null when absent; Basis is $null when absent; AppliesTo is @() when absent.
+# -Delta: the file is in amendments/ or replacements/, where `basis` belongs.
+function Read-StandardFrontmatter([string]$Path, [string]$Display, [System.Collections.Generic.List[string]]$Warnings, [switch]$Delta) {
+    $result = [pscustomobject]@{ Description = $null; Basis = $null; AppliesTo = @() }
     $lines = Read-TextLines $Path
-    if ($lines.Count -eq 0 -or $lines[0].Trim() -ne '---') { return $null }
+    if ($lines.Count -eq 0 -or $lines[0].Trim() -ne '---') { return $result }
     $end = -1
     for ($i = 1; $i -lt $lines.Count; $i++) { if ($lines[$i].Trim() -eq '---') { $end = $i; break } }
     if ($end -lt 0) { Throw-ProfileError "${Display}: frontmatter is not closed with '---'" }
     $body = if ($end -gt 1) { $lines[1..($end - 1)] } else { @() }
     $data = ConvertFrom-CognivaYaml $body $Display 1
     foreach ($key in $data.Keys) {
-        if ($key -ne 'description') { $Warnings.Add("${Display}: frontmatter key '$key' is ignored") }
+        $value = $data[$key]
+        if ($key -eq 'description') {
+            if ($value -is [string]) { $result.Description = $value }
+        }
+        elseif ($key -eq 'basis') {
+            if (-not $Delta) { $Warnings.Add("${Display}: frontmatter key 'basis' is ignored outside amendments/ and replacements/") }
+            elseif ($value -isnot [string] -or $value -cnotmatch $script:BasisPattern) { Throw-ProfileError "${Display}: 'basis' must be 12 lowercase hex characters" }
+            else { $result.Basis = $value }
+        }
+        elseif ($key -eq 'applies-to') {
+            # Globs are repo-relative: a rooted glob or a '..' segment could match outside the repo.
+            $globs = @($value)
+            foreach ($glob in $globs) {
+                if ([System.IO.Path]::IsPathRooted($glob) -or $glob.StartsWith('/') -or $glob.StartsWith('\') -or @($glob -split '[\\/]') -contains '..') {
+                    Throw-ProfileError "${Display}: applies-to globs are repo-relative"
+                }
+            }
+            $result.AppliesTo = $globs
+        }
+        else { $Warnings.Add("${Display}: frontmatter key '$key' is ignored") }
     }
-    if ($data.Contains('description') -and $data['description'] -is [string]) { return $data['description'] }
-    return $null
+    return $result
+}
+
+# Normalised text, the input to every basis and adoption hash: no BOM, LF line
+# endings, no `basis:` lines (so re-acknowledging an ancestor never makes its
+# descendants stale), no trailing whitespace, no trailing blank lines.
+function Get-NormalisedText([string]$Text) {
+    if ($Text.Length -gt 0 -and $Text[0] -eq [char]0xFEFF) { $Text = $Text.Substring(1) }
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($line in (($Text -replace "`r`n", "`n") -replace "`r", "`n") -split "`n") {
+        if ($line -cmatch '^basis:') { continue }
+        $lines.Add($line.TrimEnd())
+    }
+    while ($lines.Count -gt 0 -and $lines[$lines.Count - 1].Length -eq 0) { $lines.RemoveAt($lines.Count - 1) }
+    return ($lines -join "`n")
+}
+
+# basis / content hash: first 12 lowercase hex characters of SHA-256 over UTF-8.
+function Get-TextHash([string]$Text) {
+    $hash = [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes($Text))
+    return [System.Convert]::ToHexString($hash).ToLowerInvariant().Substring(0, 12)
+}
+
+function Read-NormalisedFile([string]$Path) {
+    return Get-NormalisedText ([System.IO.File]::ReadAllText($Path, [System.Text.UTF8Encoding]::new($false)))
+}
+
+# One hash for a whole profile folder: every file, ordinal path order.
+function Get-TreeHash([string]$Root) {
+    $files = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::Ordinal)
+    foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -File -Force) { $files[(Get-RelativeDisplay $Root $file.FullName)] = $file.FullName }
+    $names = [string[]]@($files.Keys)
+    [System.Array]::Sort($names, [System.StringComparer]::Ordinal)
+    return Get-TextHash ((@($names | ForEach-Object { "$_`n$(Read-NormalisedFile $files[$_])" })) -join "`n`0`n")
+}
+
+# Repo-relative glob: '*' within one segment, '**' zero or more whole segments.
+# Case follows the platform path rule (as $script:PathComparison).
+function Test-GlobMatch([string]$Glob, [string]$Path) {
+    $g = @($Glob.Replace('\', '/').Trim('/') -split '/' | Where-Object { $_ })
+    $p = @($Path.Replace('\', '/').Trim('/') -split '/' | Where-Object { $_ -and $_ -ne '.' })
+    return (Test-GlobSegments $g 0 $p 0)
+}
+function Test-GlobSegments([string[]]$G, [int]$GIndex, [string[]]$P, [int]$PIndex) {
+    if ($GIndex -eq $G.Count) { return $PIndex -eq $P.Count }
+    if ($G[$GIndex] -eq '**') {
+        for ($k = $PIndex; $k -le $P.Count; $k++) { if (Test-GlobSegments $G ($GIndex + 1) $P $k) { return $true } }
+        return $false
+    }
+    if ($PIndex -eq $P.Count) { return $false }
+    $pattern = '^' + ([regex]::Escape($G[$GIndex]) -replace '\\\*', '[^/]*') + '$'
+    $options = if ($IsLinux) { [System.Text.RegularExpressions.RegexOptions]::None } else { [System.Text.RegularExpressions.RegexOptions]::IgnoreCase }
+    if (-not [regex]::IsMatch($P[$PIndex], $pattern, $options)) { return $false }
+    return (Test-GlobSegments $G ($GIndex + 1) $P ($PIndex + 1))
+}
+
+# 'library' for the plugin library and for an adopted copy (it has an adoption
+# record in .cogniva/adopted); every other profile in a repo is 'repo-owned'.
+function Get-ProfileOwnership($Source, [string]$Id) {
+    if ($Source.IsLibrary) { return 'library' }
+    if ($Source.RecordsRoot -and (Test-Path -LiteralPath (Join-Path $Source.RecordsRoot "$Id.yml") -PathType Leaf)) { return 'library' }
+    return 'repo-owned'
 }
 
 function Get-RelativeDisplay([string]$Root, [string]$Path) {
@@ -129,8 +221,20 @@ function Get-RelativeDisplay([string]$Root, [string]$Path) {
 
 # A folder of profiles (the repo's .cogniva/profiles or the plugin library),
 # loaded one profile at a time so a broken profile only affects its users.
-function New-ProfileSource([string]$Root, [string]$DisplayRoot) {
-    return [pscustomobject]@{ Root = $Root; Display = $DisplayRoot; Cache = @{} }
+# RecordsRoot is the repo's .cogniva/adopted folder (ownership); -IsLibrary marks the plugin library.
+function New-ProfileSource([string]$Root, [string]$DisplayRoot, [string]$RecordsRoot, [switch]$IsLibrary) {
+    return [pscustomobject]@{ Root = $Root; Display = $DisplayRoot; RecordsRoot = $RecordsRoot; IsLibrary = [bool]$IsLibrary; Cache = @{} }
+}
+
+# structure-requires and structure-requires-dropped items are
+# '<kind> <standard id>': a kind, whitespace, then a .md standard id.
+function ConvertFrom-StructurePairs([string[]]$Items, [string]$Key, [string]$Display) {
+    $pairs = @()
+    foreach ($item in $Items) {
+        if ($item -cnotmatch '^(?<kind>[a-z][a-z0-9-]*)\s+(?<id>\S.*\.(?i:md))$') { Throw-ProfileError "${Display}: $Key item '$item' must be '<kind> <standard id>' with a .md standard id" }
+        $pairs += [pscustomobject]@{ Kind = $Matches['kind']; Standard = $Matches['id'].Trim().Replace('\', '/') }
+    }
+    return $pairs
 }
 
 # Returns the profile entry, $null when the folder does not exist, or throws when it is malformed.
@@ -146,7 +250,7 @@ function Get-ProfileEntry($Source, [string]$Id) {
     $display = "$($Source.Display)/$Id/profile.yml"
     $file = Join-Path $dir 'profile.yml'
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { Throw-ProfileError "${display}: missing" }
-    $data = Read-CognivaYamlFile $file @('description', 'inherits', 'detect') @('description') $display
+    $data = Read-CognivaYamlFile $file @('description', 'inherits', 'detect', 'structure-kinds', 'structure-detectors', 'structure-requires', 'structure-requires-dropped') @('description') $display
     if ($data['description'] -isnot [string]) { Throw-ProfileError "${display}: 'description' must be a single value" }
     $inherits = $null
     if ($data.Contains('inherits')) {
@@ -154,10 +258,20 @@ function Get-ProfileEntry($Source, [string]$Id) {
         Assert-ProfileId $data['inherits'] "$display inherits"
         $inherits = $data['inherits']
     }
+    $kinds = @(if ($data.Contains('structure-kinds')) { $data['structure-kinds'] })
+    foreach ($k in $kinds) { if ($k -cnotmatch $script:StructureKindPattern) { Throw-ProfileError "${display}: structure kind '$k' is not valid (lowercase letters, digits and '-', starting with a letter)" } }
+    $detectors = @(if ($data.Contains('structure-detectors')) { $data['structure-detectors'] })
+    foreach ($d in $detectors) { if ($d -cnotmatch $script:ProfileIdPattern) { Throw-ProfileError "${display}: structure detector '$d' is not a valid detector id (lowercase letters, digits and '-')" } }
+    $requires = @(ConvertFrom-StructurePairs @(if ($data.Contains('structure-requires')) { $data['structure-requires'] }) 'structure-requires' $display)
+    $dropped = @(ConvertFrom-StructurePairs @(if ($data.Contains('structure-requires-dropped')) { $data['structure-requires-dropped'] }) 'structure-requires-dropped' $display)
+    foreach ($p in $dropped) {
+        if (@($requires | Where-Object { $_.Kind -ceq $p.Kind -and $_.Standard -ieq $p.Standard }).Count) { Throw-ProfileError "${display}: '$($p.Kind) $($p.Standard)' is in both structure-requires and structure-requires-dropped; keep one" }
+    }
     $entry = [pscustomobject]@{
         Id = $Id; Path = $dir; Display = "$($Source.Display)/$Id"
         Description = $data['description']; Inherits = $inherits
         Detect = if ($data.Contains('detect')) { @($data['detect']) } else { @() }
+        StructureKinds = $kinds; StructureDetectors = $detectors; StructureRequires = $requires; StructureDropped = $dropped
     }
     $Source.Cache[$Id] = $entry
     return $entry
@@ -203,33 +317,176 @@ function Resolve-ProfileChain([string]$Id, $Source, $Library, [string]$Origin) {
     return @($chain)
 }
 
-# Merges standards from the root ancestor down; a child's same relative path
-# (compared case-insensitively) replaces the parent's and records the override.
-function Get-MergedStandards([string[]]$Chain, $Source, [System.Collections.Generic.List[string]]$Warnings) {
+# The *.md files under <profile>/<Folder>, keyed by lowercased id (the path
+# relative to that folder): ids are compared case-insensitively.
+function Get-ProfileFiles($Entry, [string]$Folder, [System.Collections.Generic.List[string]]$Warnings) {
+    $files = [ordered]@{}
+    $folderRoot = Join-Path $Entry.Path $Folder
+    if (-not (Test-Path -LiteralPath $folderRoot -PathType Container)) { return $files }
+    foreach ($file in Get-ChildItem -LiteralPath $folderRoot -Recurse -File -Filter '*.md' | Sort-Object FullName) {
+        $id = Get-RelativeDisplay $folderRoot $file.FullName
+        $key = $id.ToLowerInvariant()
+        $display = "$($Entry.Display)/$Folder/$id"
+        if ($files.Contains($key)) { Throw-ProfileError "${display}: collides with $($files[$key].Display) (standard paths are compared case-insensitively)" }
+        $files[$key] = [pscustomobject]@{ Id = $id; Path = $file.FullName; Display = $display }
+    }
+    return $files
+}
+
+# Composes the chain's standards, root ancestor first. A profile folder holds
+# profile.yml, standards/, amendments/ and replacements/; a standard's id is its
+# path relative to that folder, compared case-insensitively.
+# - standards/ takes new ids only: a file whose id an ancestor already provides
+#   is ambiguous (silently replacing it would hide the parent's rule).
+# - replacements/<id> supersedes the inherited text and every ancestor
+#   amendment; amendments/<id> is appended to the inherited text. Every level
+#   can amend, library profiles included.
+# - A profile may not both amend and replace one id, nor target an id in its own standards/.
+# - A delta's basis is checked against the hash of the normalised inherited parts
+#   (base standard or nearest replacement, then each ancestor amendment, in chain
+#   order, joined with LF). ORPHANED (nothing inherited) wins, then UNREVIEWED
+#   (no basis), CURRENT (match) or STALE. A non-CURRENT delta still applies and
+#   is listed for human review; an ORPHANED one still appears as a standard.
+# - applies-to: the most-derived part that declares it wins; a replacement uses only its own.
+# Returns { Standards (sorted by id), Review (sorted by Standard, then Profile) }.
+function Get-EffectiveStandards([string[]]$Chain, $Source, [System.Collections.Generic.List[string]]$Warnings) {
     $merged = [ordered]@{}
+    $missingDescription = "missing frontmatter 'description' (agents choose which standards to open from it)"
     for ($c = $Chain.Count - 1; $c -ge 0; $c--) {
         $entry = Get-ProfileEntry $Source $Chain[$c]
-        $standardsRoot = Join-Path $entry.Path 'standards'
-        if (-not (Test-Path -LiteralPath $standardsRoot -PathType Container)) { continue }
-        $seen = @{}
-        foreach ($file in Get-ChildItem -LiteralPath $standardsRoot -Recurse -File -Filter '*.md' | Sort-Object FullName) {
-            $id = Get-RelativeDisplay $standardsRoot $file.FullName
-            $key = $id.ToLowerInvariant()
-            $display = "$($entry.Display)/standards/$id"
-            if ($seen.ContainsKey($key)) { Throw-ProfileError "${display}: collides with $($seen[$key]) (standard paths are compared case-insensitively)" }
-            $seen[$key] = $display
-            $description = Read-StandardDescription $file.FullName $display $Warnings
+        $ownership = Get-ProfileOwnership $Source $entry.Id
+        $standards = Get-ProfileFiles $entry 'standards' $Warnings
+        $amendments = Get-ProfileFiles $entry 'amendments' $Warnings
+        $replacements = Get-ProfileFiles $entry 'replacements' $Warnings
+
+        foreach ($key in $amendments.Keys) {
+            if ($replacements.Contains($key)) { Throw-ProfileError "$($amendments[$key].Display): $($entry.Display) both amends and replaces '$($amendments[$key].Id)'; keep one" }
+        }
+        # An inherited id in standards/ is reported as ambiguous ahead of the
+        # own-standard check: that file, not the delta beside it, is the mistake.
+        foreach ($key in $standards.Keys) {
+            $file = $standards[$key]
+            if ($merged.Contains($key)) { Throw-ProfileError "$($file.Display): ambiguous - '$($file.Id)' is inherited from $($merged[$key].From); put a narrow change in amendments/$($file.Id) or a whole-standard replacement in replacements/$($file.Id)" }
+        }
+        foreach ($deltas in @($replacements, $amendments)) {
+            foreach ($key in $deltas.Keys) {
+                if ($standards.Contains($key)) { Throw-ProfileError "$($deltas[$key].Display): '$($deltas[$key].Id)' is defined in this profile's own standards/; edit it there" }
+            }
+        }
+
+        foreach ($key in $standards.Keys) {
+            $file = $standards[$key]
+            $fm = Read-StandardFrontmatter $file.Path $file.Display $Warnings
             # Descriptions are what agents choose standards by, so a standard without one is unusable.
-            if (-not $description) { Throw-ProfileError "${display}: missing frontmatter 'description' (agents choose which standards to open from it)" }
-            $overrides = @()
-            if ($merged.Contains($key)) { $overrides = @($merged[$key].Overrides) + @($merged[$key].From) }
+            if (-not $fm.Description) { Throw-ProfileError "$($file.Display): $missingDescription" }
+            $part = [pscustomobject]@{
+                Role = 'standard'; Standard = $file.Id; From = $entry.Id; Ownership = $ownership
+                Path = $file.Path; Display = $file.Display; Description = $fm.Description
+                State = $null; Basis = $null; Inherited = $null
+            }
             $merged[$key] = [pscustomobject]@{
-                Id = $id; Description = $description; From = $entry.Id
-                Overrides = @($overrides); Path = $file.FullName
+                Id = $file.Id; Description = $fm.Description; From = $entry.Id; Path = $file.Path
+                Overrides = @(); ReplacedBy = $null; Amendments = @(); AppliesTo = @($fm.AppliesTo)
+                NeedsReview = $false; Parts = @($part)
+            }
+        }
+
+        foreach ($role in @('replacement', 'amendment')) {
+            $deltas = if ($role -eq 'replacement') { $replacements } else { $amendments }
+            foreach ($key in $deltas.Keys) {
+                $file = $deltas[$key]
+                $fm = Read-StandardFrontmatter $file.Path $file.Display $Warnings -Delta
+                if (-not $fm.Description) { Throw-ProfileError "$($file.Display): $missingDescription" }
+                $inherited = if ($merged.Contains($key)) { @($merged[$key].Parts) } else { @() }
+                $computed = if ($inherited.Count) { Get-TextHash ((@($inherited | ForEach-Object { Read-NormalisedFile $_.Path })) -join "`n") } else { $null }
+                $state = if (-not $inherited.Count) { 'ORPHANED' } elseif (-not $fm.Basis) { 'UNREVIEWED' } elseif ($fm.Basis -ceq $computed) { 'CURRENT' } else { 'STALE' }
+                $part = [pscustomobject]@{
+                    Role = $role; Standard = $file.Id; From = $entry.Id; Ownership = $ownership
+                    Path = $file.Path; Display = $file.Display; Description = $fm.Description
+                    State = $state; Basis = $fm.Basis; Inherited = $computed
+                }
+                $amendment = [pscustomobject]@{ From = $entry.Id; Ownership = $ownership; Path = $file.Path; Description = $fm.Description; State = $state }
+                if ($merged.Contains($key)) {
+                    $target = $merged[$key]
+                    if ($role -eq 'replacement') {
+                        $target.Overrides = @($target.Overrides) + @($target.From)
+                        $target.From = $entry.Id
+                        $target.ReplacedBy = $entry.Id
+                        $target.Path = $file.Path
+                        $target.Description = $fm.Description
+                        $target.AppliesTo = @($fm.AppliesTo)
+                        $target.Amendments = @()
+                        $target.Parts = @($part)
+                    }
+                    else {
+                        $target.Amendments = @($target.Amendments) + @($amendment)
+                        $target.Parts = @($target.Parts) + @($part)
+                        if (@($fm.AppliesTo).Count) { $target.AppliesTo = @($fm.AppliesTo) }
+                    }
+                }
+                else {
+                    # ORPHANED: the id no longer exists upstream; keep its guidance visible.
+                    $merged[$key] = [pscustomobject]@{
+                        Id = $file.Id; Description = $fm.Description; From = $entry.Id; Path = $file.Path
+                        Overrides = @(); ReplacedBy = if ($role -eq 'replacement') { $entry.Id } else { $null }
+                        Amendments = if ($role -eq 'amendment') { @($amendment) } else { @() }
+                        AppliesTo = @($fm.AppliesTo); NeedsReview = $false; Parts = @($part)
+                    }
+                }
             }
         }
     }
-    return @($merged.Values | Sort-Object { $_.Id.ToLowerInvariant() })
+
+    $review = @()
+    foreach ($standard in $merged.Values) {
+        # Base standard parts have a $null State; every delta part carries one.
+        $pending = @($standard.Parts | Where-Object { $null -ne $_.State -and $_.State -ne 'CURRENT' })
+        $standard.NeedsReview = $pending.Count -gt 0
+        foreach ($part in $pending) {
+            $review += [pscustomobject]@{
+                Standard = $standard.Id; Profile = $part.From; Ownership = $part.Ownership; Delta = $part.Role
+                State = $part.State; Basis = $part.Basis; Inherited = $part.Inherited; Path = $part.Display
+            }
+        }
+    }
+    return [pscustomobject]@{
+        Standards = @($merged.Values | Sort-Object { $_.Id.ToLowerInvariant() })
+        Review = @($review | Sort-Object { $_.Standard.ToLowerInvariant() }, Profile)
+    }
+}
+
+# The chain's structural-change policy, root ancestor first: kinds and detectors
+# are unioned; at each level the profile's structure-requires-dropped removes
+# inherited pairs, then its structure-requires adds pairs. Every pair's kind must
+# be declared at that level or above. Returns { Kinds, Detectors, Requires }
+# where Requires maps each kind to its standard ids (root first).
+function Get-EffectiveStructure([string[]]$Chain, $Source, [object[]]$Standards, [System.Collections.Generic.List[string]]$Warnings) {
+    $kinds = [System.Collections.Generic.List[string]]::new()
+    $detectors = [System.Collections.Generic.List[string]]::new()
+    $pairs = [System.Collections.Generic.List[object]]::new()
+    for ($c = $Chain.Count - 1; $c -ge 0; $c--) {
+        $entry = Get-ProfileEntry $Source $Chain[$c]
+        foreach ($k in $entry.StructureKinds) { if (-not $kinds.Contains($k)) { $kinds.Add($k) } }
+        foreach ($d in $entry.StructureDetectors) { if (-not $detectors.Contains($d)) { $detectors.Add($d) } }
+        foreach ($p in @($entry.StructureRequires) + @($entry.StructureDropped)) {
+            if (-not $kinds.Contains($p.Kind)) { Throw-ProfileError "$($entry.Display)/profile.yml: structure kind '$($p.Kind)' is not declared by structure-kinds in this profile or an ancestor" }
+        }
+        foreach ($p in $entry.StructureDropped) {
+            $hits = @($pairs | Where-Object { $_.Kind -ceq $p.Kind -and $_.Standard -ieq $p.Standard })
+            if (-not $hits.Count) { $Warnings.Add("$($entry.Display)/profile.yml: structure-requires-dropped '$($p.Kind) $($p.Standard)' drops nothing it inherits") }
+            foreach ($h in $hits) { [void]$pairs.Remove($h) }
+        }
+        foreach ($p in $entry.StructureRequires) {
+            if (@($pairs | Where-Object { $_.Kind -ceq $p.Kind -and $_.Standard -ieq $p.Standard }).Count) { continue }
+            $pairs.Add([pscustomobject]@{ Kind = $p.Kind; Standard = $p.Standard; From = $entry.Id })
+        }
+    }
+    foreach ($p in $pairs) {
+        if (-not @($Standards | Where-Object { $_.Id -ieq $p.Standard }).Count) { $Warnings.Add("profile '$($Chain[0])': structure-requires '$($p.Kind) $($p.Standard)' (from $($p.From)) names a standard the profile does not provide; a $($p.Kind) change is blocked until it does") }
+    }
+    $requires = [ordered]@{}
+    foreach ($k in $kinds) { $requires[$k] = @($pairs | Where-Object Kind -ceq $k | ForEach-Object Standard) }
+    return [pscustomobject]@{ Kinds = @($kinds); Detectors = @($detectors); Requires = $requires }
 }
 
 # Directories from the target's nearest existing directory up to the repo root, nearest first.
@@ -293,4 +550,127 @@ function Get-ProfileSuggestion([string]$RepoRoot, [string[]]$Walk, [object[]]$Li
         }
     }
     return $null
+}
+
+# --- per-target resolution, shared by the resolver and the structural check ---
+
+function Get-ProfileErrorText($ErrorRecord) { return ($ErrorRecord.Exception.Message -replace '^ProfileError: ', '') }
+
+# One resolution run: the repo's profiles, the library, the warnings, and each
+# profile id's result, computed once and shared by every target that uses it.
+function New-ResolutionContext([string]$RepoFull, [string]$LibraryRoot) {
+    return [pscustomobject]@{
+        RepoFull = $RepoFull
+        RepoProfiles = New-ProfileSource (Join-Path $RepoFull $script:RepoProfilesRelative) $script:RepoProfilesRelative (Join-Path $RepoFull $script:AdoptedRelative)
+        Library = New-ProfileSource $LibraryRoot 'plugin-library' $null -IsLibrary
+        LibraryEntries = $null
+        Results = @{}
+        Warnings = [System.Collections.Generic.List[string]]::new()
+    }
+}
+
+# Chain, effective standards and structure policy for one profile id. A success
+# is cached and shared; a failure is recomputed per target so its message names
+# that target's own marker.
+function Get-ContextProfileResult($Ctx, [string]$Id, [string]$Origin) {
+    if ($Ctx.Results.ContainsKey($Id)) { return $Ctx.Results[$Id] }
+    try {
+        $chain = Resolve-ProfileChain $Id $Ctx.RepoProfiles $Ctx.Library $Origin
+        $effective = Get-EffectiveStandards $chain $Ctx.RepoProfiles $Ctx.Warnings
+        $structure = Get-EffectiveStructure $chain $Ctx.RepoProfiles @($effective.Standards) $Ctx.Warnings
+        $result = [pscustomobject]@{
+            Error = $null; Chain = @($chain); Description = (Get-ProfileEntry $Ctx.RepoProfiles $Id).Description
+            Effective = $effective; Standards = @($effective.Standards); Review = @($effective.Review); Structure = $structure
+            ChainDetail = @($chain | ForEach-Object { [pscustomobject]@{ Id = $_; Ownership = (Get-ProfileOwnership $Ctx.RepoProfiles $_) } })
+        }
+    }
+    catch { return [pscustomobject]@{ Error = (Get-ProfileErrorText $_); Chain = @(); Description = $null; Standards = @(); Review = @(); Structure = $null; ChainDetail = @() } }
+    $Ctx.Results[$Id] = $result
+    return $result
+}
+
+# One target's resolution report: Target, Status (RESOLVED | NONE | UNDECLARED |
+# ERROR), Profile, Error, Winner, Considered, Suggestion, NeedsReview, MatchedStandards.
+function Resolve-TargetProfile($Ctx, [string]$Full, [string]$ExplicitProfile) {
+    $relative = Get-RelativeDisplay $Ctx.RepoFull $Full
+    $considered = @()
+    $winner = $null
+    $suggestion = $null
+    $status = 'UNDECLARED'
+    $profileId = $null
+    $errorText = $null
+    try {
+        $walk = Get-DirectoryWalk $Ctx.RepoFull $Full
+        # An explicit profile beats every marker, malformed ones included: they are
+        # recorded as overridden and reported as warnings, never as the target's error.
+        $markers = Get-ProfileMarkers $Ctx.RepoFull $walk -Tolerant:([bool]$ExplicitProfile)
+        if ($ExplicitProfile) {
+            $winner = [pscustomobject]@{ Kind = 'explicit'; Source = '-Profile'; Profile = $ExplicitProfile }
+            foreach ($m in $markers) {
+                $considered += [pscustomobject]@{ Kind = $m.Kind; Source = $m.Source; Profile = $m.Profile; Outcome = 'overridden-by-explicit' }
+                if ($m.Error) { $Ctx.Warnings.Add("$($m.Error) (overridden by -Profile)") }
+            }
+        }
+        else {
+            for ($i = 0; $i -lt $markers.Count; $i++) {
+                $m = $markers[$i]
+                $considered += [pscustomobject]@{ Kind = $m.Kind; Source = $m.Source; Profile = $m.Profile; Outcome = if ($i -eq 0) { 'won' } else { 'shadowed' } }
+            }
+            if ($markers.Count) { $winner = [pscustomobject]@{ Kind = $markers[0].Kind; Source = $markers[0].Source; Profile = $markers[0].Profile } }
+        }
+        if ($winner -and $winner.Profile -eq 'none') { $status = 'NONE' }
+        elseif ($winner) {
+            $result = Get-ContextProfileResult $Ctx $winner.Profile $winner.Source
+            if ($result.Error) { $status = 'ERROR'; $errorText = $result.Error }
+            else { $status = 'RESOLVED'; $profileId = $winner.Profile }
+        }
+        else {
+            if ($null -eq $Ctx.LibraryEntries) { $Ctx.LibraryEntries = @(Get-AllProfileEntries $Ctx.Library $Ctx.Warnings) }
+            $suggestion = Get-ProfileSuggestion $Ctx.RepoFull $walk $Ctx.LibraryEntries
+        }
+    }
+    catch { $status = 'ERROR'; $errorText = Get-ProfileErrorText $_ }
+
+    # NeedsReview: the resolved profile has any delta awaiting human review.
+    # MatchedStandards: standards whose applies-to globs match this target.
+    $needsReview = $false
+    $matched = @()
+    if ($status -eq 'RESOLVED') {
+        $resolved = $Ctx.Results[$profileId]
+        $needsReview = @($resolved.Review).Count -gt 0
+        $matched = @($resolved.Standards | Where-Object { @($_.AppliesTo | Where-Object { Test-GlobMatch $_ $relative }).Count -gt 0 } | ForEach-Object Id)
+    }
+    return [pscustomobject]@{
+        Target = $relative; Status = $status; Profile = $profileId; Error = $errorText
+        Winner = if ($winner) { [pscustomobject]@{ Kind = $winner.Kind; Source = $winner.Source } } else { $null }
+        Considered = @($considered); Suggestion = $suggestion
+        NeedsReview = $needsReview; MatchedStandards = @($matched)
+    }
+}
+
+# The -Require gate. For each RESOLVED target the required set is $Ids plus every
+# standard its profile's structure-requires maps one of $Kinds to. A required
+# standard blocks when the profile lacks it or it needs human review; review
+# items on other standards never block. UnknownKinds: listed kinds the profile
+# does not declare (they require nothing). Returns { ByTarget, Blocked }.
+function Get-RequireResult($Ctx, [object[]]$Targets, [string[]]$Ids, [string[]]$Kinds) {
+    $Ids = @($Ids | Where-Object { $_ })
+    $Kinds = @($Kinds | Where-Object { $_ })
+    $byTarget = @()
+    $blocked = @()
+    foreach ($t in @($Targets | Where-Object Status -eq 'RESOLVED')) {
+        $p = $Ctx.Results[$t.Profile]
+        $wanted = [System.Collections.Generic.List[string]]::new()
+        $candidates = @($Ids) + @($Kinds | ForEach-Object { if ($p.Structure.Requires.Contains($_)) { $p.Structure.Requires[$_] } })
+        foreach ($id in $candidates) { if ($id -and -not @($wanted | Where-Object { $_ -ieq $id }).Count) { $wanted.Add($id) } }
+        $byTarget += [pscustomobject]@{ Target = $t.Target; Profile = $t.Profile; Standards = @($wanted); UnknownKinds = @($Kinds | Where-Object { @($p.Structure.Kinds) -cnotcontains $_ }) }
+        foreach ($id in $wanted) {
+            $s = @($p.Standards | Where-Object { $_.Id -ieq $id }) | Select-Object -First 1
+            $reason = if (-not $s) { "not in profile '$($t.Profile)'" }
+            elseif ($s.NeedsReview) { 'needs human review: ' + (@($s.Parts | Where-Object { $_.State -and $_.State -ne 'CURRENT' } | ForEach-Object { "$($_.From) $($_.Role) $($_.State)" }) -join '; ') }
+            else { $null }
+            if ($reason) { $blocked += [pscustomobject]@{ Target = $t.Target; Profile = $t.Profile; Standard = $id; Reason = $reason } }
+        }
+    }
+    return [pscustomobject]@{ ByTarget = @($byTarget); Blocked = @($blocked) }
 }

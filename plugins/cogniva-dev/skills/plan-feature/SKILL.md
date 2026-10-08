@@ -37,7 +37,11 @@ touch (directories are enough), run `pwsh -NoProfile -File
 No `pwsh` on this machine: say so in one line and plan as before. Read the
 standards index it prints, open only the standards that bear on this design,
 and honour them like existing ADRs: surface a departure, never work around
-it. `UNDECLARED`: mention any suggestion in one line and carry on without a
+it. A standard listed with `AMENDED BY` lines (or `REPLACED`) is composed
+from several files: read each one, or print the composed text with `-Show
+<id>`. If a target prints `NEEDS HUMAN REVIEW`, list its `REVIEW:` items for
+the user and ask before designing on those standards; it is a question, not a
+stop. `UNDECLARED`: mention any suggestion in one line and carry on without a
 profile. Adopting or declaring a profile writes files, so do it only when
 the user asks (`<plugin>/scripts/adopt-architecture-profile.ps1`, then a
 one-line `.cogniva-profile.yml`). `MIXED`: say which paths fall under which

@@ -1,6 +1,6 @@
 ---
 name: adr
-description: The authority on Architecture Decision Records (ADRs) — their format, provenance, relitigation weight, and numbering. Use to record a confirmed architectural decision as an ADR (ALWAYS with explicit human confirmation first), or to check how open an existing decision is to being reopened. Also runs as a quiet background observer during design/planning: it holds ADR-worthy decisions as candidates and offers them for confirmation at natural breakpoints — it never writes one on its own.
+description: "The authority on Architecture Decision Records (ADRs) — their format, provenance, relitigation weight, and numbering. Use to record a confirmed architectural decision as an ADR (ALWAYS with explicit human confirmation first), or to check how open an existing decision is to being reopened. Also runs as a quiet background observer during design/planning: it holds ADR-worthy decisions as candidates and offers them for confirmation at natural breakpoints — it never writes one on its own."
 ---
 
 # adr

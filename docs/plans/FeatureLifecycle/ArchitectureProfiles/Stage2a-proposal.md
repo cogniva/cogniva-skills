@@ -1,17 +1,12 @@
 # Architecture profiles — Stage 2a proposal (rev 3)
 
-> Status: **Stage 2a.0 (§4.0, `module-deps`) is implemented by PR #15**, from
-> the plan in `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`. **The rest of
-> Stage 2a remains a proposal for review**: not an executable plan, and not
-> implemented. Once approved, it becomes the Stage 2a `plan-feature` plan.
->
-> - Rev 2 recorded D1–D8 and gave CognivaShell more evidentiary weight.
-> - Rev 3.1 records D11 (option a), D12 and the softer shared-code wording.
-> - Rev 3 drops `dotnet-modules` (D9) and refines the `cogniva-base` / `dotnet`
->   split (D10).
-> - Because of D9, rev 3 also treats the old Module bundle as *legacy* rather
->   than something the library preserves, and re-scopes `repo-init` and
->   `add-module` accordingly.
+> Status: **Stage 2a is implemented.** 2a.0 (`module-deps`) by PR #15, from
+> `docs/plans/FeatureLifecycle/ModuleDepsLegacyTool/`; the rest from the plan in
+> `docs/plans/FeatureLifecycle/ArchitectureProfilesStage2a/`, which records
+> where it departs from this text (naming: Library profile, Repo-owned profile,
+> Module bundle layout, Common types; `.cogniva/adopted/` records; no `Kind`
+> field; block-list `applies-to`; an automated repo-init check). This document
+> is kept as the design record; the plan and the shipped docs win where they differ.
 
 **Stage 2a goal:**
 - Put Cogniva's shared .NET principles, and the defaults we want future repos
@@ -690,24 +685,24 @@ child profile. The CognivaShell evidence is noted for your decision.
 
 **2a**
 - [x] D11 answered: option (a).
-- [ ] T1: deltas, normalised basis, states, `NeedsReview`, ERROR cases,
+- [x] T1: deltas, normalised basis, states, `NeedsReview`, ERROR cases,
       records, `-Refresh`, `-Show`, `-Require`/exit 3, `applies-to`,
       `accept`; Stage 1 migration; suite green.
-- [ ] T2: `cogniva-base` +3; `dotnet` = principles + `project-layout` +
+- [x] T2: `cogniva-base` +3; `dotnet` = principles + `project-layout` +
       `ui` + `build-settings` + 3 amendments; Stage 1 Module standards
       deleted; legacy-topology leak check and fixtures green.
-- [ ] T3: placement checks come from the profile; legacy paths unchanged;
+- [x] T3: placement checks come from the profile; legacy paths unchanged;
       stale deltas escalate only for matched standards, tested through the
       preflight; SKILL.md contract updated.
-- [ ] T4: templates (`AGENTS.md`, `CLAUDE.md` shim, glossary,
+- [x] T4: templates (`AGENTS.md`, `CLAUDE.md` shim, glossary,
       `Directory.Build.props`); this repo's glossary and strategy updated;
       tests 1–7 green.
-- [ ] T5: repo-init scaffolds the D11 shape and declares `dotnet`; ⛔ gate passed.
-- [ ] T6: add-module is legacy and gated with `-Require`; an unrelated stale
+- [x] T5: repo-init scaffolds the D11 shape and declares `dotnet`; ⛔ gate passed.
+- [x] T6: add-module is legacy and gated with `-Require`; an unrelated stale
       standard does not block; new-style repos are stopped with guidance.
-- [ ] T8: docs, migration guide, ADRs C1–C6, glossary confirmed, acceptance
+- [x] T8: docs, migration guide, ADRs C1–C6, glossary confirmed, acceptance
       fixture green.
-- [ ] Green gate, `claude plugin validate .` and manifest parity pass.
-- [ ] Minor bump offered across all three files.
-- [ ] Backlog: repo-init and applicable-rules items closed; add `add-project`
+- [x] Green gate, `claude plugin validate .` and manifest parity pass.
+- [x] Minor bump offered across all three files.
+- [x] Backlog: repo-init and applicable-rules items closed; add `add-project`
       and D12 items.

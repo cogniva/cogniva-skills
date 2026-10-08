@@ -130,32 +130,7 @@ foreach ($rawTarget in $requestedTargets) {
     $relative = $targetFull.Substring($repoFull.Length).TrimStart([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
     $conflicts = @()
     $reviewReasons = @($authorityRead.Errors)
-    if ($relative -match '^(src[\\/])?Hosts?[\\/]') {
-        $message = 'Target is under a Host. Confirm that it is composition/wiring only; substantive application, domain, persistence, evaluation, or reusable behavior belongs in its owning Module.'
-        if ($Purpose -match '(?i)domain|persistence|evaluation|orchestrat|business|reusable') { $message = "CONFLICT: $message" }
-        $conflicts += $message
-    }
-    if ($relative -match 'Contracts?[\\/]') {
-        $message = 'Target is under Contracts. Confirm that it remains a pure public surface rather than an implementation owner.'
-        if ($Purpose -match '(?i)implementation|persistence|business|domain') { $message = "CONFLICT: $message" }
-        $conflicts += $message
-    }
-    $directiveLines = @($constraints | Where-Object { (Get-DirectivePolarity $_.Text) -ne 'neutral' })
-    for ($left = 0; $left -lt $directiveLines.Count; $left++) {
-        for ($right = $left + 1; $right -lt $directiveLines.Count; $right++) {
-            $a = $directiveLines[$left]
-            $b = $directiveLines[$right]
-            if ($a.File -eq $b.File) { continue }
-            if ((Get-DirectivePolarity $a.Text) -eq (Get-DirectivePolarity $b.Text)) { continue }
-            $sharedTopics = @((Get-DirectiveTopics $a.Text) | Where-Object { (Get-DirectiveTopics $b.Text) -contains $_ })
-            if ($sharedTopics.Count) {
-                $reviewReasons += "Potentially incompatible $($sharedTopics -join ', ') directives: $($a.File):$($a.Line) and $($b.File):$($b.Line)."
-            }
-        }
-    }
-    foreach ($conflict in $conflicts) {
-        if ($conflict -like 'CONFLICT:*') { $reviewReasons += $conflict }
-    }
+    $resolved = $null
     if (-not $profileReport.Available) {
         $architectureProfile = [pscustomobject]@{ Status = 'UNAVAILABLE'; Profile = $null; Kind = $null; Source = $null; Suggestion = $null; Note = 'PowerShell 7 (pwsh) not found; architecture profile not checked.' }
     }
@@ -172,6 +147,62 @@ foreach ($rawTarget in $requestedTargets) {
             Suggestion = $resolved.Suggestion; Note = $resolved.Error
         }
         if ($resolved.Status -eq 'ERROR') { $reviewReasons += "Architecture profile could not be resolved: $($resolved.Error)" }
+    }
+    $matchedStandards = @()
+    $reviewNotes = @()
+    if ($architectureProfile.Status -eq 'RESOLVED') {
+        # Placement comes from the profile: a message fires only where a standard's
+        # applies-to globs match this path (see the resolver's MatchedStandards).
+        $profileData = $profileReport.Report.Profiles.($resolved.Profile)
+        $matchedIds = @($resolved.MatchedStandards)
+        foreach ($id in $matchedIds) {
+            $standard = @($profileData.Standards | Where-Object { $_.Id -eq $id }) | Select-Object -First 1
+            $matchedStandards += [pscustomobject]@{ Id = $id; Description = $standard.Description }
+        }
+        if ($matchedIds -contains 'architecture/composition-roots.md') {
+            $message = 'Target is under a composition root (architecture/composition-roots.md). Confirm that it is wiring only; substantive application, domain, persistence, evaluation, or reusable behavior belongs in its owning unit.'
+            if ($Purpose -match '(?i)domain|persistence|evaluation|orchestrat|business|reusable') { $message = "CONFLICT: $message" }
+            $conflicts += $message
+        }
+        if ($matchedIds -contains 'architecture/common-and-published-types.md') {
+            $message = 'Target is a published or common types surface (architecture/common-and-published-types.md). Confirm that it holds no implementation.'
+            if ($Purpose -match '(?i)implementation|persistence|business|domain') { $message = "CONFLICT: $message" }
+            $conflicts += $message
+        }
+        # A review item stops preflight only where this target depends on that standard.
+        foreach ($item in @($profileData.Review)) {
+            $text = "Standard $($item.Standard) needs human review: $($item.Profile) ($($item.Ownership)) $($item.Delta) is $($item.State)."
+            if ($matchedIds -contains $item.Standard) { $reviewReasons += $text } else { $reviewNotes += $text }
+        }
+    }
+    elseif ($architectureProfile.Status -ne 'NONE') {
+        # No profile to ask (undeclared, pwsh unavailable, or unresolvable): today's path heuristics.
+        if ($relative -match '^(src[\\/])?Hosts?[\\/]') {
+            $message = 'Target is under a Host. Confirm that it is composition/wiring only; substantive application, domain, persistence, evaluation, or reusable behavior belongs in its owning Module.'
+            if ($Purpose -match '(?i)domain|persistence|evaluation|orchestrat|business|reusable') { $message = "CONFLICT: $message" }
+            $conflicts += $message
+        }
+        if ($relative -match 'Contracts?[\\/]') {
+            $message = 'Target is under Contracts. Confirm that it remains a pure public surface rather than an implementation owner.'
+            if ($Purpose -match '(?i)implementation|persistence|business|domain') { $message = "CONFLICT: $message" }
+            $conflicts += $message
+        }
+    }
+    $directiveLines = @($constraints | Where-Object { (Get-DirectivePolarity $_.Text) -ne 'neutral' })
+    for ($left = 0; $left -lt $directiveLines.Count; $left++) {
+        for ($right = $left + 1; $right -lt $directiveLines.Count; $right++) {
+            $a = $directiveLines[$left]
+            $b = $directiveLines[$right]
+            if ($a.File -eq $b.File) { continue }
+            if ((Get-DirectivePolarity $a.Text) -eq (Get-DirectivePolarity $b.Text)) { continue }
+            $sharedTopics = @((Get-DirectiveTopics $a.Text) | Where-Object { (Get-DirectiveTopics $b.Text) -contains $_ })
+            if ($sharedTopics.Count) {
+                $reviewReasons += "Potentially incompatible $($sharedTopics -join ', ') directives: $($a.File):$($a.Line) and $($b.File):$($b.Line)."
+            }
+        }
+    }
+    foreach ($conflict in $conflicts) {
+        if ($conflict -like 'CONFLICT:*') { $reviewReasons += $conflict }
     }
     $effectiveAuthority = @()
     for ($index = 0; $index -lt $agents.Count; $index++) {
@@ -197,7 +228,9 @@ foreach ($rawTarget in $requestedTargets) {
         ArchitectureProfile = $architectureProfile
         Constraints = @($constraints)
         Conflicts = @($conflicts)
+        MatchedStandards = @($matchedStandards)
         ReviewReasons = @($reviewReasons | Select-Object -Unique)
+        ReviewNotes = @($reviewNotes | Select-Object -Unique)
         Decision = $decision
         CanProceedAutomatically = ($decision -eq 'SAFE_TO_PROCEED')
     }
@@ -235,7 +268,9 @@ foreach ($item in $items) {
     Write-Output "  ARCHITECTURE PROFILE: $profileText"
     Write-Output "  DECISION: $($item.Decision)"
     foreach ($conflict in $item.Conflicts) { Write-Output "  PLACEMENT: $conflict" }
+    foreach ($s in $item.MatchedStandards) { Write-Output "  STANDARD: $($s.Id) - $($s.Description)" }
     foreach ($reason in $item.ReviewReasons) { Write-Output "  REVIEW_REQUIRED: $reason" }
+    foreach ($note in $item.ReviewNotes) { Write-Output "  REVIEW: $note" }
     foreach ($constraint in $item.Constraints) { Write-Output "  RULE [$($constraint.File):$($constraint.Line)] $($constraint.Text)" }
 }
 exit 0

@@ -1,11 +1,11 @@
 ---
 name: module-deps
-description: Legacy Module-layout tool - regenerate the Module dependency graph (docs/architecture/module-dependencies.html + .md) from the .csproj ProjectReference graph of a repo laid out as src/Modules/<Name>/, or check it for cross-Module cycles with -Check. Use when the user asks for the module dependency graph/map, deployment closure, "what modules does X need", a Module cycle check, or after adding/removing/re-referencing a Module project in such a repo. Pure script run - no build, no analysis required.
+description: Module bundle layout tool - regenerate the Module dependency graph (docs/architecture/module-dependencies.html + .md) from the .csproj ProjectReference graph of a repo laid out as src/Modules/<Name>/, or check it for cross-Module cycles with -Check. Use when the user asks for the module dependency graph/map, deployment closure, "what modules does X need", a Module cycle check, or after adding/removing/re-referencing a Module project in such a repo. Pure script run - no build, no analysis required.
 ---
 
 # module-deps
 
-**This is a legacy Module-layout tool.** It understands one layout: projects
+**This is the Module bundle layout tool.** It understands one layout: projects
 under `src/Modules/<Name>/` named `<Name>.<Kind>` (Contracts, Domain,
 Application, Infrastructure, Client, UI), the layout `add-module` scaffolds.
 Qualified projects such as `<Name>.Infrastructure.<System>` or

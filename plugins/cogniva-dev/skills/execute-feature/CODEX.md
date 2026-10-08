@@ -68,7 +68,10 @@ Continue at the CALLER's landing step — `execute-feature` → `SKILL.md`
 Step 4 exactly as written; `quick-fix` → its own Step 2. Both run the same
 lean gates (tree consistency, ride-alongs, repo obligations, ADR check,
 `git diff --check`, green gate, and — under `commits=final` — the single
-final commit AFTER the green gate), and the run finishes the same way every
+final commit AFTER the green gate; quick-fix also runs its structural check,
+between the repo obligations and the ADR check, exactly as its Step 2 says,
+and the architecture standards a task needs travel in its body, so both
+backends hand workers the same text), and the run finishes the same way every
 lean run does: emit the full `READY FOR REVIEW` handoff per `HANDOFF.md`
 beside this file as the final text of the turn.
 

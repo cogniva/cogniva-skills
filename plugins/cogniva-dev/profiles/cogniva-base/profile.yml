@@ -1,1 +1,20 @@
 description: Cogniva's technology-neutral architecture standards; the root every other profile inherits from.
+# Kinds of structural change a structure detector can report. Technology and
+# repository profiles may declare more.
+structure-kinds:
+  - unit-added
+  - unit-removed
+  - dependency-added
+  - dependency-removed
+  - code-moved
+# The standards a structural change of each kind depends on. quick-fix requires
+# them (resolve-architecture-profile.ps1 -Kinds) when such a change happens.
+structure-requires:
+  - "unit-added architecture/ownership-and-placement.md"
+  - "unit-added architecture/common-and-published-types.md"
+  - "unit-added architecture/composition-roots.md"
+  - "unit-removed architecture/ownership-and-placement.md"
+  - "dependency-added architecture/dependency-direction.md"
+  - "dependency-added architecture/common-and-published-types.md"
+  - "dependency-removed architecture/dependency-direction.md"
+  - "code-moved architecture/ownership-and-placement.md"
