@@ -150,7 +150,7 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
 
 `resolve-applicable-rules.ps1` must stay Windows PowerShell 5.1-compatible (no `??`, `?:`, `-Parallel`, or pwsh-only APIs). Today `Get-AuthorityChain` ends `return $result`; a one-file chain unrolls to a string, `$agents[$index]` takes its first character, and the text output prints `EFFECTIVE AUTHORITY: [1] AGENTS.md: C; [2] CLAUDE.md: C`. The existing suite only covers a two-AGENTS.md chain.
 
-- [ ] **Step 1 (failing test):** In `plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1`, insert this block inside the outer `try`, directly after the line `    Check 'without pwsh the profile is UNAVAILABLE and the decision is unchanged' (…)` and before the line `    # --- profile-driven placement (needs pwsh to adopt the shipped dotnet profile) ---`:
+- [x] **Step 1 (failing test):** In `plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1`, insert this block inside the outer `try`, directly after the line `    Check 'without pwsh the profile is UNAVAILABLE and the decision is unchanged' (…)` and before the line `    # --- profile-driven placement (needs pwsh to adopt the shipped dotnet profile) ---`:
   ```powershell
       # --- a single AGENTS.md and a single CLAUDE.md are reported by their whole paths ---
       $single = Join-Path ([System.IO.Path]::GetTempPath()) ("cogniva-applicable-single-" + [guid]::NewGuid().ToString('N'))
@@ -174,8 +174,8 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
 
   ```
   (The resolver reports `Path` as the full file path: `Join-Path <repo FullName> 'AGENTS.md'`, the same form the existing nested-AGENTS.md assertion matches.)
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → exit 1 with `PASS  one AGENTS.md and one CLAUDE.md: two authority entries` and FAIL on `a single AGENTS.md is reported by its whole path`, `a single CLAUDE.md is reported by its whole path`, `text output names both files whole`, `text output has no first-character path`; every other check still PASSes.
-- [ ] **Step 3 (implement):** In `plugins/cogniva-dev/scripts/resolve-applicable-rules.ps1`, in the per-target loop, replace
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → exit 1 with `PASS  one AGENTS.md and one CLAUDE.md: two authority entries` and FAIL on `a single AGENTS.md is reported by its whole path`, `a single CLAUDE.md is reported by its whole path`, `text output names both files whole`, `text output has no first-character path`; every other check still PASSes.
+- [x] **Step 3 (implement):** In `plugins/cogniva-dev/scripts/resolve-applicable-rules.ps1`, in the per-target loop, replace
   ```powershell
       $agents = Get-AuthorityChain $repoFull $directory 'AGENTS.md'
       $claudes = Get-AuthorityChain $repoFull $directory 'CLAUDE.md'
@@ -189,8 +189,8 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
       $claudes = @(Get-AuthorityChain $repoFull $directory 'CLAUDE.md')
   ```
   Leave `Get-AuthorityChain` itself (`return $result`) unchanged.
-- [ ] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → every line PASS, ending `All applicable-rules assertions passed.` (the existing `resolver reports effective authority order and nested precedence` check, with two AGENTS.md files, still passes — it is the guard against nesting). Also `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1` → exit 0 (gate-check calls applicable-rules).
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/resolve-applicable-rules.ps1 plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` then `git commit -m "fix(applicable-rules): report a single AGENTS.md or CLAUDE.md by its whole path"`
+- [x] **Step 4 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` → every line PASS, ending `All applicable-rules assertions passed.` (the existing `resolver reports effective authority order and nested precedence` check, with two AGENTS.md files, still passes — it is the guard against nesting). Also `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1` → exit 0 (gate-check calls applicable-rules).
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/resolve-applicable-rules.ps1 plugins/cogniva-dev/tests/applicable-rules/applicable-rules.tests.ps1` then `git commit -m "fix(applicable-rules): report a single AGENTS.md or CLAUDE.md by its whole path"`
 
 ## Task 3: The manifest checker requires both manifests and checks skill coverage
 

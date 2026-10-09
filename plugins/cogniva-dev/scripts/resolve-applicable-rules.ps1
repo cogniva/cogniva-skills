@@ -122,8 +122,11 @@ foreach ($rawTarget in $requestedTargets) {
     $directory = Get-ExistingDirectory $targetFull
     if (-not $directory) { Fail "cannot resolve an existing parent for target: $rawTarget" }
 
-    $agents = Get-AuthorityChain $repoFull $directory 'AGENTS.md'
-    $claudes = Get-AuthorityChain $repoFull $directory 'CLAUDE.md'
+    # @() keeps a one-file chain an array; unrolled to a string, $agents[$index]
+    # would be its first character. (Do not also return ,$result from
+    # Get-AuthorityChain: with @() here that nests a multi-file chain.)
+    $agents = @(Get-AuthorityChain $repoFull $directory 'AGENTS.md')
+    $claudes = @(Get-AuthorityChain $repoFull $directory 'CLAUDE.md')
     $authorityFiles = @($agents) + @($claudes)
     $authorityRead = Get-RelevantLines $authorityFiles
     $constraints = @($authorityRead.Lines)
