@@ -644,9 +644,6 @@ the Codex `CODEX.md` loop, a design conversation) is `untested`, and
     worktree mode is not wanted; CrossHostParity Stage 3 records what it would need.
   - `workflow-status` — Claude Code-only: it reads Claude Code's Workflow
     journals, and Codex runs write none.
-  - `branch-switch-guard` — this repo's `.claude/settings.json` denies
-    `git switch` and `git checkout` for Claude Code only; Codex has no checked-in
-    equivalent rule.
   - `review-and-gates` — this repo's green gate needs the `claude` CLI
     (`claude plugin validate .`), so a developer with only Codex installed cannot
     pass it.

@@ -13,8 +13,9 @@ it, and a new green-gate suite keeps it that way.
 
 **Architecture:** Root `AGENTS.md` takes everything shared from root
 `CLAUDE.md` plus a new `## Cross-host parity` section and a new
-`### before-planning` phase block; `CLAUDE.md` becomes `@AGENTS.md` plus a
-two-line `## Claude Code notes` section. A pwsh 7 suite
+`### before-planning` phase block; `CLAUDE.md` becomes exactly `@AGENTS.md`
+(nothing in this repo is Claude Code–only today; the suite still allows a
+future `## Claude Code notes` section). A pwsh 7 suite
 (`instruction-governance`) asserts the split, resolves both phase blocks with
 the existing Windows PowerShell 5.1 resolver, and compares the AGENTS.md skill
 roster with the skill directories on disk. The glossary gains **Agent host** and
@@ -43,7 +44,7 @@ text satisfies.
 ```
 plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1  # NEW pwsh 7 suite: one instruction home, phase blocks, roster = disk
 AGENTS.md                                           # canonical: intro, Layout + roster, Common tasks, Rules, Cross-host parity, both phase blocks
-CLAUDE.md                                           # @AGENTS.md + ## Claude Code notes
+CLAUDE.md                                           # exactly @AGENTS.md
 .claude/cogniva-dev/green-gate.json                 # + instruction-governance entry; validate note host-neutral
 docs/adr/NNNN-agents-md-is-the-canonical-instruction-file-in-this-repo-too.md  # ADR C1
 docs/glossary/README.md                             # + Agent host, Parity record; Cogniva entry names both agent hosts
@@ -313,15 +314,11 @@ This repo's shared engineering rules (layout and skill roster, branding, glossar
     change and which reviewed it.
   ```
   (`docs/host-parity.md`, the glossary anchor `#agent-host` and the `host-parity` gate check are created later in this feature — sub-plan 03 and Task 2 below; the forward links are intended.)
-- [ ] **Step 4 (implement CLAUDE.md):** Replace the whole content of root `CLAUDE.md` with exactly:
+- [ ] **Step 4 (implement CLAUDE.md):** Replace the whole content of root `CLAUDE.md` with exactly one line:
   ```markdown
   @AGENTS.md
-
-  ## Claude Code notes
-
-  - `.claude/settings.json` denies `git switch` and `git checkout` to Claude Code in this repo; leave branch changes to the user. Codex has no equivalent (recorded in `docs/host-parity.md`).
   ```
-  This removes the old `## Layout`, `## Common tasks`, `## Rules` and the `## Cogniva-dev workflow instructions` breadcrumb from CLAUDE.md; AGENTS.md now holds all of them.
+  No `## Claude Code notes` section: nothing in this repo is Claude Code–only today (the `.claude/settings.json` deny on `git switch`/`git checkout` was removed in `a351717`). This removes the old `## Layout`, `## Common tasks`, `## Rules` and the `## Cogniva-dev workflow instructions` breadcrumb from CLAUDE.md; AGENTS.md now holds all of them.
 - [ ] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` → ten PASS lines and `All instruction-governance assertions passed.` (exit 0). Also `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/resolve-workflow-obligations.ps1 -Repo . -Phase before-planning` → first line `workflow-obligations: ### before-planning from AGENTS.md (…\AGENTS.md)` followed by the Host-impact bullet.
 - [ ] **Step 6 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, append one entry at the END of the `commands` array: add a comma after the closing `}` of the current last entry (today the `"label": "gate-check"` line), then insert this line before the array's closing `  ]`:
   ```json
@@ -551,10 +548,6 @@ Scope: only references to THIS repo's rules move to AGENTS.md. Text that describ
 
   ## Where this repo differs from the template
 
-  - `.claude/settings.json` denies `git switch` and `git checkout` to Claude Code
-    unconditionally, in lean mode too — a backstop that does not depend on the
-    mode-aware `guard-primary-git` hook. Codex has no equivalent; the parity
-    record (`docs/host-parity.md`) states the asymmetry.
   - There is no `policy.json`: no branch-prefix policy and no Module cycle check.
 
   ## Green gate config — `green-gate.json`
