@@ -1,0 +1,61 @@
+{
+  "plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md": {
+    "/cogniva-dev:": 3
+  },
+  "plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md": {
+    "/cogniva-dev:": 5
+  },
+  "plugins/cogniva-dev/skills/backlog/SKILL.md": {
+    "/cogniva-dev:": 6
+  },
+  "plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md": {
+    "/cogniva-dev:": 3
+  },
+  "plugins/cogniva-dev/skills/easy-work-scan/SKILL.md": {
+    "/cogniva-dev:": 6,
+    "general-purpose": 1
+  },
+  "plugins/cogniva-dev/skills/execute-feature/SKILL.md": {
+    "/cogniva-dev:": 4,
+    "Workflow(": 1
+  },
+  "plugins/cogniva-dev/skills/explore-idea/SKILL.md": {
+    "AskUserQuestion": 1,
+    "`Explore`": 1
+  },
+  "plugins/cogniva-dev/skills/groom-backlog/DEEP-GROOM.md": {
+    "/cogniva-dev:": 4
+  },
+  "plugins/cogniva-dev/skills/groom-backlog/GROOMING-CRITERIA.md": {
+    "/cogniva-dev:": 5
+  },
+  "plugins/cogniva-dev/skills/groom-backlog/SKILL.md": {
+    "/cogniva-dev:": 7,
+    "general-purpose": 1
+  },
+  "plugins/cogniva-dev/skills/plan-feature/SKILL.md": {
+    "/cogniva-dev:": 1,
+    "AskUserQuestion": 1
+  },
+  "plugins/cogniva-dev/skills/quick-fix/SKILL.md": {
+    "/cogniva-dev:": 7
+  },
+  "plugins/cogniva-skills/skills/glossary/SKILL.md": {
+    "AskUserQuestion": 1
+  },
+  "plugins/cogniva-skills/skills/project-context/SKILL.md": {
+    "/cogniva-skills:": 3
+  },
+  "plugins/cogniva-skills/skills/project-requirement/REQUIREMENTS-FORMAT.md": {
+    "/cogniva-skills:": 1
+  },
+  "plugins/cogniva-skills/skills/project-requirement/SKILL.md": {
+    "/cogniva-skills:": 8
+  },
+  "plugins/cogniva-skills/skills/reference/REFERENCES-FORMAT.md": {
+    "/cogniva-skills:": 1
+  },
+  "plugins/cogniva-skills/skills/reference/SKILL.md": {
+    "/cogniva-skills:": 5
+  }
+}

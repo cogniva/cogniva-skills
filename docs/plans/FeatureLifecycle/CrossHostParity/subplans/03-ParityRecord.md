@@ -715,7 +715,7 @@ Scope (shared files): `plugins/*/skills/**/*.md` except files named
 `{ "<repo-relative path, forward slashes>": { "<token>": <count> } }` holding
 only non-zero counts, sorted by path and token (ordinal).
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1` with exactly this content (without the two-space block indentation):
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1` with exactly this content (without the two-space block indentation):
   ```powershell
   # Dependency-free tests for scripts/check-host-neutrality.ps1 (no Pester): the
   # ratchet passes at its baseline, fails when a count rises or a new file/token
@@ -812,8 +812,8 @@ only non-zero counts, sorted by path and token (ordinal).
   Write-Host "All host-neutrality assertions passed."
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1` → 11 `FAIL` lines (the checker does not exist yet), last line `FAILED: 11 assertion(s).`, exit 1.
-- [ ] **Step 3 (implement):** Create `scripts/check-host-neutrality.ps1` with exactly this content (PowerShell 7; without the two-space block indentation):
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1` → 11 `FAIL` lines (the checker does not exist yet), last line `FAILED: 11 assertion(s).`, exit 1.
+- [x] **Step 3 (implement):** Create `scripts/check-host-neutrality.ps1` with exactly this content (PowerShell 7; without the two-space block indentation):
   ```powershell
   # check-host-neutrality.ps1 - ratchet on agent-host-specific references in
   # shared plugin files. Counts literal, case-sensitive tokens (Claude Code or
@@ -921,16 +921,16 @@ only non-zero counts, sorted by path and token (ordinal).
   Write-Output "host-neutrality: OK - $total host-specific references in $($current.Count) files (baseline)"
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1` → 11 `PASS` lines, then `All host-neutrality assertions passed.`, exit 0.
-- [ ] **Step 5 (generate the baseline):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1 -Update` → `host-neutrality: baseline updated - <n> references in <m> files` (on the plan's base commit 0c499d1 this was `76 references in 18 files`; other CrossHostParity changes may shift it slightly). Then `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - <n> host-specific references in <m> files (baseline)` with the same numbers, no `INFO` or `FAIL` line, exit 0.
-- [ ] **Step 6 (inspect the baseline):** Open `scripts/host-neutrality-baseline.json` and confirm no key ends in `/CODEX.md`, `/WORKTREE.md` or `/WORKFLOW-NOTES.md` and no key contains `/skills/workflow-status/`. At 0c499d1 the largest entries were `/cogniva-dev:` and `/cogniva-skills:` invocation examples (for example `plugins/cogniva-dev/skills/quick-fix/SKILL.md` with `"/cogniva-dev:": 7`); those are documentation and stay in the baseline.
-- [ ] **Step 7 (wire both commands into the green gate):** In `.claude/cogniva-dev/green-gate.json`, append these two objects, in this order, as the LAST elements of `commands` (comma after the element that is currently last):
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1` → 11 `PASS` lines, then `All host-neutrality assertions passed.`, exit 0.
+- [x] **Step 5 (generate the baseline):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1 -Update` → `host-neutrality: baseline updated - <n> references in <m> files` (on the plan's base commit 0c499d1 this was `76 references in 18 files`; other CrossHostParity changes may shift it slightly). Then `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - <n> host-specific references in <m> files (baseline)` with the same numbers, no `INFO` or `FAIL` line, exit 0.
+- [x] **Step 6 (inspect the baseline):** Open `scripts/host-neutrality-baseline.json` and confirm no key ends in `/CODEX.md`, `/WORKTREE.md` or `/WORKFLOW-NOTES.md` and no key contains `/skills/workflow-status/`. At 0c499d1 the largest entries were `/cogniva-dev:` and `/cogniva-skills:` invocation examples (for example `plugins/cogniva-dev/skills/quick-fix/SKILL.md` with `"/cogniva-dev:": 7`); those are documentation and stay in the baseline.
+- [x] **Step 7 (wire both commands into the green gate):** In `.claude/cogniva-dev/green-gate.json`, append these two objects, in this order, as the LAST elements of `commands` (comma after the element that is currently last):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1", "label": "host-neutrality-suite", "note": "Fixture tests for scripts/check-host-neutrality.ps1: an increase or a new file/token pair fails, a decrease asks for a lower baseline, -Update rewrites it; needs PowerShell 7." },
       { "run": "pwsh -NoProfile -File scripts/check-host-neutrality.ps1", "label": "host-neutrality", "note": "Agent-host-specific references in shared skill and script files may not rise above scripts/host-neutrality-baseline.json; lower it with -Update when they fall. Needs PowerShell 7." }
   ```
   Verify: `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands.label -join ','"` → ends with `,host-parity-suite,host-parity,host-neutrality-suite,host-neutrality`.
-- [ ] **Step 8 (commit):** `git add scripts/check-host-neutrality.ps1 scripts/host-neutrality-baseline.json plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(host-parity): ratchet on agent-host-specific text in shared skills and scripts"`
+- [x] **Step 8 (commit):** `git add scripts/check-host-neutrality.ps1 scripts/host-neutrality-baseline.json plugins/cogniva-dev/tests/host-neutrality/check-host-neutrality.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(host-parity): ratchet on agent-host-specific text in shared skills and scripts"`
 
 ## Task 4: Reconcile plugins/cogniva-dev/docs/codex.md
 
