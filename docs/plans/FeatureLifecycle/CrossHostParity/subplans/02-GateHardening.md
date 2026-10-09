@@ -59,8 +59,8 @@ plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1                # NEW pws
 
 Why this fix: real callers (the backlog skill and the nudge hook's suggested command) run `git-commit.ps1` as a separate `powershell -File` process, so the test must keep doing that rather than calling the script in-process (`& $script`), which would skip command-line parsing entirely and stop exercising the path callers use. The test instead escapes the message the way the Windows command-line convention expects (`\"`, with any backslashes before a quote doubled) — only under Windows PowerShell 5.1, because PowerShell 7 already does that escaping itself. `git-commit.ps1` is NOT changed. Do not touch any `BACKLOG.md`.
 
-- [ ] **Step 1 (confirm the failure):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → exit 1 with `A positional parameter cannot be found that accepts argument 'and'.` and `You cannot call a method on a null-valued expression.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → `All git-commit assertions passed.`
-- [ ] **Step 2 (fix the test):** Replace the whole of `plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` with the text below. Save it as UTF-8 WITH a byte-order mark (the file has one today): the message literal contains an em-dash, which Windows PowerShell 5.1 misreads without the BOM.
+- [x] **Step 1 (confirm the failure):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → exit 1 with `A positional parameter cannot be found that accepts argument 'and'.` and `You cannot call a method on a null-valued expression.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → `All git-commit assertions passed.`
+- [x] **Step 2 (fix the test):** Replace the whole of `plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` with the text below. Save it as UTF-8 WITH a byte-order mark (the file has one today): the message literal contains an em-dash, which Windows PowerShell 5.1 misreads without the BOM.
   ```powershell
   # Dependency-free regression test for git-commit.ps1 (no Pester).
   # Exits 0 only if every assertion passes; exits 1 and prints failures otherwise.
@@ -129,8 +129,8 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
   Write-Host "All git-commit assertions passed."
   exit 0
   ```
-- [ ] **Step 3 (run until green, both shells):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → seven PASS lines and `All git-commit assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → the same.
-- [ ] **Step 4 (gate the five suites):** In `.claude/cogniva-dev/green-gate.json`, append these five entries, in this order, at the END of the `commands` array: add a comma after the closing `}` of the current last entry, then insert these lines before the array's closing `  ]` (no comma after the last one):
+- [x] **Step 3 (run until green, both shells):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → seven PASS lines and `All git-commit assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1` → the same.
+- [x] **Step 4 (gate the five suites):** In `.claude/cogniva-dev/green-gate.json`, append these five entries, in this order, at the END of the `commands` array: add a comma after the closing `}` of the current last entry, then insert these lines before the array's closing `  ]` (no comma after the last one):
   ```json
       { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1", "label": "git-commit", "note": "Pins git-commit.ps1: a path-scoped commit whose multi-line message, embedded quote included, survives a separate Windows PowerShell process." },
       { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/integrate-feature/integrate-feature.tests.ps1", "label": "integrate-feature", "note": "Pins worktree integration: fast-forward or worktree-side merge, a conflict leaves both branches untouched, and no remote is used." },
@@ -139,8 +139,8 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
       { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/validate-json/validate-json.tests.ps1", "label": "validate-json", "note": "Pins validate-json.ps1 exit codes for valid, invalid and missing files." }
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → exit 0.
-- [ ] **Step 5 (run the gated subset):** run each of the five `run` commands above from the repo root, one at a time → each exits 0 and ends with its all-passed line (`All git-commit assertions passed.`, `integrate-feature tests passed`, `All ledger assertions passed.`, `All parse-plan-tasks assertions passed.`, `All validate-json assertions passed.`).
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(git-commit): escape the message for Windows PowerShell 5.1; gate five existing suites"`
+- [x] **Step 5 (run the gated subset):** run each of the five `run` commands above from the repo root, one at a time → each exits 0 and ends with its all-passed line (`All git-commit assertions passed.`, `integrate-feature tests passed`, `All ledger assertions passed.`, `All parse-plan-tasks assertions passed.`, `All validate-json assertions passed.`).
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/tests/git-commit/git-commit.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(git-commit): escape the message for Windows PowerShell 5.1; gate five existing suites"`
 
 ## Task 2: applicable-rules reports a single AGENTS.md or CLAUDE.md by its whole path
 
