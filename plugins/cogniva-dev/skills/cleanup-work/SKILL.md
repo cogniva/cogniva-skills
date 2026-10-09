@@ -1,6 +1,7 @@
 ---
 name: cleanup-work
 description: Close out THIS session's worktrees after you have validated the work. Runs the close-out recipe for each worktree this session created and marked cleanupable (flips state.md Status, removes the merged+clean worktree, prunes the ledger record). Session-scoped and safe - never touches in-progress or other sessions' worktrees. Run it once you are satisfied with the integrated result in your branch. If you closed a session before running this, use /cleanup-allwork instead.
+disable-model-invocation: true
 ---
 
 # Cleanup Work

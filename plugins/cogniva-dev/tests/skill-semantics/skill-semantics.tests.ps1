@@ -207,6 +207,19 @@ Check 'quick-fix does not use applicable-rules as its architecture check' ($qf -
 Check 'worktree quick-fix snapshots after any staleness merge' ($wtQfFlat -match 'record `START_TREE` exactly as Step 0 says' -and $wtQfFlat -match 'after any staleness merge is committed')
 Check 'Codex parity: both backends pass the task body verbatim' ($codexFlat -match 'full `body` VERBATIM' -and $tpl -match 't\.body')
 Check 'Codex parity: quick-fix landing under Codex includes the structural check' ($codexFlat -match 'quick-fix also runs its structural check')
+# --- explicit-only invocation metadata (both agent hosts) ----------------------
+$explicitOnly = @('explore-idea', 'cleanup-work', 'cleanup-allwork', 'repo-init', 'add-module')
+foreach ($name in $explicitOnly) {
+    $skillText = ReadDoc "skills\$name\SKILL.md"
+    $yamlPath = Join-Path $plugin "skills\$name\agents\openai.yaml"
+    $yamlText = ''
+    if (Test-Path $yamlPath) { $yamlText = [System.IO.File]::ReadAllText($yamlPath) }
+    Check "$name is explicit-only on both agent hosts" `
+        ($skillText -match '(?m)^disable-model-invocation: true' -and $yamlText -match '(?m)^policy:' -and $yamlText -match '(?m)^\s+allow_implicit_invocation: false')
+}
+$routed = @('quick-fix', 'plan-feature', 'backlog', 'adr', 'groom-backlog', 'easy-work-scan', 'applicable-rules', 'feature-check', 'gate-check')
+Check 'routed skills stay model-invocable on both agent hosts' `
+    (@($routed | Where-Object { (ReadDoc "skills\$_\SKILL.md") -match 'disable-model-invocation' -or (Test-Path (Join-Path $plugin "skills\$_\agents\openai.yaml")) }).Count -eq 0)
 
 if ($failures.Count -gt 0) {
     Write-Host ""

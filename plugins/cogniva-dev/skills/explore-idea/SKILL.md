@@ -1,6 +1,7 @@
 ---
 name: explore-idea
 description: Use when the user wants to BRAINSTORM and develop an idea before any planning - a long, question-driven design conversation that produces only disposable thinking docs (gitignored .explore/), never a plan and never code. Invoke explicitly only; the goal is to deepen the idea, not to converge on action. Comes BEFORE plan-feature.
+disable-model-invocation: true
 ---
 
 # Explore Idea

@@ -83,12 +83,12 @@ it. The Codex key path is confirmed by Codex's bundled skill-creator reference
 the model context by default, but can still be invoked explicitly via
 `$skill`"); the Stage 1 gate still has a human confirm the behaviour in Codex.
 
-- [ ] **Step 1 (qualify each candidate):** Run (Bash):
+- [x] **Step 1 (qualify each candidate):** Run (Bash):
   ```bash
   for n in execute-feature explore-idea cleanup-work cleanup-allwork repo-init add-module; do echo "## $n"; grep -rnF --include='*.md' -e "$n" plugins/cogniva-dev/skills plugins/cogniva-skills/skills | grep -v "/skills/$n/"; done
   ```
   Acceptance rule, applied to every hit line (read 3 lines of context where the line alone is unclear). A hit is ACCEPTED when it is: (a) a command or pointer for the USER (`/cogniva-dev:<name>`, `/<name>`, `$<name>` inside "tell the user", "point them at", "Run … when ready", "the close-out pointer", "STOP and tell the user to run", a status hint); (b) a reference to the skill's files, format or prose (`../execute-feature/CODEX.md`, `templates/execute-feature.workflow.js`, "as execute-feature defines it", "a planless sibling of", `(set by execute-feature)`, a REQUIRED EXECUTOR header); reading another skill's file by path is a file read, not an invocation, on both agent hosts; or (c) a negation ("do NOT chain `execute-feature`"). A hit FAILS when it tells the agent to run, invoke, dispatch, chain or start that skill, or offers to run it so that a "yes" makes the agent start it. At the plan's base commit every hit was accepted: `execute-feature` hits are file references in quick-fix/plan-feature/adr/backlog/PLAN-FORMAT, user commands in plan-feature ("Run `/execute-feature …` when ready"), module-status and workflow-status, and the negation in `easy-work-scan/EASY-WORK-CRITERIA.md`; `cleanup-work`/`cleanup-allwork` hits are user close-out pointers in easy-work-scan, cleanup-work, cleanup-allwork, workflow-status and the `WORKTREE.md` overlays; `add-module` hits are prose in module-deps; `explore-idea` and `repo-init` have no hits. Record each candidate's verdict in your task report. A candidate that FAILS is dropped: delete its name from `$explicitOnly` in the Step 2 block, skip it in Steps 4–7, and in `docs/host-parity.md` append to its row's Notes `Model-invocable: routed from <skill> (<file>:<line>).`; the ADR for this policy stays as written.
-- [ ] **Step 2 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count -gt 0) {` near the end of the file (no indentation in the file):
+- [x] **Step 2 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count -gt 0) {` near the end of the file (no indentation in the file):
   ```powershell
   # --- explicit-only invocation metadata (both agent hosts) ----------------------
   $explicitOnly = @('execute-feature', 'explore-idea', 'cleanup-work', 'cleanup-allwork', 'repo-init', 'add-module')
@@ -104,8 +104,8 @@ the model context by default, but can still be invoked explicitly via
   Check 'routed skills stay model-invocable on both agent hosts' `
       (@($routed | Where-Object { (ReadDoc "skills\$_\SKILL.md") -match 'disable-model-invocation' -or (Test-Path (Join-Path $plugin "skills\$_\agents\openai.yaml")) }).Count -eq 0)
   ```
-- [ ] **Step 3 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → one `FAIL  <skill> is explicit-only on both agent hosts` line per qualifying candidate (6), `PASS  routed skills stay model-invocable on both agent hosts`, then `FAILED: 6 assertion(s).`, exit 1.
-- [ ] **Step 4 (Claude Code metadata):** In each qualifying `plugins/cogniva-dev/skills/<skill>/SKILL.md`, the frontmatter is `---` / `name: <skill>` / `description: …` / `---`. Insert one new line `disable-model-invocation: true` directly after the `description:` line, before the closing `---`. Change nothing else. For example `explore-idea/SKILL.md` begins:
+- [x] **Step 3 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → one `FAIL  <skill> is explicit-only on both agent hosts` line per qualifying candidate (6), `PASS  routed skills stay model-invocable on both agent hosts`, then `FAILED: 6 assertion(s).`, exit 1.
+- [x] **Step 4 (Claude Code metadata):** In each qualifying `plugins/cogniva-dev/skills/<skill>/SKILL.md`, the frontmatter is `---` / `name: <skill>` / `description: …` / `---`. Insert one new line `disable-model-invocation: true` directly after the `description:` line, before the closing `---`. Change nothing else. For example `explore-idea/SKILL.md` begins:
   ```
   ---
   name: explore-idea
@@ -113,18 +113,18 @@ the model context by default, but can still be invoked explicitly via
   disable-model-invocation: true
   ---
   ```
-- [ ] **Step 5 (Codex metadata):** For each qualifying skill create `plugins/cogniva-dev/skills/<skill>/agents/openai.yaml` with exactly this content (two lines, LF, trailing newline):
+- [x] **Step 5 (Codex metadata):** For each qualifying skill create `plugins/cogniva-dev/skills/<skill>/agents/openai.yaml` with exactly this content (two lines, LF, trailing newline):
   ```yaml
   policy:
     allow_implicit_invocation: false
   ```
-- [ ] **Step 6 (run until green):**
+- [x] **Step 6 (run until green):**
   - `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`
   - `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered` (no `FAIL invocation-metadata`)
   - `claude plugin validate .` → `✔ Validation passed`
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1` → exit 0
   - `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → the `host-neutrality: OK` line, no `FAIL`
-- [ ] **Step 7 (parity record):** In `docs/host-parity.md`, `## Capabilities`, put `Explicit-only (metadata, both agent hosts). ` at the START of the Notes cell of each row covering a qualifying skill (if a Notes cell is `—`, replace it with `Explicit-only (metadata, both agent hosts).`). With all six qualifying, the rows and their resulting Notes are:
+- [x] **Step 7 (parity record):** In `docs/host-parity.md`, `## Capabilities`, put `Explicit-only (metadata, both agent hosts). ` at the START of the Notes cell of each row covering a qualifying skill (if a Notes cell is `—`, replace it with `Explicit-only (metadata, both agent hosts).`). With all six qualifying, the rows and their resulting Notes are:
   - `execute-feature`: ``Explicit-only (metadata, both agent hosts). The Codex loop has never run end to end. Task results differ by agent host: a schema-checked object under Claude Code, a textual `DONE`/`BLOCKED` line under Codex (one shared contract in CrossHostParity 07).``
   - `explore-idea`: `Explicit-only (metadata, both agent hosts). A conversation only; it may start read-only subagents.`
   - `worktree-cleanup` (covers cleanup-work and cleanup-allwork): `Explicit-only (metadata, both agent hosts). Codex does not start worktree-mode runs (row worktree-mode), so there is nothing to close out. In lean mode both skills report nothing to do.`
@@ -132,7 +132,7 @@ the model context by default, but can still be invoked explicitly via
   - `add-module`: `Explicit-only (metadata, both agent hosts). Profile gating is gate-covered; the scaffold itself is not.`
 
   Re-run `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`.
-- [ ] **Step 8 (commit):** `git add plugins/cogniva-dev/skills/execute-feature plugins/cogniva-dev/skills/explore-idea plugins/cogniva-dev/skills/cleanup-work plugins/cogniva-dev/skills/cleanup-allwork plugins/cogniva-dev/skills/repo-init plugins/cogniva-dev/skills/add-module plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/host-parity.md` (omit any dropped skill's folder) then `git commit -m "feat(skills): explicit-only invocation metadata on both agent hosts for entry skills no skill routes into"`
+- [x] **Step 8 (commit):** `git add plugins/cogniva-dev/skills/execute-feature plugins/cogniva-dev/skills/explore-idea plugins/cogniva-dev/skills/cleanup-work plugins/cogniva-dev/skills/cleanup-allwork plugins/cogniva-dev/skills/repo-init plugins/cogniva-dev/skills/add-module plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/host-parity.md` (omit any dropped skill's folder) then `git commit -m "feat(skills): explicit-only invocation metadata on both agent hosts for entry skills no skill routes into"`
 
 ## Task 2: Routed skills state their start rule; agent-host-neutral explicit-only section; ADR
 
