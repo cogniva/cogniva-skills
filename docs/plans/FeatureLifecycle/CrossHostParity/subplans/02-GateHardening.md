@@ -427,7 +427,7 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
 
 No hook script changes in this task. The suite asserts today's behaviour. The two Codex `apply_patch` checks are labelled `KNOWN GAP (fixed in sub-plan 08): …` and assert that the hooks currently return NO decision. Sub-plan 08 must flip them deliberately to the fixed behaviour. `guard-module-cycles.js` already has its own suite and is not covered here.
 
-- [ ] **Step 1 (write the suite):** Create `plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` with exactly:
+- [x] **Step 1 (write the suite):** Create `plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` with exactly:
   ```powershell
   # Dependency-free tests for the primary-checkout hooks (no Pester):
   # guard-primary-edit.js, guard-primary-git.js and nudge-backlog-commit.js.
@@ -557,11 +557,11 @@ No hook script changes in this task. The suite asserts today's behaviour. The tw
   Write-Host 'All primary-hooks assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` → sixteen PASS lines (five edit-guard, five git-guard, four nudge, two `KNOWN GAP`) and `All primary-hooks assertions passed.` This suite pins existing behaviour, so it passes on first run. To prove it can fail, temporarily change `return deny(` to `return allow(` near the end of `plugins/cogniva-dev/scripts/guard-primary-edit.js`, re-run → `FAIL  edit guard: worktree mode, a Claude Write to a primary-checkout file is denied` and exit 1, then restore the file exactly (`git diff --exit-code plugins/cogniva-dev/scripts/guard-primary-edit.js` → exit 0).
-- [ ] **Step 3 (gate):** In `.claude/cogniva-dev/green-gate.json`, append at the END of the `commands` array (comma after the current last entry's closing `}`, new line before the closing `  ]`):
+- [x] **Step 2 (run it):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` → sixteen PASS lines (five edit-guard, five git-guard, four nudge, two `KNOWN GAP`) and `All primary-hooks assertions passed.` This suite pins existing behaviour, so it passes on first run. To prove it can fail, temporarily change `return deny(` to `return allow(` near the end of `plugins/cogniva-dev/scripts/guard-primary-edit.js`, re-run → `FAIL  edit guard: worktree mode, a Claude Write to a primary-checkout file is denied` and exit 1, then restore the file exactly (`git diff --exit-code plugins/cogniva-dev/scripts/guard-primary-edit.js` → exit 0).
+- [x] **Step 3 (gate):** In `.claude/cogniva-dev/green-gate.json`, append at the END of the `commands` array (comma after the current last entry's closing `}`, new line before the closing `  ]`):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1", "label": "primary-hooks", "note": "Pins the primary-checkout edit/git guards and the backlog nudge for Claude Code payloads; the Codex apply_patch gap is pinned under KNOWN GAP labels until the hook input adapter lands; needs PowerShell 7 and node." }
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → exit 0.
-- [ ] **Step 4 (run the full green gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all 20 command(s) exited 0.` (the 12 original commands, `instruction-governance` from sub-plan 01, and this sub-plan's `git-commit`, `integrate-feature`, `ledger`, `parse-plan-tasks`, `validate-json`, `manifest-checker`, `primary-hooks`). If `instruction-governance` is absent because sub-plan 01 has not run, the count is 19.
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(hooks): pin the primary-checkout hooks; record the Codex apply_patch gap"`
+- [x] **Step 4 (run the full green gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all 20 command(s) exited 0.` (the 12 original commands, `instruction-governance` from sub-plan 01, and this sub-plan's `git-commit`, `integrate-feature`, `ledger`, `parse-plan-tasks`, `validate-json`, `manifest-checker`, `primary-hooks`). If `instruction-governance` is absent because sub-plan 01 has not run, the count is 19.
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(hooks): pin the primary-checkout hooks; record the Codex apply_patch gap"`
