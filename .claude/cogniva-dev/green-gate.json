@@ -20,6 +20,7 @@
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/validate-json/validate-json.tests.ps1", "label": "validate-json", "note": "Pins validate-json.ps1 exit codes for valid, invalid and missing files." },
     { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1", "label": "manifest-checker", "note": "Proves check-plugin-manifests.ps1 fails on a missing Codex manifest, a bad Codex skills path, a skill folder/name mismatch and a version mismatch; needs PowerShell 7." },
     { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1", "label": "primary-hooks", "note": "Pins the primary-checkout edit/git guards and the backlog nudge for Claude Code payloads; the Codex apply_patch gap is pinned under KNOWN GAP labels until the hook input adapter lands; needs PowerShell 7 and node." },
-    { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1", "label": "host-parity-suite", "note": "Fixture tests for scripts/check-host-parity.ps1: a clean parity record passes and every rule fails on its own mutation; needs PowerShell 7." }
+    { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1", "label": "host-parity-suite", "note": "Fixture tests for scripts/check-host-parity.ps1: a clean parity record passes and every rule fails on its own mutation; needs PowerShell 7." },
+    { "run": "pwsh -NoProfile -File scripts/check-host-parity.ps1", "label": "host-parity", "note": "Checks docs/host-parity.md against the skills, hook scripts, overlays and invocation metadata on disk and against the cited gate labels and smoke records; needs PowerShell 7." }
   ]
 }

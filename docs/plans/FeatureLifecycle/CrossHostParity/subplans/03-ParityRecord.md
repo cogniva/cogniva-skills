@@ -554,8 +554,8 @@ both agent hosts; a capability with a step no suite runs (the Workflow template,
 the Codex `CODEX.md` loop, a design conversation) is `untested`, and
 `skill-semantics` never counts as evidence for `scripts-tested`.
 
-- [ ] **Step 1 (prerequisite labels):** `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands.label -join ','"` → the list contains every one of: `manifest-parity`, `adr-checker`, `green-gate-runner`, `applicable-rules`, `architecture-profile`, `profile-library`, `structural-changes`, `module-deps`, `module-deps-hook`, `gate-check`, `instruction-governance`, `git-commit`, `integrate-feature`, `ledger`, `parse-plan-tasks`, `manifest-checker`, `primary-hooks`. If any is missing, STOP and report it as BLOCKED (an earlier CrossHostParity sub-plan has not landed); never cite a label that does not exist.
-- [ ] **Step 2 (write ADR):** List `docs/adr/`, take the highest `NNNN-` number and add 1 (expected `0052`, after the `0051` ADR on AGENTS.md written earlier in this feature). Write `docs/adr/<that number>-cross-host-parity-is-the-default.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`, with exactly this content (no candidate label in the heading, no Relitigation line):
+- [x] **Step 1 (prerequisite labels):** `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands.label -join ','"` → the list contains every one of: `manifest-parity`, `adr-checker`, `green-gate-runner`, `applicable-rules`, `architecture-profile`, `profile-library`, `structural-changes`, `module-deps`, `module-deps-hook`, `gate-check`, `instruction-governance`, `git-commit`, `integrate-feature`, `ledger`, `parse-plan-tasks`, `manifest-checker`, `primary-hooks`. If any is missing, STOP and report it as BLOCKED (an earlier CrossHostParity sub-plan has not landed); never cite a label that does not exist.
+- [x] **Step 2 (write ADR):** List `docs/adr/`, take the highest `NNNN-` number and add 1 (expected `0052`, after the `0051` ADR on AGENTS.md written earlier in this feature). Write `docs/adr/<that number>-cross-host-parity-is-the-default.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`, with exactly this content (no candidate label in the heading, no Relitigation line):
   ```markdown
   # Cross-host parity is the default, recorded in one parity record backed by derived checks
 
@@ -571,7 +571,7 @@ the Codex `CODEX.md` loop, a design conversation) is `untested`, and
   host covers it. This extends ADR 0029 from packaging to policy.
   ```
   Then run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace . -Since HEAD` → exit 0, last lines start `check-adrs: clean`.
-- [ ] **Step 3 (write the record):** Create `docs/host-parity.md` with exactly this content, replacing both `NNNN` in the first section with the ADR number from Step 2 (write it without the two-space block indentation; every `—` is an em dash, U+2014):
+- [x] **Step 3 (write the record):** Create `docs/host-parity.md` with exactly this content, replacing both `NNNN` in the first section with the ADR number from Step 2 (write it without the two-space block indentation; every `—` is an em dash, U+2014):
   ```markdown
   # Agent host parity record
 
@@ -662,7 +662,7 @@ the Codex `CODEX.md` loop, a design conversation) is `untested`, and
   evidence for `partial`, never for `verified`. No smoke record exists yet, so no
   capability is `verified`.
   ```
-- [ ] **Step 4 (smoke directory):** Create `docs/host-parity/smoke/README.md` with exactly this content (without the two-space block indentation):
+- [x] **Step 4 (smoke directory):** Create `docs/host-parity/smoke/README.md` with exactly this content (without the two-space block indentation):
   ```markdown
   # Smoke records
 
@@ -688,13 +688,13 @@ the Codex `CODEX.md` loop, a design conversation) is `untested`, and
   is `fail`. It counts as fresh while its cogniva-dev major.minor matches the
   current plugin version; an older record makes the checker warn.
   ```
-- [ ] **Step 5 (run the checker on the real repo):** `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`, exit 0 (24 skills, 4 hook scripts, 2 manifests, 2 modes). If a `FAIL uncovered-skill` or `FAIL uncovered-hook` appears because the repo gained an item after this plan was written, add one row for it with Kind `workflow` (or `enforcement` for a hook, with Notes stating its per-agent-host limits), statuses `untested`/`untested`, Evidence `—`, and re-run; never change the checker to pass.
-- [ ] **Step 6 (wire the record check into the green gate as `host-parity`):** In `.claude/cogniva-dev/green-gate.json`, append this object as the LAST element of `commands` (comma after the element that is currently last):
+- [x] **Step 5 (run the checker on the real repo):** `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`, exit 0 (24 skills, 4 hook scripts, 2 manifests, 2 modes). If a `FAIL uncovered-skill` or `FAIL uncovered-hook` appears because the repo gained an item after this plan was written, add one row for it with Kind `workflow` (or `enforcement` for a hook, with Notes stating its per-agent-host limits), statuses `untested`/`untested`, Evidence `—`, and re-run; never change the checker to pass.
+- [x] **Step 6 (wire the record check into the green gate as `host-parity`):** In `.claude/cogniva-dev/green-gate.json`, append this object as the LAST element of `commands` (comma after the element that is currently last):
   ```json
       { "run": "pwsh -NoProfile -File scripts/check-host-parity.ps1", "label": "host-parity", "note": "Checks docs/host-parity.md against the skills, hook scripts, overlays and invocation metadata on disk and against the cited gate labels and smoke records; needs PowerShell 7." }
   ```
   Verify: `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands.label -join ','"` → ends with `,host-parity-suite,host-parity`.
-- [ ] **Step 7 (commit):** `git add docs/host-parity.md docs/host-parity/smoke/README.md .claude/cogniva-dev/green-gate.json docs/adr` then `git commit -m "docs(host-parity): parity record with honest initial statuses, checked by the green gate"`
+- [x] **Step 7 (commit):** `git add docs/host-parity.md docs/host-parity/smoke/README.md .claude/cogniva-dev/green-gate.json docs/adr` then `git commit -m "docs(host-parity): parity record with honest initial statuses, checked by the green gate"`
 
 ## Task 3: Agent-host token ratchet
 
