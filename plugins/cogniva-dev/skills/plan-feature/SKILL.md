@@ -1,6 +1,6 @@
 ---
 name: plan-feature
-description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /execute-feature). Pairs with adr (ADRs) and glossary.
+description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /execute-feature). Pairs with adr (ADRs) and glossary. Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog - never auto-selected because a task resembles it.
 ---
 
 # Plan Feature

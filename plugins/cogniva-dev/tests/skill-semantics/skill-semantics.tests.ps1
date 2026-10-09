@@ -83,8 +83,12 @@ Check 'inheritance rule: CLAUDE.md never overrides commits=' `
     ($codex -match 'ever overrides `commits=`')
 
 # --- explicit invocation + plan-feature default -------------------------------
-Check 'docs/codex.md: lifecycle skills are explicit-invocation-only' `
-    ($docs -match '## Lifecycle skills are explicit-invocation-only under Codex')
+Check 'docs/codex.md: explicit-only lifecycle skills carry metadata on both agent hosts' `
+    ($docs -match '## Explicit-only lifecycle skills' -and $docs -match 'disable-model-invocation: true' -and $docs -match 'allow_implicit_invocation: false' -and $docs -notmatch 'explicit-invocation-only under Codex')
+Check 'quick-fix description states its explicit-start rule' `
+    ($qf -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
+Check 'plan-feature description states its explicit-start rule' `
+    ($pf -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
 Check 'plan-feature lean default leaves the plan uncommitted' `
     ($pf -match 'Lean mode default: `commits=none`')
 

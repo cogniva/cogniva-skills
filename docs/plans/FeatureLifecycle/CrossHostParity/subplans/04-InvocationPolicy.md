@@ -150,7 +150,7 @@ groom-backlog dispatches approved fixes through quick-fix, and backlog is the
 routing gate every skill uses. Blocking model invocation would block those
 approved dispatches too, so the rule lives in their descriptions instead.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, under `# --- explicit invocation + plan-feature default`, replace these two lines:
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, under `# --- explicit invocation + plan-feature default`, replace these two lines:
   ```powershell
   Check 'docs/codex.md: lifecycle skills are explicit-invocation-only' `
       ($docs -match '## Lifecycle skills are explicit-invocation-only under Codex')
@@ -164,8 +164,8 @@ approved dispatches too, so the rule lives in their descriptions instead.
   Check 'plan-feature description states its explicit-start rule' `
       ($pf -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL` on the three new pins, `FAILED: 3 assertion(s).`, exit 1.
-- [ ] **Step 3 (quick-fix description):** In `plugins/cogniva-dev/skills/quick-fix/SKILL.md` replace the frontmatter line
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL` on the three new pins, `FAILED: 3 assertion(s).`, exit 1.
+- [x] **Step 3 (quick-fix description):** In `plugins/cogniva-dev/skills/quick-fix/SKILL.md` replace the frontmatter line
   ```
   description: Use for small follow-up changes (UI tweak, bug fix, copy change) without a formal feature plan. Runs the change via a background Workflow so it can be fired repeatedly without bloating context; in worktree mode the change is isolated in a git worktree and auto-integrated.
   ```
@@ -173,7 +173,7 @@ approved dispatches too, so the rule lives in their descriptions instead.
   ```
   description: Use for small follow-up changes (UI tweak, bug fix, copy change) without a formal feature plan. Runs the change via a background Workflow so it can be fired repeatedly without bloating context; in worktree mode the change is isolated in a git worktree and auto-integrated. Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog - never auto-selected because a task resembles it.
   ```
-- [ ] **Step 4 (plan-feature description):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md` replace the frontmatter line
+- [x] **Step 4 (plan-feature description):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md` replace the frontmatter line
   ```
   description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /execute-feature). Pairs with adr (ADRs) and glossary.
   ```
@@ -181,7 +181,7 @@ approved dispatches too, so the rule lives in their descriptions instead.
   ```
   description: Use when designing ONE feature with a strong model before implementation - runs a focused design session and emits a task-segmented feature plan (executable by /execute-feature). Pairs with adr (ADRs) and glossary. Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog - never auto-selected because a task resembles it.
   ```
-- [ ] **Step 5 (the other routed skills already state their rule — verify, no edit):** Run in PowerShell 7:
+- [x] **Step 5 (the other routed skills already state their rule — verify, no edit):** Run in PowerShell 7:
   ```powershell
   $expect = [ordered]@{
       'plugins/cogniva-dev/skills/backlog/SKILL.md'          = 'Skill-initiated capture is proposed and confirmed first'
@@ -195,7 +195,7 @@ approved dispatches too, so the rule lives in their descriptions instead.
   foreach ($k in $expect.Keys) { $d = (Get-Content -LiteralPath $k | Where-Object { $_ -like 'description:*' } | Select-Object -First 1); '{0} {1}' -f ($(if ($d.Contains($expect[$k])) { 'OK  ' } else { 'MISS' })), $k }
   ```
   → seven lines starting `OK  `. A `MISS` means that description changed since this plan was written: report it in the task report (do not edit the description in this task).
-- [ ] **Step 6 (agent-host-neutral explicit-only section):** In `plugins/cogniva-dev/docs/codex.md`, replace the whole section from the heading `## Lifecycle skills are explicit-invocation-only under Codex` down to, but not including, the heading `## Workflow-neutral guardrails for externally orchestrated work`. The section being replaced reads:
+- [x] **Step 6 (agent-host-neutral explicit-only section):** In `plugins/cogniva-dev/docs/codex.md`, replace the whole section from the heading `## Lifecycle skills are explicit-invocation-only under Codex` down to, but not including, the heading `## Workflow-neutral guardrails for externally orchestrated work`. The section being replaced reads:
   ```markdown
   ## Lifecycle skills are explicit-invocation-only under Codex
 
@@ -239,7 +239,7 @@ approved dispatches too, so the rule lives in their descriptions instead.
   `applicable-rules`, `feature-check`, `gate-check`) may still be selected
   automatically when appropriate.
   ```
-- [ ] **Step 7 (write ADR):** List `docs/adr/`, take the highest `NNNN-` number and add 1 (expected `0053`). Write `docs/adr/<that number>-explicit-only-invocation-metadata-only-where-no-skill-routes-in.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md` with exactly this content (no candidate label in the heading, no Relitigation line):
+- [x] **Step 7 (write ADR):** List `docs/adr/`, take the highest `NNNN-` number and add 1 (expected `0053`). Write `docs/adr/<that number>-explicit-only-invocation-metadata-only-where-no-skill-routes-in.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md` with exactly this content (no candidate label in the heading, no Relitigation line):
   ```markdown
   # Explicit-only invocation metadata only where no skill routes in
 
@@ -255,9 +255,9 @@ approved dispatches too, so the rule lives in their descriptions instead.
   approved skill-to-skill dispatch keeps working on both agent hosts.
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace . -Since HEAD` → exit 0, last lines start `check-adrs: clean`.
-- [ ] **Step 8 (parity record):** In `docs/host-parity.md`, `## Capabilities`, append to the END of the Notes cell of row `quick-fix` and of row `plan-feature` (one space before it): `Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule.`
-- [ ] **Step 9 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`; `claude plugin validate .` → `✔ Validation passed`; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → the `OK` line, no `FAIL`.
-- [ ] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "docs(skills): routed skills state their explicit-start rule; explicit-only section covers both agent hosts"`
+- [x] **Step 8 (parity record):** In `docs/host-parity.md`, `## Capabilities`, append to the END of the Notes cell of row `quick-fix` and of row `plan-feature` (one space before it): `Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule.`
+- [x] **Step 9 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`; `claude plugin validate .` → `✔ Validation passed`; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → the `OK` line, no `FAIL`.
+- [x] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/quick-fix/SKILL.md plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "docs(skills): routed skills state their explicit-start rule; explicit-only section covers both agent hosts"`
 
 ## Task 3: Agent-host-neutral user-facing wording; lower the ratchet
 
