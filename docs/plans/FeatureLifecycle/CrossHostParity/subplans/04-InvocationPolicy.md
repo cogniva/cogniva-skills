@@ -284,7 +284,7 @@ fall. No existing test pins the BACKLOG.md header text (checked: no file under
 `plugins/*/tests/` contains `Promote with`). Edit each line in place; do not
 re-wrap surrounding paragraphs.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count -gt 0) {` near the end of the file (no indentation in the file):
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count -gt 0) {` near the end of the file (no indentation in the file):
   ```powershell
   # --- agent-host-neutral wording in shared skills ------------------------------
   $handoffFlat = $handoff -replace '\s+', ' '
@@ -305,8 +305,8 @@ re-wrap surrounding paragraphs.
   Check 'scan subagents are described for both agent hosts' `
       ([regex]::Matches($scanFlat, 'Spawn ONE read-only subagent \(Claude Code: `general-purpose`; Codex: the default agent\)').Count -eq 2)
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL` on the six new pins, `FAILED: 6 assertion(s).`, exit 1.
-- [ ] **Step 3 (plan-feature: the closing line the user reads):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, `## Emit a CONCISE decisions summary`, replace
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL` on the six new pins, `FAILED: 6 assertion(s).`, exit 1.
+- [x] **Step 3 (plan-feature: the closing line the user reads):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, `## Emit a CONCISE decisions summary`, replace
   ```
   downstream consequence in one clause), then the plan path and "Run
   `/execute-feature <Module>/<Feature>` when ready." Exclude anything already
@@ -318,7 +318,7 @@ re-wrap surrounding paragraphs.
   (`/execute-feature <Module>/<Feature>` in Claude Code,
   `$execute-feature <Module>/<Feature>` in Codex)." Exclude anything already
   ```
-- [ ] **Step 4 (plan-feature: design questions):** In the same file replace
+- [x] **Step 4 (plan-feature: design questions):** In the same file replace
   ```
   3. Surface each genuine design fork with **AskUserQuestion** (one popup per
      fork). Describe UI choices in prose.
@@ -329,10 +329,10 @@ re-wrap surrounding paragraphs.
      host's structured question tool, or as a plain question when there is
      none. Describe UI choices in prose.
   ```
-- [ ] **Step 5 (explore-idea):** In `plugins/cogniva-dev/skills/explore-idea/SKILL.md` replace `use **AskUserQuestion** only for genuine forks.` with `use the agent host's structured question tool only for genuine forks.`, and replace ``dispatch read-only `Explore` agents`` with `dispatch read-only exploration subagents`.
-- [ ] **Step 6 (glossary):** In `plugins/cogniva-skills/skills/glossary/SKILL.md`, in the `description:` frontmatter line replace `DO NOT use Grep, Glob, Read, or any search tool on an unrecognized term` with `DO NOT search the codebase (grep, file search or file reads) for an unrecognized term` (the rest of the line is unchanged); and in step 2 of the issue-detection list replace ``Use `AskUserQuestion` or direct text to confirm:`` with `Use the agent host's structured question tool, or a plain question, to confirm:`.
-- [ ] **Step 7 (scan subagents):** In `plugins/cogniva-dev/skills/groom-backlog/SKILL.md` and in `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`, replace `Spawn ONE general-purpose subagent with:` with ``Spawn ONE read-only subagent (Claude Code: `general-purpose`; Codex: the default agent) with:`` (one occurrence in each file).
-- [ ] **Step 8 (handoff rule):** In `plugins/cogniva-dev/skills/execute-feature/HANDOFF.md`, insert this section immediately BEFORE the heading `## Closing line`, followed by one blank line (without the two-space block indentation):
+- [x] **Step 5 (explore-idea):** In `plugins/cogniva-dev/skills/explore-idea/SKILL.md` replace `use **AskUserQuestion** only for genuine forks.` with `use the agent host's structured question tool only for genuine forks.`, and replace ``dispatch read-only `Explore` agents`` with `dispatch read-only exploration subagents`.
+- [x] **Step 6 (glossary):** In `plugins/cogniva-skills/skills/glossary/SKILL.md`, in the `description:` frontmatter line replace `DO NOT use Grep, Glob, Read, or any search tool on an unrecognized term` with `DO NOT search the codebase (grep, file search or file reads) for an unrecognized term` (the rest of the line is unchanged); and in step 2 of the issue-detection list replace ``Use `AskUserQuestion` or direct text to confirm:`` with `Use the agent host's structured question tool, or a plain question, to confirm:`.
+- [x] **Step 7 (scan subagents):** In `plugins/cogniva-dev/skills/groom-backlog/SKILL.md` and in `plugins/cogniva-dev/skills/easy-work-scan/SKILL.md`, replace `Spawn ONE general-purpose subagent with:` with ``Spawn ONE read-only subagent (Claude Code: `general-purpose`; Codex: the default agent) with:`` (one occurrence in each file).
+- [x] **Step 8 (handoff rule):** In `plugins/cogniva-dev/skills/execute-feature/HANDOFF.md`, insert this section immediately BEFORE the heading `## Closing line`, followed by one blank line (without the two-space block indentation):
   ```markdown
   ## Skill invocations
 
@@ -341,7 +341,7 @@ re-wrap surrounding paragraphs.
   command in Claude Code (`/execute-feature <Module>/<Feature>`), a `$` mention
   in Codex (`$execute-feature <Module>/<Feature>`).
   ```
-- [ ] **Step 9 (BACKLOG.md header the backlog skill writes):** In `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`, `### Header (used when lazy-creating the file)`, replace the two lines
+- [x] **Step 9 (BACKLOG.md header the backlog skill writes):** In `plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md`, `### Header (used when lazy-creating the file)`, replace the two lines
   ```
   Planned deferrals — work with a stated reason to wait (`because:` tag). Promote with /cogniva-dev:plan-feature;
   trivial fixes can go straight to /cogniva-dev:quick-fix.
@@ -352,8 +352,8 @@ re-wrap surrounding paragraphs.
   trivial fixes can go straight to quick-fix.
   ```
   Then make the same two-line replacement in every existing backlog file in this repo, so old and new files read the same: run `git ls-files "docs/plans/BACKLOG.md" "docs/plans/*/BACKLOG.md"` (at planning time: `docs/plans/BACKLOG.md` and `docs/plans/FeatureLifecycle/BACKLOG.md`) and, in each file listed, replace the two lines above with the two new lines. Change nothing else in those files. Check: `grep -rn "Promote with /cogniva-dev" docs/plans plugins/cogniva-dev/skills/backlog` → no output (exit 1).
-- [ ] **Step 10 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `claude plugin validate .` → `✔ Validation passed`; `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`.
-- [ ] **Step 11 (the ratchet sees only decreases):** Save the current baseline, then run the checker: `pwsh -NoProfile -Command "Copy-Item scripts/host-neutrality-baseline.json (Join-Path ([System.IO.Path]::GetTempPath()) 'host-neutrality-before.json')"`, then `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → exit 0, no `FAIL` line, and these five `INFO lower the baseline:` lines (any order):
+- [x] **Step 10 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `claude plugin validate .` → `✔ Validation passed`; `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`.
+- [x] **Step 11 (the ratchet sees only decreases):** Save the current baseline, then run the checker: `pwsh -NoProfile -Command "Copy-Item scripts/host-neutrality-baseline.json (Join-Path ([System.IO.Path]::GetTempPath()) 'host-neutrality-before.json')"`, then `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → exit 0, no `FAIL` line, and these five `INFO lower the baseline:` lines (any order):
   ```
   INFO lower the baseline: plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md '/cogniva-dev:' baseline 3, now 1 - run check-host-neutrality.ps1 -Update
   INFO lower the baseline: plugins/cogniva-dev/skills/explore-idea/SKILL.md 'AskUserQuestion' baseline 1, now 0 - run check-host-neutrality.ps1 -Update
@@ -362,7 +362,7 @@ re-wrap surrounding paragraphs.
   INFO lower the baseline: plugins/cogniva-skills/skills/glossary/SKILL.md 'AskUserQuestion' baseline 1, now 0 - run check-host-neutrality.ps1 -Update
   ```
   (The "baseline" numbers are those in the committed `scripts/host-neutrality-baseline.json`; if that file holds a different number for one of these pairs, the line still has to go DOWN.) Any `FAIL host-token-` line means new wording added a counted token: reword it, do not update the baseline.
-- [ ] **Step 12 (lower the baseline and prove it only fell):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1 -Update` → `host-neutrality: baseline updated - <n> references in <m> files` (5 fewer references and 2 fewer files than before: explore-idea and glossary drop out). Then run in PowerShell 7:
+- [x] **Step 12 (lower the baseline and prove it only fell):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1 -Update` → `host-neutrality: baseline updated - <n> references in <m> files` (5 fewer references and 2 fewer files than before: explore-idea and glossary drop out). Then run in PowerShell 7:
   ```powershell
   $old = Get-Content -Raw (Join-Path ([System.IO.Path]::GetTempPath()) 'host-neutrality-before.json') | ConvertFrom-Json -AsHashtable
   $new = Get-Content -Raw scripts/host-neutrality-baseline.json | ConvertFrom-Json -AsHashtable
@@ -377,7 +377,7 @@ re-wrap surrounding paragraphs.
   }
   ```
   → exactly five `DOWN` lines (the five pairs from Step 11) and no `UP` line. Then `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` with no `INFO` line.
-- [ ] **Step 13 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md plugins/cogniva-dev/skills/groom-backlog/SKILL.md plugins/cogniva-dev/skills/easy-work-scan/SKILL.md plugins/cogniva-dev/skills/execute-feature/HANDOFF.md plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md docs/plans/BACKLOG.md docs/plans/FeatureLifecycle/BACKLOG.md plugins/cogniva-skills/skills/glossary/SKILL.md scripts/host-neutrality-baseline.json plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "refactor(skills): agent-host-neutral invocation and tool wording; lower the host-token baseline"`
+- [x] **Step 13 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/skills/explore-idea/SKILL.md plugins/cogniva-dev/skills/groom-backlog/SKILL.md plugins/cogniva-dev/skills/easy-work-scan/SKILL.md plugins/cogniva-dev/skills/execute-feature/HANDOFF.md plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md docs/plans/BACKLOG.md docs/plans/FeatureLifecycle/BACKLOG.md plugins/cogniva-skills/skills/glossary/SKILL.md scripts/host-neutrality-baseline.json plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "refactor(skills): agent-host-neutral invocation and tool wording; lower the host-token baseline"`
 
 ## ⛔ Task 4: Stage 1 review  (manual validation gate — execute-feature STOPS here)
 

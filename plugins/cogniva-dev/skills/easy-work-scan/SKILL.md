@@ -29,7 +29,7 @@ table. This skill selects and dispatches; it never writes feature code itself.
    and let it finish its own confirmation gate before scanning. Whether a groom
    is worth doing is the user's call — they know when they last ran one.
 
-3. **Scan — one read-only subagent.** Spawn ONE general-purpose subagent with:
+3. **Scan — one read-only subagent.** Spawn ONE read-only subagent (Claude Code: `general-purpose`; Codex: the default agent) with:
    the scope list, the absolute path of `EASY-WORK-CRITERIA.md` to read first,
    and an instruction to return ONLY structured records. It classifies EVERY
    open item and returns one record each: location, item text, `qualified` or

@@ -53,8 +53,9 @@ Re-run when the locked file structure adds paths.
    its architecture rules.
 2. Domain terms: consult `/glossary`; propose new entries before writing
    them.
-3. Surface each genuine design fork with **AskUserQuestion** (one popup per
-   fork). Describe UI choices in prose.
+3. Surface each genuine design fork as one question, asked with the agent
+   host's structured question tool, or as a plain question when there is
+   none. Describe UI choices in prose.
 4. **Honour existing ADRs** — read the relitigation weight before reopening
    anything in `docs/adr/` (see `/adr`); surface a needed change with the
    reason, never quietly work around it.
@@ -136,8 +137,10 @@ git commit -m "plan(<Module>/<Feature>): <one-line summary>"
 
 The user does not read or approve the plan — it is executor input. End with
 3–7 bullets of CONSEQUENTIAL decisions only (each: the decision + its
-downstream consequence in one clause), then the plan path and "Run
-`/execute-feature <Module>/<Feature>` when ready." Exclude anything already
+downstream consequence in one clause), then the plan path and "Run the
+execute-feature skill on `<Module>/<Feature>` when ready
+(`/execute-feature <Module>/<Feature>` in Claude Code,
+`$execute-feature <Module>/<Feature>` in Codex)." Exclude anything already
 discussed, defaults, step lists, file inventories, and UI tweaks. Present
 one feature even when decomposed — sub-plans are an executor detail. Under
 the lean `commits=none` default, also state that the plan is uncommitted

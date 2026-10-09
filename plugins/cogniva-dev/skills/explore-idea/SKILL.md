@@ -57,9 +57,9 @@ further, not to wrap up. This is the whole point of the skill.
 
 1. **Ask a lot.** Lead with questions. Draw out goals, constraints, unknowns,
    assumptions, the "why now," what success looks like, what is explicitly out of
-   scope. Prefer open questions; use **AskUserQuestion** only for genuine forks.
+   scope. Prefer open questions; use the agent host's structured question tool only for genuine forks.
 2. **Read code to inform, never to change it.** You may read the codebase and
-   dispatch read-only `Explore` agents to understand what exists and what is
+   dispatch read-only exploration subagents to understand what exists and what is
    feasible. You may NOT Edit/Write anything in the tracked tree.
 3. **Capture into the living doc.** Keep `exploration.md` current as understanding
    evolves - what we know, options on the table with tradeoffs, candidate (NOT

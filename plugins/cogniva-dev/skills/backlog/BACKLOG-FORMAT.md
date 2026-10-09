@@ -13,8 +13,8 @@ A flat checklist. One file per scope:
 ```markdown
 # <Module> — Backlog
 
-Planned deferrals — work with a stated reason to wait (`because:` tag). Promote with /cogniva-dev:plan-feature;
-trivial fixes can go straight to /cogniva-dev:quick-fix.
+Planned deferrals — work with a stated reason to wait (`because:` tag). Promote with the plan-feature skill;
+trivial fixes can go straight to quick-fix.
 ```
 
 (For the repo-level file, title it `# Backlog` and drop `<Module>`.)

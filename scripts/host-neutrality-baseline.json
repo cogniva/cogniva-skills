@@ -1,6 +1,6 @@
 {
   "plugins/cogniva-dev/skills/backlog/BACKLOG-FORMAT.md": {
-    "/cogniva-dev:": 3
+    "/cogniva-dev:": 1
   },
   "plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md": {
     "/cogniva-dev:": 5
@@ -19,10 +19,6 @@
     "/cogniva-dev:": 4,
     "Workflow(": 1
   },
-  "plugins/cogniva-dev/skills/explore-idea/SKILL.md": {
-    "AskUserQuestion": 1,
-    "`Explore`": 1
-  },
   "plugins/cogniva-dev/skills/groom-backlog/DEEP-GROOM.md": {
     "/cogniva-dev:": 4
   },
@@ -34,14 +30,10 @@
     "general-purpose": 1
   },
   "plugins/cogniva-dev/skills/plan-feature/SKILL.md": {
-    "/cogniva-dev:": 1,
-    "AskUserQuestion": 1
+    "/cogniva-dev:": 1
   },
   "plugins/cogniva-dev/skills/quick-fix/SKILL.md": {
     "/cogniva-dev:": 7
-  },
-  "plugins/cogniva-skills/skills/glossary/SKILL.md": {
-    "AskUserQuestion": 1
   },
   "plugins/cogniva-skills/skills/project-context/SKILL.md": {
     "/cogniva-skills:": 3

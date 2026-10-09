@@ -224,6 +224,24 @@ foreach ($name in $explicitOnly) {
 $routed = @('quick-fix', 'plan-feature', 'backlog', 'adr', 'groom-backlog', 'easy-work-scan', 'applicable-rules', 'feature-check', 'gate-check')
 Check 'routed skills stay model-invocable on both agent hosts' `
     (@($routed | Where-Object { (ReadDoc "skills\$_\SKILL.md") -match 'disable-model-invocation' -or (Test-Path (Join-Path $plugin "skills\$_\agents\openai.yaml")) }).Count -eq 0)
+# --- agent-host-neutral wording in shared skills ------------------------------
+$handoffFlat = $handoff -replace '\s+', ' '
+$bkFmtFlat = (ReadDoc 'skills\backlog\BACKLOG-FORMAT.md') -replace '\s+', ' '
+$eiText = ReadDoc 'skills\explore-idea\SKILL.md'
+$glText = [System.IO.File]::ReadAllText((Join-Path $plugin '..\cogniva-skills\skills\glossary\SKILL.md'))
+$scanFlat = ((ReadDoc 'skills\groom-backlog\SKILL.md') + ' ' + (ReadDoc 'skills\easy-work-scan\SKILL.md')) -replace '\s+', ' '
+Check 'plan-feature summary names execute-feature in both agent hosts'' syntax' `
+    ($pfFlat -match 'Run the execute-feature skill on `<Module>/<Feature>` when ready' -and $pfFlat -match '`\$execute-feature <Module>/<Feature>` in Codex')
+Check 'HANDOFF: skill invocations use the current agent host''s syntax' `
+    ($handoffFlat -match 'write the invocation in the current agent host''s syntax')
+Check 'backlog header names skills, not one agent host''s commands' `
+    ($bkFmtFlat -match 'Promote with the plan-feature skill; trivial fixes can go straight to quick-fix\.')
+Check 'shared skills name no Claude Code question tool' `
+    ($pf -notmatch 'AskUserQuestion' -and $eiText -notmatch 'AskUserQuestion' -and $glText -notmatch 'AskUserQuestion')
+Check 'glossary description names no Claude Code tools' `
+    ($glText -notmatch 'DO NOT use Grep, Glob, Read' -and $glText -match 'DO NOT search the codebase \(grep, file search or file reads\)')
+Check 'scan subagents are described for both agent hosts' `
+    ([regex]::Matches($scanFlat, 'Spawn ONE read-only subagent \(Claude Code: `general-purpose`; Codex: the default agent\)').Count -eq 2)
 
 if ($failures.Count -gt 0) {
     Write-Host ""

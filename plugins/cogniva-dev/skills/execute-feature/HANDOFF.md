@@ -46,6 +46,13 @@ what this format exists to prevent.
 - **Commits** — the SHAs, only under `commits=task|final`; under
   `commits=none` this reads `none — work is uncommitted in the tree`.
 
+## Skill invocations
+
+When any section tells the user to run a skill (a resume, a follow-up, a
+close-out), write the invocation in the current agent host's syntax: a slash
+command in Claude Code (`/execute-feature <Module>/<Feature>`), a `$` mention
+in Codex (`$execute-feature <Module>/<Feature>`).
+
 ## Closing line
 
 Close with this semantics line, verbatim:
