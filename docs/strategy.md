@@ -4,8 +4,8 @@ What this repo is, the conventions it encodes, and how to consume it.
 
 ## Purpose
 
-`cogniva` is Cogniva's Claude Code plugin marketplace (repo:
-github.com/cogniva/cogniva-skills). It ships two plugins: `cogniva-skills`
+`cogniva` is Cogniva's plugin marketplace for Claude Code and OpenAI Codex
+(repo: github.com/cogniva/cogniva-skills). It ships two plugins: `cogniva-skills`
 (general-purpose skills such as glossary and reference) and `cogniva-dev`
 (development tooling: ADRs, the backlog, repo scaffolding with repo-init and
 add-module, and the feature lifecycle), so every new repo starts identical and
@@ -31,7 +31,7 @@ tooling. Architecture profiles are the deliberate exception; see below.
 
 Tools ship across two plugins: general-purpose skills in `cogniva-skills`
 (glossary, reference, project-requirement, project-context); development-specific
-skills in `cogniva-dev`. The authoritative per-plugin roster is CLAUDE.md's
+skills in `cogniva-dev`. The authoritative per-plugin roster is AGENTS.md's
 `## Layout` section — it is not duplicated here.
 
 ## Consuming in a new repo
@@ -43,7 +43,7 @@ skills in `cogniva-dev`. The authoritative per-plugin roster is CLAUDE.md's
 ## Maintenance
 
 - Change skills/templates/scripts here, then bump `version` per the three-file
-  rule in CLAUDE.md `## Rules` — the plugin's `.claude-plugin/plugin.json`, its
+  rule in AGENTS.md `## Rules` — the plugin's `.claude-plugin/plugin.json`, its
   `.codex-plugin/plugin.json`, and its entry in the top-level
   `.claude-plugin/marketplace.json`, all matching, in one commit; consuming
   repos pick it up via plugin update. The green gate now runs
@@ -73,9 +73,13 @@ ignores it; an absent section or block is a silent no-op. Phases currently wired
   is kept — its contract was always "on the worktree", not "adjacent to the merge".
 
 The vocabulary is open: add a phase by naming it in a skill checkpoint and
-listing it here. This repo's own AGENTS.md uses `before-integrate` to fire the
-plugin version-bump offer while the worktree is still open; CLAUDE.md keeps a
-breadcrumb for older consumers.
+listing it here. This repo's own AGENTS.md holds both of its phase blocks,
+and its CLAUDE.md only imports AGENTS.md: `before-planning` asks every plan
+for a `**Host impact:**` line, and `before-integrate` fires the plugin
+version-bump offer while the worktree is still open and has the parity
+record updated before the green gate. A consuming repo that still keeps its
+rules in CLAUDE.md can move them with
+`plugins/cogniva-dev/docs/agents-md-migration.md`.
 
 ## Architecture profiles
 

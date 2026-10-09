@@ -31,8 +31,10 @@ host — only the executor backend differs, and only where it has to.
   - `plugins/cogniva-dev/.codex-plugin/plugin.json`
   - the `cogniva-dev` entry in the top-level `.claude-plugin/marketplace.json`
 
-  `claude plugin validate .` does NOT catch a mismatch, so bump all three in the
-  same commit and confirm with:
+  `claude plugin validate .` reports a mismatch only as a warning and still
+  exits 0; the marketplace repo's green gate fails on it (its `manifest-parity`
+  check, `scripts/check-plugin-manifests.ps1`). Bump all three in the same
+  commit and confirm with:
 
   ```
   grep -n '"version"' plugins/cogniva-dev/.claude-plugin/plugin.json plugins/cogniva-dev/.codex-plugin/plugin.json .claude-plugin/marketplace.json

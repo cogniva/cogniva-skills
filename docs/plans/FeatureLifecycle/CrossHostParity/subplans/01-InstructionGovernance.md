@@ -443,7 +443,7 @@ Decision recorded here: the consumer template glossary `plugins/cogniva-dev/temp
 
 Scope: only references to THIS repo's rules move to AGENTS.md. Text that describes a consuming repo's `CLAUDE.md` (the resolver's per-phase fallback, the Codex inheritance rule in `plugins/cogniva-dev/docs/codex.md` § Repository CLAUDE.md under Codex, `applicable-rules`, `execute-feature`, `plan-feature`, `repo-init`) stays as it is. No test pins the replaced text (`skill-semantics.tests.ps1` reads `docs/codex.md` only for its two `##` headings, which are unchanged).
 
-- [ ] **Step 1 (strategy.md):** In `docs/strategy.md` make these replacements:
+- [x] **Step 1 (strategy.md):** In `docs/strategy.md` make these replacements:
   1. Under `## Purpose`, replace
      ```
      `cogniva` is Cogniva's Claude Code plugin marketplace (repo:
@@ -472,7 +472,7 @@ Scope: only references to THIS repo's rules move to AGENTS.md. Text that describ
      rules in CLAUDE.md can move them with
      `plugins/cogniva-dev/docs/agents-md-migration.md`.
      ```
-- [ ] **Step 2 (cogniva-dev codex.md):** In `plugins/cogniva-dev/docs/codex.md`, `## Packaging`, replace
+- [x] **Step 2 (cogniva-dev codex.md):** In `plugins/cogniva-dev/docs/codex.md`, `## Packaging`, replace
   ```
     `claude plugin validate .` does NOT catch a mismatch, so bump all three in the
     same commit and confirm with:
@@ -484,7 +484,7 @@ Scope: only references to THIS repo's rules move to AGENTS.md. Text that describ
     check, `scripts/check-plugin-manifests.ps1`). Bump all three in the same
     commit and confirm with:
   ```
-- [ ] **Step 3 (cogniva-skills codex.md):** In `plugins/cogniva-skills/docs/codex.md`, replace
+- [x] **Step 3 (cogniva-skills codex.md):** In `plugins/cogniva-skills/docs/codex.md`, replace
   ```
   Maintainers: the version-bump rule (three files, all matching) lives in the
   marketplace repo's `CLAUDE.md` under `## Rules`.
@@ -505,7 +505,7 @@ Scope: only references to THIS repo's rules move to AGENTS.md. Text that describ
      `docs/host-parity.md`).
   ```
   (Read the surrounding lines first and keep the list item's indentation.)
-- [ ] **Step 3b (README skill table):** In root `README.md`, the cogniva-dev `| Piece | Purpose |` table:
+- [x] **Step 3b (README skill table):** In root `README.md`, the cogniva-dev `| Piece | Purpose |` table:
   1. Replace the row
      ```
      | `plugins/cogniva-dev/skills/execute-feature` | Execute a feature plan task-by-task in isolated worktrees |
@@ -532,7 +532,7 @@ Scope: only references to THIS repo's rules move to AGENTS.md. Text that describ
       ForEach-Object { $p = ($_.FullName.Substring((Get-Location).Path.Length + 1)) -replace '\\', '/'; if ($readme -notmatch [regex]::Escape("``$p``")) { "MISSING $p" } }
   ```
   → no output.
-- [ ] **Step 4 (this repo's .claude/cogniva-dev/README.md):** Replace the whole file (today it still describes the directory as the worktree opt-in marker, which it no longer is) with exactly:
+- [x] **Step 4 (this repo's .claude/cogniva-dev/README.md):** Replace the whole file (today it still describes the directory as the worktree opt-in marker, which it no longer is) with exactly:
   ```markdown
   # cogniva-dev repo config
 
@@ -564,7 +564,7 @@ Scope: only references to THIS repo's rules move to AGENTS.md. Text that describ
   the optional `policy.json`) are in the copy of this README that `repo-init`
   ships: `plugins/cogniva-dev/templates/repo/.claude/cogniva-dev/README.md`.
   ```
-- [ ] **Step 5 (green-gate validate note):** In `.claude/cogniva-dev/green-gate.json`, in the `"label": "validate"` entry, replace the note text `This is a Claude Code plugin marketplace repo, not a .NET solution — the gate validates the plugins.` with `This is a plugin marketplace repo for Claude Code and OpenAI Codex, not a .NET solution — the gate validates the plugins.` Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → exit 0.
-- [ ] **Step 6 (no stale pointer left):** `grep -rn "CLAUDE.md's\|in CLAUDE.md .## Rules\|repo's .CLAUDE.md. under\|does NOT catch\|breadcrumb for older\|Claude Code plugin marketplace" README.md AGENTS.md CLAUDE.md docs/strategy.md docs/glossary plugins .claude/cogniva-dev` → no output (exit 1). If a hit remains that refers to THIS repo's rules, fix it the same way; a hit about a consuming repo's CLAUDE.md is out of scope and stays.
-- [ ] **Step 7 (run the full green gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all 13 command(s) exited 0.` (the 12 original commands plus `instruction-governance`).
-- [ ] **Step 8 (commit):** `git add docs/strategy.md plugins/cogniva-dev/docs/codex.md plugins/cogniva-skills/docs/codex.md .claude/cogniva-dev/README.md .claude/cogniva-dev/green-gate.json README.md` then `git commit -m "docs: point rule references at AGENTS.md and correct the version-mismatch claim"`
+- [x] **Step 5 (green-gate validate note):** In `.claude/cogniva-dev/green-gate.json`, in the `"label": "validate"` entry, replace the note text `This is a Claude Code plugin marketplace repo, not a .NET solution — the gate validates the plugins.` with `This is a plugin marketplace repo for Claude Code and OpenAI Codex, not a .NET solution — the gate validates the plugins.` Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → exit 0.
+- [x] **Step 6 (no stale pointer left):** `grep -rn "CLAUDE.md's\|in CLAUDE.md .## Rules\|repo's .CLAUDE.md. under\|does NOT catch\|breadcrumb for older\|Claude Code plugin marketplace" README.md AGENTS.md CLAUDE.md docs/strategy.md docs/glossary plugins .claude/cogniva-dev` → no output (exit 1). If a hit remains that refers to THIS repo's rules, fix it the same way; a hit about a consuming repo's CLAUDE.md is out of scope and stays.
+- [x] **Step 7 (run the full green gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all 13 command(s) exited 0.` (the 12 original commands plus `instruction-governance`).
+- [x] **Step 8 (commit):** `git add docs/strategy.md plugins/cogniva-dev/docs/codex.md plugins/cogniva-skills/docs/codex.md .claude/cogniva-dev/README.md .claude/cogniva-dev/green-gate.json README.md` then `git commit -m "docs: point rule references at AGENTS.md and correct the version-mismatch claim"`
