@@ -112,7 +112,7 @@ exits 0. `WARN` lines never fail.
 | `missing-overlay` | a `.md` file directly in a skill dir names `CODEX.md`, `WORKTREE.md`, `HANDOFF.md` or `WORKFLOW-NOTES.md` as a sibling (bare name) or as `../<skill>/<NAME>.md`, and that file does not exist (a longer path such as `skills/execute-feature/CODEX.md` is not checked) |
 | `invocation-metadata` | a skill has `disable-model-invocation: true` in its `SKILL.md` frontmatter without `agents/openai.yaml` containing `allow_implicit_invocation: false` under `policy:`, or the reverse |
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1` with exactly this content (the block is indented two spaces to sit in this step; write the file without that indentation):
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1` with exactly this content (the block is indented two spaces to sit in this step; write the file without that indentation):
   ```powershell
   # Dependency-free tests for scripts/check-host-parity.ps1 (no Pester): a clean
   # fixture repo passes, and one mutation per rule fails with that rule's name.
@@ -257,8 +257,8 @@ exits 0. `WARN` lines never fail.
   Write-Host "All host-parity assertions passed."
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1` → 22 `FAIL` lines (the checker does not exist yet), last line `FAILED: 22 assertion(s).`, exit 1.
-- [ ] **Step 3 (implement):** Create `scripts/check-host-parity.ps1` with exactly this content (PowerShell 7; write it without the two-space block indentation):
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1` → 22 `FAIL` lines (the checker does not exist yet), last line `FAILED: 22 assertion(s).`, exit 1.
+- [x] **Step 3 (implement):** Create `scripts/check-host-parity.ps1` with exactly this content (PowerShell 7; write it without the two-space block indentation):
   ```powershell
   # check-host-parity.ps1 - green-gate check of the agent host parity record.
   # Derives the inventory from the repo (skill directories of every plugin, hook
@@ -527,13 +527,13 @@ exits 0. `WARN` lines never fail.
   Write-Output "host-parity: OK - $($rows.Count) rows, $($coverage.Count) items covered"
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1` → 22 `PASS` lines, then `All host-parity assertions passed.`, exit 0. Then run the checker on the real repo once: `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `FAIL table-format: docs/host-parity.md not found` and `host-parity: FAILED - 1 problem(s)`, exit 1. That is expected while `docs/host-parity.md` does not exist; do NOT wire this command into the gate in this task.
-- [ ] **Step 5 (wire the suite into the green gate):** In `.claude/cogniva-dev/green-gate.json`, append this object as the LAST element of `commands` (add a comma after the element that is currently last; keep one object per line like the existing entries):
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1` → 22 `PASS` lines, then `All host-parity assertions passed.`, exit 0. Then run the checker on the real repo once: `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `FAIL table-format: docs/host-parity.md not found` and `host-parity: FAILED - 1 problem(s)`, exit 1. That is expected while `docs/host-parity.md` does not exist; do NOT wire this command into the gate in this task.
+- [x] **Step 5 (wire the suite into the green gate):** In `.claude/cogniva-dev/green-gate.json`, append this object as the LAST element of `commands` (add a comma after the element that is currently last; keep one object per line like the existing entries):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1", "label": "host-parity-suite", "note": "Fixture tests for scripts/check-host-parity.ps1: a clean parity record passes and every rule fails on its own mutation; needs PowerShell 7." }
   ```
   Verify: `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands.label -join ','"` → the list ends with `,host-parity-suite`.
-- [ ] **Step 6 (commit):** `git add scripts/check-host-parity.ps1 plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(host-parity): check-host-parity.ps1 derives the inventory and enforces the parity rules"`
+- [x] **Step 6 (commit):** `git add scripts/check-host-parity.ps1 plugins/cogniva-dev/tests/host-parity/check-host-parity.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(host-parity): check-host-parity.ps1 derives the inventory and enforces the parity rules"`
 
 ## Task 2: The parity record, its smoke directory, and ADR
 
