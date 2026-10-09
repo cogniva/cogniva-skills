@@ -341,7 +341,7 @@ This repo's shared engineering rules (layout and skill roster, branding, glossar
 
 Decision recorded here: the consumer template glossary `plugins/cogniva-dev/templates/repo/docs/glossary/README.md` does NOT get an Agent host entry. The template AGENTS.md text below names Claude Code and Codex but never uses the term "agent host", and that template glossary is a .NET seed that `profile-library.tests.ps1` keeps free of tooling terms.
 
-- [ ] **Step 1 (glossary entries):** In `docs/glossary/README.md`, insert the two entries below between the end of the `## Cogniva` entry (its paragraph ends "Tools are never named after individual team members.") and the `## Plan` heading, with one blank line before each `##` heading:
+- [x] **Step 1 (glossary entries):** In `docs/glossary/README.md`, insert the two entries below between the end of the `## Cogniva` entry (its paragraph ends "Tools are never named after individual team members.") and the `## Plan` heading, with one blank line before each `##` heading:
   ```markdown
   ## Agent host
 
@@ -353,8 +353,8 @@ Decision recorded here: the consumer template glossary `plugins/cogniva-dev/temp
   `docs/host-parity.md` in the cogniva-skills repo: one row per capability stating, for each [Agent host](#agent-host), its mechanism, its status (`verified`, `scripts-tested`, `untested`, `partial`, `unsupported`, `n/a`), the evidence behind that status, and any intentional asymmetry with its reason. The green gate derives the skill and hook inventory and fails on anything the record does not cover.
   _Avoid_: parity matrix, compatibility table
   ```
-- [ ] **Step 2 (Cogniva entry names both agent hosts):** In `docs/glossary/README.md`, in the `## Cogniva` paragraph, replace `The Claude Code plugin marketplace in this repo is named` with `The plugin marketplace in this repo, for Claude Code and OpenAI Codex, is named`. In `plugins/cogniva-skills/templates/glossary/README.md`, in its `## Cogniva` paragraph, replace `The Claude Code plugin marketplace is named` with `The plugin marketplace, for Claude Code and OpenAI Codex, is named`.
-- [ ] **Step 3 (template AGENTS.md):** In `plugins/cogniva-dev/templates/repo/AGENTS.md`, `## Git / worktree workflow` section, replace:
+- [x] **Step 2 (Cogniva entry names both agent hosts):** In `docs/glossary/README.md`, in the `## Cogniva` paragraph, replace `The Claude Code plugin marketplace in this repo is named` with `The plugin marketplace in this repo, for Claude Code and OpenAI Codex, is named`. In `plugins/cogniva-skills/templates/glossary/README.md`, in its `## Cogniva` paragraph, replace `The Claude Code plugin marketplace is named` with `The plugin marketplace, for Claude Code and OpenAI Codex, is named`.
+- [x] **Step 3 (template AGENTS.md):** In `plugins/cogniva-dev/templates/repo/AGENTS.md`, `## Git / worktree workflow` section, replace:
   ```markdown
   In worktree mode, nothing Claude does lands on your checked-out branch outside
   a git worktree:
@@ -372,7 +372,7 @@ Decision recorded here: the consumer template glossary `plugins/cogniva-dev/temp
     `git switch`/`checkout` or move branches there. The plugin's guards enforce
   ```
   (The rest of that bullet and section is unchanged. The new text contains none of `src/Modules`, `->`, `references nothing`, `Contracts`, which profile-library pins out of this file.)
-- [ ] **Step 4 (skill authoring template, README):** In `plugins/cogniva-skills/plugin-template/README.md`, replace the line
+- [x] **Step 4 (skill authoring template, README):** In `plugins/cogniva-skills/plugin-template/README.md`, replace the line
   `    - **Active**: Explicitly call this skill (e.g., `/run-skill`).`
   with
   `    - **Active**: The user asks for this skill by name.`
@@ -389,11 +389,11 @@ Decision recorded here: the consumer template glossary `plugins/cogniva-dev/temp
   - The skill has a row in the parity record (`docs/host-parity.md` in the cogniva-skills repo).
   - The green gate passes: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .`
   ```
-- [ ] **Step 5 (skill authoring template, SKILL.md):** Append to the end of `plugins/cogniva-skills/plugin-template/SKILL.md` (the file currently ends without a newline after "then [action]."; add a newline, a blank line, then):
+- [x] **Step 5 (skill authoring template, SKILL.md):** Append to the end of `plugins/cogniva-skills/plugin-template/SKILL.md` (the file currently ends without a newline after "then [action]."; add a newline, a blank line, then):
   ```markdown
   <!-- Template note (delete before shipping): work through "Works on both agent hosts" in this template's README.md - bare skill names, no agent-host tool without the other's equivalent, host-only steps in an overlay, explicit-only metadata in both frontmatter and agents/openai.yaml, a parity-record row, a green gate run. -->
   ```
-- [ ] **Step 6 (migration procedure):** Create `plugins/cogniva-dev/docs/agents-md-migration.md` with exactly:
+- [x] **Step 6 (migration procedure):** Create `plugins/cogniva-dev/docs/agents-md-migration.md` with exactly:
   ````markdown
   # Moving a repo's rules from CLAUDE.md to AGENTS.md
 
@@ -428,8 +428,8 @@ Decision recorded here: the consumer template glossary `plugins/cogniva-dev/temp
      instruction files when a session starts, so a running session keeps the
      old text.
   ````
-- [ ] **Step 7 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → exit 0 with its final all-passed line (the template AGENTS.md and template glossary pins hold); `pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` → `All instruction-governance assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `grep -c "^## Agent host\|^## Parity record" docs/glossary/README.md` → `2`.
-- [ ] **Step 8 (commit):** `git add docs/glossary/README.md plugins/cogniva-skills/templates/glossary/README.md plugins/cogniva-dev/templates/repo/AGENTS.md plugins/cogniva-skills/plugin-template/README.md plugins/cogniva-skills/plugin-template/SKILL.md plugins/cogniva-dev/docs/agents-md-migration.md` then `git commit -m "docs(glossary): agent host and parity record; host-neutral templates and an AGENTS.md migration procedure"`
+- [x] **Step 7 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/profile-library/profile-library.tests.ps1` → exit 0 with its final all-passed line (the template AGENTS.md and template glossary pins hold); `pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` → `All instruction-governance assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`; `grep -c "^## Agent host\|^## Parity record" docs/glossary/README.md` → `2`.
+- [x] **Step 8 (commit):** `git add docs/glossary/README.md plugins/cogniva-skills/templates/glossary/README.md plugins/cogniva-dev/templates/repo/AGENTS.md plugins/cogniva-skills/plugin-template/README.md plugins/cogniva-skills/plugin-template/SKILL.md plugins/cogniva-dev/docs/agents-md-migration.md` then `git commit -m "docs(glossary): agent host and parity record; host-neutral templates and an AGENTS.md migration procedure"`
 
 ## Task 3: Point every reference at AGENTS.md and correct the stale docs
 

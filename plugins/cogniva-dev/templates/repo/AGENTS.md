@@ -40,10 +40,11 @@ guards) — by creating an untracked `.claude/cogniva-dev.local.json` containing
 `.claude/cogniva-dev/` directory is repo config (the green gate), NOT the mode
 switch.
 
-In worktree mode, nothing Claude does lands on your checked-out branch outside
-a git worktree:
+Worktree mode currently requires Claude Code; under Codex the lifecycle skills
+stop when it is on. In worktree mode, nothing an agent does lands on your
+checked-out branch outside a git worktree:
 
-- Claude does not edit the primary checkout directly, and does not
+- Agents do not edit the primary checkout directly, and do not
   `git switch`/`checkout` or move branches there. The plugin's guards enforce
   this; the only directly-editable paths here are gitignored scratch
   (`.explore/**`, `.plans-staging/**`) and tier-1 backlog files
