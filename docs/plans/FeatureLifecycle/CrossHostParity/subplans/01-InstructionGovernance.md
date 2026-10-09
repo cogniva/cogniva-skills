@@ -76,7 +76,7 @@ This repo's shared engineering rules (layout and skill roster, branding, glossar
 - Modify: `.claude/cogniva-dev/green-gate.json`
 - Create: `docs/adr/NNNN-agents-md-is-the-canonical-instruction-file-in-this-repo-too.md`
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` (PowerShell 7; UTF-8 without BOM is fine — the file is ASCII) with exactly:
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` (PowerShell 7; UTF-8 without BOM is fine — the file is ASCII) with exactly:
   ```powershell
   # Dependency-free tests (no Pester) that this repository's agent instructions
   # have one home: AGENTS.md holds the shared rules and the workflow phase blocks,
@@ -233,8 +233,8 @@ This repo's shared engineering rules (layout and skill roster, branding, glossar
   Write-Host 'All instruction-governance assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` → exit 1, `FAILED: 5 assertion(s).`: FAIL on the first five checks (CLAUDE.md starts with `# CLAUDE.md`; CLAUDE.md contains `## Rules`, `## Layout`, `## Cogniva-dev workflow instructions`, `## Common tasks`; AGENTS.md lacks `## Rules`, `## Layout`, `## Cross-host parity`, `## Common tasks`; `before-planning resolves from 'none'`; no `  - Skills:` line for either plugin). PASS on the template check and all four self-tests.
-- [ ] **Step 3 (implement AGENTS.md):** Replace the whole content of root `AGENTS.md` with exactly the text below. Constraints the text already meets and any later edit must keep: the section heading is exactly `## Cogniva-dev workflow instructions`; the phase headings are exactly `### before-planning` and `### before-integrate`; no line inside a phase body starts with `#` (the resolver ends a block at any `#`–`###` heading line); each plugin's `  - Skills:` line stays ONE line.
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` → exit 1, `FAILED: 5 assertion(s).`: FAIL on the first five checks (CLAUDE.md starts with `# CLAUDE.md`; CLAUDE.md contains `## Rules`, `## Layout`, `## Cogniva-dev workflow instructions`, `## Common tasks`; AGENTS.md lacks `## Rules`, `## Layout`, `## Cross-host parity`, `## Common tasks`; `before-planning resolves from 'none'`; no `  - Skills:` line for either plugin). PASS on the template check and all four self-tests.
+- [x] **Step 3 (implement AGENTS.md):** Replace the whole content of root `AGENTS.md` with exactly the text below. Constraints the text already meets and any later edit must keep: the section heading is exactly `## Cogniva-dev workflow instructions`; the phase headings are exactly `### before-planning` and `### before-integrate`; no line inside a phase body starts with `#` (the resolver ends a block at any `#`–`###` heading line); each plugin's `  - Skills:` line stays ONE line.
   ```markdown
   # AGENTS.md
 
@@ -314,19 +314,19 @@ This repo's shared engineering rules (layout and skill roster, branding, glossar
     change and which reviewed it.
   ```
   (`docs/host-parity.md`, the glossary anchor `#agent-host` and the `host-parity` gate check are created later in this feature — sub-plan 03 and Task 2 below; the forward links are intended.)
-- [ ] **Step 4 (implement CLAUDE.md):** Replace the whole content of root `CLAUDE.md` with exactly one line:
+- [x] **Step 4 (implement CLAUDE.md):** Replace the whole content of root `CLAUDE.md` with exactly one line:
   ```markdown
   @AGENTS.md
   ```
   No `## Claude Code notes` section: nothing in this repo is Claude Code–only today (the `.claude/settings.json` deny on `git switch`/`git checkout` was removed in `a351717`). This removes the old `## Layout`, `## Common tasks`, `## Rules` and the `## Cogniva-dev workflow instructions` breadcrumb from CLAUDE.md; AGENTS.md now holds all of them.
-- [ ] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` → ten PASS lines and `All instruction-governance assertions passed.` (exit 0). Also `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/resolve-workflow-obligations.ps1 -Repo . -Phase before-planning` → first line `workflow-obligations: ### before-planning from AGENTS.md (…\AGENTS.md)` followed by the Host-impact bullet.
-- [ ] **Step 6 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, append one entry at the END of the `commands` array: add a comma after the closing `}` of the current last entry (today the `"label": "gate-check"` line), then insert this line before the array's closing `  ]`:
+- [x] **Step 5 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1` → ten PASS lines and `All instruction-governance assertions passed.` (exit 0). Also `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/resolve-workflow-obligations.ps1 -Repo . -Phase before-planning` → first line `workflow-obligations: ### before-planning from AGENTS.md (…\AGENTS.md)` followed by the Host-impact bullet.
+- [x] **Step 6 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, append one entry at the END of the `commands` array: add a comma after the closing `}` of the current last entry (today the `"label": "gate-check"` line), then insert this line before the array's closing `  ]`:
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1", "label": "instruction-governance", "note": "Pins AGENTS.md as this repo's one instruction file: CLAUDE.md only imports it, both phase blocks resolve from it, and its skill roster equals the skill directories; needs PowerShell 7." }
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → exit 0.
-- [ ] **Step 7 (write ADR):** scan `docs/adr/` for the next free number (0051 if nothing newer than 0050 exists) and write ADR-C1 from this sub-plan's `## Candidate ADRs` verbatim to `docs/adr/NNNN-agents-md-is-the-canonical-instruction-file-in-this-repo-too.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`: H1 `# AGENTS.md is the canonical instruction file in this repo too` (no `ADR-C1` label anywhere in the file), then `**Provenance:** Suggested by agent`, a blank line, and the body paragraph; no Relitigation line, no `Write with` line. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 8 (commit):** `git add AGENTS.md CLAUDE.md .claude/cogniva-dev/green-gate.json plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1 docs/adr` then `git commit -m "docs(agents): AGENTS.md is the canonical instruction file; CLAUDE.md imports it"`
+- [x] **Step 7 (write ADR):** scan `docs/adr/` for the next free number (0051 if nothing newer than 0050 exists) and write ADR-C1 from this sub-plan's `## Candidate ADRs` verbatim to `docs/adr/NNNN-agents-md-is-the-canonical-instruction-file-in-this-repo-too.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`: H1 `# AGENTS.md is the canonical instruction file in this repo too` (no `ADR-C1` label anywhere in the file), then `**Provenance:** Suggested by agent`, a blank line, and the body paragraph; no Relitigation line, no `Write with` line. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 8 (commit):** `git add AGENTS.md CLAUDE.md .claude/cogniva-dev/green-gate.json plugins/cogniva-dev/tests/instruction-governance/instruction-governance.tests.ps1 docs/adr` then `git commit -m "docs(agents): AGENTS.md is the canonical instruction file; CLAUDE.md imports it"`
 
 ## Task 2: Glossary terms, host-neutral consumer templates, and the migration procedure
 
