@@ -1,7 +1,7 @@
 {
   "commands": [
     { "run": "claude plugin validate .", "label": "validate", "note": "This is a plugin marketplace repo for Claude Code and OpenAI Codex, not a .NET solution — the gate validates the plugins." },
-    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1", "label": "manifest-parity", "note": "version/description/keywords must match across each plugin's manifest pair and its marketplace entry; claude plugin validate does not check this." },
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1", "label": "manifest-parity", "note": "Both manifests required per plugin; version/description/keywords match across the pair and the marketplace entry; the Codex skills path resolves to skills/; every skill folder's SKILL.md name matches it. claude plugin validate only warns on a version mismatch." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1", "label": "skill-semantics", "note": "Regression-pins lifecycle and workflow-neutral skill contracts; plugin validate does not check prose." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/check-adrs/check-adrs.tests.ps1", "label": "adr-checker", "note": "Regression-pins ADR filename, heading, and candidate-label checks." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1", "label": "green-gate-runner", "note": "Exercises the single canonical green-gate implementation." },
@@ -17,6 +17,7 @@
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/integrate-feature/integrate-feature.tests.ps1", "label": "integrate-feature", "note": "Pins worktree integration: fast-forward or worktree-side merge, a conflict leaves both branches untouched, and no remote is used." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/ledger/ledger.tests.ps1", "label": "ledger", "note": "Pins the worktree ledger: comma-joined cleanup scopes, path normalisation without duplicate records, UTF-8 writes." },
     { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/parse-plan-tasks/parse-plan-tasks.tests.ps1", "label": "parse-plan-tasks", "note": "Pins plan parsing for execution and resume: task boundaries, checkbox state, nested fences." },
-    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/validate-json/validate-json.tests.ps1", "label": "validate-json", "note": "Pins validate-json.ps1 exit codes for valid, invalid and missing files." }
+    { "run": "powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/validate-json/validate-json.tests.ps1", "label": "validate-json", "note": "Pins validate-json.ps1 exit codes for valid, invalid and missing files." },
+    { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1", "label": "manifest-checker", "note": "Proves check-plugin-manifests.ps1 fails on a missing Codex manifest, a bad Codex skills path, a skill folder/name mismatch and a version mismatch; needs PowerShell 7." }
   ]
 }

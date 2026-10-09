@@ -201,7 +201,7 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
 
 `scripts/check-plugin-manifests.ps1` stays Windows PowerShell 5.1-compatible (no `??`, `?:`, pwsh-only APIs) because the gate's `manifest-parity` command runs it with `powershell`. The new suite is PowerShell 7 and runs the checker under `powershell` (5.1), as the gate does.
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1` with exactly:
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1` with exactly:
   ```powershell
   # Dependency-free tests for scripts/check-plugin-manifests.ps1 (no Pester).
   # Builds fixture marketplaces under TEMP and runs the checker against each with
@@ -289,8 +289,8 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
   Write-Host 'All manifest-checker assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1` → exit 1, `FAILED: 7 assertion(s).`: every fixture check FAILs (today's checker has no `-Root`, so it ignores the argument and reports `manifest parity OK: 2 plugin(s) checked` for this repo every time); `this repository passes` PASSes.
-- [ ] **Step 3 (implement):** Replace the whole of `scripts/check-plugin-manifests.ps1` with the text below. Save it as UTF-8 WITH a byte-order mark (the file has one today): its messages contain em-dashes, which Windows PowerShell 5.1 misparses without the BOM.
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1` → exit 1, `FAILED: 7 assertion(s).`: every fixture check FAILs (today's checker has no `-Root`, so it ignores the argument and reports `manifest parity OK: 2 plugin(s) checked` for this repo every time); `this repository passes` PASSes.
+- [x] **Step 3 (implement):** Replace the whole of `scripts/check-plugin-manifests.ps1` with the text below. Save it as UTF-8 WITH a byte-order mark (the file has one today): its messages contain em-dashes, which Windows PowerShell 5.1 misparses without the BOM.
   ```powershell
   # check-plugin-manifests.ps1 — repo green-gate manifest parity checker.
   # For every plugin under plugins/ with a .claude-plugin/plugin.json:
@@ -409,15 +409,15 @@ Why this fix: real callers (the backlog skill and the nudge hook's suggested com
   Write-Output "manifest parity OK: $checked plugin(s) checked"
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1` → eight PASS lines and `All manifest-checker assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1` (no `-Root`, as the gate runs it) → `manifest parity OK: 2 plugin(s) checked`, exit 0.
-- [ ] **Step 5 (gate):** In `.claude/cogniva-dev/green-gate.json`:
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1` → eight PASS lines and `All manifest-checker assertions passed.`; `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-plugin-manifests.ps1` (no `-Root`, as the gate runs it) → `manifest parity OK: 2 plugin(s) checked`, exit 0.
+- [x] **Step 5 (gate):** In `.claude/cogniva-dev/green-gate.json`:
   1. In the `"label": "manifest-parity"` entry, replace the note `version/description/keywords must match across each plugin's manifest pair and its marketplace entry; claude plugin validate does not check this.` with `Both manifests required per plugin; version/description/keywords match across the pair and the marketplace entry; the Codex skills path resolves to skills/; every skill folder's SKILL.md name matches it. claude plugin validate only warns on a version mismatch.`
   2. Append at the END of the `commands` array (comma after the current last entry's closing `}`, new line before the closing `  ]`):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1", "label": "manifest-checker", "note": "Proves check-plugin-manifests.ps1 fails on a missing Codex manifest, a bad Codex skills path, a skill folder/name mismatch and a version mismatch; needs PowerShell 7." }
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → exit 0.
-- [ ] **Step 6 (commit):** `git add scripts/check-plugin-manifests.ps1 plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(manifests): require both manifests and check skill coverage; fixture suite"`
+- [x] **Step 6 (commit):** `git add scripts/check-plugin-manifests.ps1 plugins/cogniva-dev/tests/manifests/check-plugin-manifests.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(manifests): require both manifests and check skill coverage; fixture suite"`
 
 ## Task 4: Primary-checkout hook suite (Claude Code payloads asserted, Codex gap pinned)
 
