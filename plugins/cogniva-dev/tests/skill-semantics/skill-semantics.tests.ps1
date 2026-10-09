@@ -88,6 +88,12 @@ Check 'docs/codex.md: lifecycle skills are explicit-invocation-only' `
 Check 'plan-feature lean default leaves the plan uncommitted' `
     ($pf -match 'Lean mode default: `commits=none`')
 
+# --- docs/codex.md: the parity record and hooks under Codex --------------------
+$docsFlat = $docs -replace '\s+', ' '
+Check 'docs/codex.md no longer claims runtime verification' `
+    ($docs -notmatch 'Verified against OpenAI' -and $docsFlat -match 'runtime behaviour per agent host is tracked in the cogniva-skills repo''s `docs/host-parity\.md`')
+Check 'docs/codex.md: hooks under Codex need trust and miss apply_patch edits' `
+    ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
 # --- route-first capture invariants ------------------------------------------
 Check 'introduced defects are unfinished work, not followups' `
     ($ef -match 'A defect a task introduced is not a\s+followup')

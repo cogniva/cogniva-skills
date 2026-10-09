@@ -945,7 +945,7 @@ untouched (a later CrossHostParity task rewrites it). `skill-semantics.tests.ps1
 runs under Windows PowerShell 5.1 and is read as ANSI without a BOM, so every
 assertion you add stays ASCII-only and 5.1-compatible.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, insert this block immediately BEFORE the line `# --- route-first capture invariants ------------------------------------------` (no indentation in the file):
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, insert this block immediately BEFORE the line `# --- route-first capture invariants ------------------------------------------` (no indentation in the file):
   ```powershell
   # --- docs/codex.md: the parity record and hooks under Codex --------------------
   $docsFlat = $docs -replace '\s+', ' '
@@ -954,8 +954,8 @@ assertion you add stays ASCII-only and 5.1-compatible.
   Check 'docs/codex.md: hooks under Codex need trust and miss apply_patch edits' `
       ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL  docs/codex.md no longer claims runtime verification` and `FAIL  docs/codex.md: hooks under Codex need trust and miss apply_patch edits`, then `FAILED: 2 assertion(s).`, exit 1.
-- [ ] **Step 3 (correct the verification claim):** In `plugins/cogniva-dev/docs/codex.md`, `## Packaging`, replace the line
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL  docs/codex.md no longer claims runtime verification` and `FAIL  docs/codex.md: hooks under Codex need trust and miss apply_patch edits`, then `FAILED: 2 assertion(s).`, exit 1.
+- [x] **Step 3 (correct the verification claim):** In `plugins/cogniva-dev/docs/codex.md`, `## Packaging`, replace the line
   ```
   - **Verified against OpenAI's docs (2026-08-19).** The manifest location
   ```
@@ -965,7 +965,7 @@ assertion you add stays ASCII-only and 5.1-compatible.
     agent host is tracked in the cogniva-skills repo's `docs/host-parity.md`.**
     The manifest location
   ```
-- [ ] **Step 4 (hooks under Codex):** In the same file, insert this section immediately BEFORE the heading `## Repository CLAUDE.md under Codex`, followed by one blank line (write it without the two-space block indentation):
+- [x] **Step 4 (hooks under Codex):** In the same file, insert this section immediately BEFORE the heading `## Repository CLAUDE.md under Codex`, followed by one blank line (write it without the two-space block indentation):
   ```markdown
   ## Hooks under Codex
 
@@ -981,5 +981,5 @@ assertion you add stays ASCII-only and 5.1-compatible.
   a shell command is not seen, so the guarantees live in the landing checks
   (structural check, `git diff --check`, green gate).
   ```
-- [ ] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0. `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`. `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → the `OK` line with no `FAIL` (docs are outside the ratchet's scope).
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/docs/codex.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "docs(codex): runtime parity lives in the parity record; hooks under Codex"`
+- [x] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0. `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - 25 rows, 32 items covered`. `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → the `OK` line with no `FAIL` (docs are outside the ratchet's scope).
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/docs/codex.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "docs(codex): runtime parity lives in the parity record; hooks under Codex"`

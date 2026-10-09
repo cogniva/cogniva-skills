@@ -11,7 +11,9 @@ host — only the executor backend differs, and only where it has to.
   (Codex) side by side. Both point at the same `plugins/cogniva-dev/skills/`
   directory; the Codex manifest does it explicitly with `"skills": "./skills/"`,
   a plugin-root-relative path.
-- **Verified against OpenAI's docs (2026-08-19).** The manifest location
+- **Checked against OpenAI's documentation (2026-08-19); runtime behaviour per
+  agent host is tracked in the cogniva-skills repo's `docs/host-parity.md`.**
+  The manifest location
   (`.codex-plugin/plugin.json`), the `"skills": "./skills/"` key with
   `./`-prefixed plugin-root-relative paths, marketplace-based install, the
   Codex CLI `/plugins` browser, and new-session skill visibility all match the
@@ -106,6 +108,20 @@ already have checked out.
   runtime, keeps mandatory per-task commits and persisted plans, and integrates
   by fast-forward. If worktree mode is on and the Workflow tool is absent, the
   skill stops and says so rather than degrading silently.
+
+## Hooks under Codex
+
+cogniva-dev ships four hooks in `hooks/hooks.json`: the primary-checkout edit
+guard and branch-switch guard (worktree mode), the backlog-commit nudge, and
+the opt-in Module-cycle check. Codex loads that file when
+`[features] hooks = true` is set in `~/.codex/config.toml`, and runs each hook
+only after you trust it in `/hooks`, again after any change to `hooks.json` (a
+plugin update can bring one). Until the hook input adapter lands
+(CrossHostParity sub-plan 08 in the cogniva-skills repo), the edit guard, the
+backlog nudge and the Module-cycle hook do not see edits Codex makes with
+`apply_patch`. Hooks are best-effort on both agent hosts: a write made through
+a shell command is not seen, so the guarantees live in the landing checks
+(structural check, `git diff --check`, green gate).
 
 ## Repository CLAUDE.md under Codex
 
