@@ -11,8 +11,8 @@ happen. The triage at the end decides what sub-plans 07-09 change.
 - Claude Code CLI: [smoke:2026-11-04-claude-code-cli](smoke/2026-11-04-claude-code-cli.md)
 - Codex CLI: separate test environment, not recorded here (no Codex CLI smoke record in this repo)
 - Codex hook payloads: `plugins/cogniva-dev/tests/hooks/fixtures/codex-apply-patch.captured.json` (`_source`: documented, not captured) and `codex-shell.captured.json` (`_source`: documented, not captured)
-- Codex VS Code: (record added by the human runs)
-- Claude Code VS Code: (record added by the human runs)
+- Codex VS Code: not run in this repo; assumed passing per the user, 2026-11-04.
+- Claude Code VS Code: not run in this repo; assumed passing per the user, 2026-11-04.
 - Codex session files: `%USERPROFILE%\.codex\sessions\<yyyy>\<mm>\<dd>\rollout-*.jsonl` (for runs on this machine; the Codex CLI runs' session files are in the separate test environment)
 - Earlier observation, other repo: `cogniva-analysis` `tests/AgentDataGuard/results/codex-desktop.md` (2026-08-27, Codex 0.150.0-alpha.8) - project hooks fired in the Codex CLI after `/hooks` trust but never in the VS Code surface. Re-check on the current build; do not assume it still holds.
 
@@ -41,52 +41,52 @@ Answer each question for every surface you ran, each with its evidence
 Did execute-feature and quick-fix spawn one subagent per task, sequentially,
 from the skill? In the VS Code surface, watch for "collaboration tools cannot
 be called from inside functions.exec".
-- Codex CLI:
-- Codex VS Code:
-- Claude Code VS Code:
+- Codex CLI: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Codex VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Claude Code VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ### Q2 — Workers start without the parent conversation
 Did the INSTR canary appear in the file the worker created? Did a worker know
 anything only the parent conversation knew?
-- Codex CLI:
-- Codex VS Code:
-- Claude Code VS Code:
+- Codex CLI: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Codex VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Claude Code VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ### Q3 — `.git` writes under the sandbox
 Did quick-fix's `-Snapshot` (`git write-tree`), the `.git/info/exclude`
 append (`plan=ephemeral`) and the commits succeed, ask for approval, or fail?
-- Codex CLI:
-- Codex VS Code:
+- Codex CLI: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Codex VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ### Q4 — Hooks fire for `apply_patch` and shell, after trust
 Did the plugin hooks run for an `apply_patch` edit and for a shell command,
 after trust? What exact payload arrived?
-- Codex CLI:
-- Codex VS Code:
+- Codex CLI: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Codex VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ### Q5 — Root and nested AGENTS.md
 Were the root and the nested `AGENTS.md` rules applied by the main agent and
 by the workers?
-- Codex CLI:
-- Codex VS Code:
-- Claude Code VS Code:
+- Codex CLI: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Codex VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Claude Code VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ### Q6 — Approval prompts
 How many approval prompts per run, and for which commands?
-- Codex CLI:
-- Codex VS Code:
-- Claude Code VS Code:
+- Codex CLI: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Codex VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Claude Code VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ### Q7 — CLI and VS Code differences
 Anything that behaved differently between the CLI and VS Code?
-- Codex:
-- Claude Code:
+- Codex: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Claude Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ### Q8 — Handoff completeness
 Did each handoff contain every `HANDOFF.md` section?
-- Codex CLI:
-- Codex VS Code:
-- Claude Code VS Code:
+- Codex CLI: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Codex VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
+- Claude Code VS Code: assumed passing per the user, 2026-11-04 (separate test environment; not evidenced in this repo — re-checked by sub-plan 10).
 
 ## Decision table
 
@@ -104,7 +104,8 @@ Did each handoff contain every `HANDOFF.md` section?
 
 | Finding (question) | Decision-table row | Remedy | Where |
 |---|---|---|---|
+| Q1–Q8 assumed passing per the user (no evidenced finding) | Sequential fresh subagents work on VS Code and CLI | none | — |
 
-- Executor for sub-plans 07-09:
-- Unresolved decision 1 (VS Code subagents) settled as:
-- Stop for a follow-up plan:
+- Executor for sub-plans 07-09: Claude Code (`/cogniva-dev:execute-feature`, `commits=task`, this branch), by the user's choice to finish in one session. Q1 was assumed, not evidenced, so Codex-executed parity stays unverified until sub-plan 10.
+- Unresolved decision 1 (VS Code subagents) settled as: not triggered — Q1 assumed passing; the default (c) stands unchanged until sub-plan 10 evidence says otherwise.
+- Stop for a follow-up plan: none.
