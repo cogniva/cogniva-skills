@@ -270,6 +270,16 @@ $iPfEmit = $pf.IndexOf('## Emit the plan')
 Check 'plan-feature checks the branch policy before it emits the plan' ($iPfPolicy -ge 0 -and $iPfEmit -gt $iPfPolicy -and $pf -match 'requiredDevelopmentBranchPrefix')
 Check 'plan-feature never creates or switches a branch for the policy' (($pf -replace '\s+', ' ') -match 'NEVER create or switch a branch to satisfy the policy')
 Check 'CODEX.md: execute-feature Step 0 applies under Codex too' ($codex -match 'Steps 0, 0a, 0b, 1, 2 and 4')
+# --- worktree mode stops without the Workflow tool, at every entry point -------
+$cw = ReadDoc 'skills\cleanup-work\SKILL.md'
+$ca = ReadDoc 'skills\cleanup-allwork\SKILL.md'
+$noWorkflowStop = 'worktree mode is ON and the Workflow tool is absent, STOP|Workflow tool is not available in this session \(Codex or any other agent host without it\) and worktree mode is ON, STOP and say: worktree mode currently requires Claude Code \(see the parity record\)'
+foreach ($entry in @(@('execute-feature', $ef), @('quick-fix', $qf), @('plan-feature', $pf), @('cleanup-work', $cw), @('cleanup-allwork', $ca))) {
+    Check "$($entry[0]) stops in worktree mode when the Workflow tool is absent" (($entry[1] -replace '\s+', ' ') -match $noWorkflowStop)
+}
+Check 'plan-feature: the worktree stop comes before the design work' ($pf.IndexOf('worktree mode currently requires Claude Code') -ge 0 -and $pf.IndexOf('worktree mode currently requires Claude Code') -lt $pf.IndexOf('## Gather first'))
+Check 'cleanup skills: the worktree stop sits right after the lean-mode check' ($cw.IndexOf('worktree mode currently requires Claude Code') -gt $cw.IndexOf('## Mode check') -and $cw.IndexOf('worktree mode currently requires Claude Code') -lt $cw.IndexOf('## Step 0') -and $ca.IndexOf('worktree mode currently requires Claude Code') -gt $ca.IndexOf('## Mode check') -and $ca.IndexOf('worktree mode currently requires Claude Code') -lt $ca.IndexOf('## Scope note'))
+
 if ($failures.Count -gt 0) {
     Write-Host ""
     Write-Host "FAILED: $($failures.Count) assertion(s)."

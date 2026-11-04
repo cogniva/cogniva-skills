@@ -14,6 +14,11 @@ repo's `.claude/cogniva-dev.local.json` has `"worktrees": true`. ON → read
 `WORKTREE.md` beside this file NOW; it replaces the ⟦worktree⟧ steps. OFF →
 ignore the tags; author directly on the user's checkout and current branch.
 
+**Host dispatch (check second):** if the Workflow tool is not available in
+this session (Codex or any other agent host without it) and worktree mode is
+ON, STOP and say: worktree mode currently requires Claude Code (see the
+parity record).
+
 The target repo is the checkout you were invoked from. This skill's own
 files and the `<plugin>` scripts live in the plugin install — read formats
 there, but never treat that checkout as the subject of the feature.

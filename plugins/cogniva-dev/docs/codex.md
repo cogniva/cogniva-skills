@@ -109,10 +109,13 @@ already have checked out.
   executed scope (the whole feature, or the completed slice under `tasks=one`)
   is complete on this branch; it does not mean approved, integrated, or ready
   to push.
-- **Worktree mode is Claude-only and unchanged.** It requires the Workflow
-  runtime, keeps mandatory per-task commits and persisted plans, and integrates
-  by fast-forward. If worktree mode is on and the Workflow tool is absent, the
-  skill stops and says so rather than degrading silently.
+- **Worktree mode is Claude Code only and unchanged there.** It requires the
+  Workflow runtime, keeps mandatory per-task commits and persisted plans, and
+  integrates by fast-forward. Every skill that would start, integrate or
+  clean up worktree-mode work (plan-feature, execute-feature, quick-fix,
+  cleanup-work, cleanup-allwork) stops with one line when worktree mode is on
+  and the Workflow tool is absent, and the parity record marks worktree mode
+  `unsupported` for Codex (ADR 0056).
 
 ## Hooks under Codex
 

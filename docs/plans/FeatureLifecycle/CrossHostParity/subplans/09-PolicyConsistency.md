@@ -165,7 +165,7 @@ check. Worktree mode stays Claude Code–only and unchanged on Claude Code. The
 skill-semantics suite runs under Windows PowerShell 5.1: every string or regex
 you add must be ASCII-only.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
   ```powershell
   # --- worktree mode stops without the Workflow tool, at every entry point -------
   $cw = ReadDoc 'skills\cleanup-work\SKILL.md'
@@ -178,24 +178,24 @@ you add must be ASCII-only.
   Check 'cleanup skills: the worktree stop sits right after the lean-mode check' ($cw.IndexOf('worktree mode currently requires Claude Code') -gt $cw.IndexOf('## Mode check') -and $cw.IndexOf('worktree mode currently requires Claude Code') -lt $cw.IndexOf('## Step 0') -and $ca.IndexOf('worktree mode currently requires Claude Code') -gt $ca.IndexOf('## Mode check') -and $ca.IndexOf('worktree mode currently requires Claude Code') -lt $ca.IndexOf('## Scope note'))
   ```
   If an earlier sub-plan reworded the execute-feature or quick-fix clause so the first alternative no longer matches, add the current wording of that clause (whitespace collapsed, regex-escaped) as a third `|` alternative instead — keeping the meaning "worktree mode ON + no Workflow tool → STOP".
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL for `plan-feature`, `cleanup-work`, `cleanup-allwork` stops and the two placement checks; PASS for execute-feature and quick-fix; `FAILED: 5 assertion(s).`
-- [ ] **Step 3 (plan-feature):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, insert immediately AFTER the `**Worktree dispatch (check first):**` paragraph (the one ending `author directly on the user's checkout and current branch.`), separated by one blank line:
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL for `plan-feature`, `cleanup-work`, `cleanup-allwork` stops and the two placement checks; PASS for execute-feature and quick-fix; `FAILED: 5 assertion(s).`
+- [x] **Step 3 (plan-feature):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, insert immediately AFTER the `**Worktree dispatch (check first):**` paragraph (the one ending `author directly on the user's checkout and current branch.`), separated by one blank line:
   ```markdown
   **Host dispatch (check second):** if the Workflow tool is not available in
   this session (Codex or any other agent host without it) and worktree mode is
   ON, STOP and say: worktree mode currently requires Claude Code (see the
   parity record).
   ```
-- [ ] **Step 4 (cleanup-work, cleanup-allwork):** In BOTH `plugins/cogniva-dev/skills/cleanup-work/SKILL.md` and `plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md`, insert immediately AFTER the `## Mode check (first)` paragraph (the one ending `you)." and STOP.`), separated by one blank line:
+- [x] **Step 4 (cleanup-work, cleanup-allwork):** In BOTH `plugins/cogniva-dev/skills/cleanup-work/SKILL.md` and `plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md`, insert immediately AFTER the `## Mode check (first)` paragraph (the one ending `you)." and STOP.`), separated by one blank line:
   ```markdown
   **Host dispatch (check second):** if the Workflow tool is not available in
   this session (Codex or any other agent host without it) and worktree mode is
   ON, STOP and say: worktree mode currently requires Claude Code (see the
   parity record).
   ```
-- [ ] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0.
-- [ ] **Step 6 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C6 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Worktree mode stops under Codex at every entry point` (no `ADR-C6` label), `**Provenance:** Suggested by agent`, then the body paragraph — to `docs/adr/NNNN-worktree-mode-stops-under-codex-at-every-entry-point.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 7 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, replace the whole bullet that begins `- **Worktree mode is Claude-only and unchanged.**` (through its last line) with the bullet below; if an earlier sub-plan reworded or moved it, replace the bullet or sentence that says worktree mode is Claude-only, wherever it now is:
+- [x] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0.
+- [x] **Step 6 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C6 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Worktree mode stops under Codex at every entry point` (no `ADR-C6` label), `**Provenance:** Suggested by agent`, then the body paragraph — to `docs/adr/NNNN-worktree-mode-stops-under-codex-at-every-entry-point.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 7 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, replace the whole bullet that begins `- **Worktree mode is Claude-only and unchanged.**` (through its last line) with the bullet below; if an earlier sub-plan reworded or moved it, replace the bullet or sentence that says worktree mode is Claude-only, wherever it now is:
   ```markdown
   - **Worktree mode is Claude Code only and unchanged there.** It requires the
     Workflow runtime, keeps mandatory per-task commits and persisted plans, and
@@ -206,7 +206,7 @@ you add must be ASCII-only.
     `unsupported` for Codex (ADR NNNN).
   ```
   using the number from Step 6.
-- [ ] **Step 8 (parity record):** In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`; `NNNN` is the number from Step 6):
+- [x] **Step 8 (parity record):** In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`; `NNNN` is the number from Step 6):
   - row `worktree-mode` (`Covers` `mode:worktree`): set the `Codex` cell to `unsupported — stops at every entry point`. In its `Notes`, replace the Codex sentence (the one beginning `Codex: worktree execution needs the Workflow runtime`) with `Codex: stops at every entry point (ADR NNNN); not wanted; what it would need is in CrossHostParity Stage 3.` and keep the Claude Code sentence. Leave its `Claude Code` cell unchanged.
   - row `worktree-cleanup` (`Covers` `skill:cogniva-dev/cleanup-work, skill:cogniva-dev/cleanup-allwork`): keep the `Codex` cell `unsupported — worktree mode only`; replace its `Notes` with `Worktree-mode only. Under Codex both skills stop with one line when worktree mode is on (ADR NNNN); in lean mode they report nothing to do.`
   - row `plan-feature`: append to its `Notes`: ` In worktree mode it stops without the Workflow tool, so under Codex it runs in lean mode only (ADR NNNN).`
@@ -219,8 +219,8 @@ you add must be ASCII-only.
     not wanted; the CrossHostParity plan's Stage 3 records what it would need.
   ```
   Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → a `host-parity: OK - …` line, exit 0.
-- [ ] **Step 9 (host-neutrality ratchet):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …`, exit 0. The new Host dispatch lines name Codex, Claude Code and "the Workflow tool", none of which is one of the ratchet's tokens (`Workflow(` with a parenthesis is), so nothing should move. A `FAIL host-token-…` line for a file this task changed → reword the text it names.
-- [ ] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/skills/cleanup-work/SKILL.md plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "fix(lifecycle): every worktree-mode entry point stops when the Workflow tool is absent"`
+- [x] **Step 9 (host-neutrality ratchet):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …`, exit 0. The new Host dispatch lines name Codex, Claude Code and "the Workflow tool", none of which is one of the ratchet's tokens (`Workflow(` with a parenthesis is), so nothing should move. A `FAIL host-token-…` line for a file this task changed → reword the text it names.
+- [x] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/skills/cleanup-work/SKILL.md plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "fix(lifecycle): every worktree-mode entry point stops when the Workflow tool is absent"`
 
 ## Task 3: Green-gate result marker; a skipped gate is never a pass
 
