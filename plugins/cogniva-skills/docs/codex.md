@@ -15,7 +15,9 @@ overlays exist here and none are needed.
 1. Register the marketplace: `codex plugin marketplace add
    cogniva/cogniva-skills` (or a local clone path). Codex reads the manifest at
    `.claude-plugin/marketplace.json` as a legacy-compatible marketplace
-   (verified against OpenAI's plugin docs, 2026-08-19).
+   (checked against OpenAI's plugin documentation, 2026-08-19; runtime
+   behaviour per agent host is tracked in the marketplace repo's
+   `docs/host-parity.md`).
 2. Install cogniva-skills from that marketplace with the Codex CLI's `/plugins`
    command.
 3. Start a NEW Codex session — freshly installed plugin skills are not visible
@@ -26,4 +28,4 @@ directory (`~/.codex/skills` or `.agents/skills`): installed as a plugin, the
 skills update through the marketplace and the version is tracked.
 
 Maintainers: the version-bump rule (three files, all matching) lives in the
-marketplace repo's `CLAUDE.md` under `## Rules`.
+marketplace repo's `AGENTS.md` under `## Rules`.

@@ -1,6 +1,6 @@
 ---
 name: glossary
-description: Use this tool whenever you encounter an unrecognized term, project-specific jargon, or any noun that does not appear in your current context (files read, memory, or system prompt). DO NOT use Grep, Glob, Read, or any search tool on an unrecognized term before invoking this tool. The glossary is the authoritative source of truth and must be consulted before any codebase exploration. If the term is not found in the glossary, you must ask your human partner for its definition and explicitly offer to document it in the glossary. This skill is the authoritative source of truth for any terminology used in this project.
+description: Use this tool whenever you encounter an unrecognized term, project-specific jargon, or any noun that does not appear in your current context (files read, memory, or system prompt). DO NOT search the codebase (grep, file search or file reads) for an unrecognized term before invoking this tool. The glossary is the authoritative source of truth and must be consulted before any codebase exploration. If the term is not found in the glossary, you must ask your human partner for its definition and explicitly offer to document it in the glossary. This skill is the authoritative source of truth for any terminology used in this project.
 ---
 
 <when-to-use>
@@ -57,7 +57,7 @@ During any active session, monitor the dialogue and proposed changes for:
 ### 3. Clarification and Documentation
 When a potential issue is detected:
 1. **Interrupt unobtrusively**: Briefly pause the flow to ask for clarification.
-2. **Seek feedback from your human partner**: Use `AskUserQuestion` or direct text to confirm: *"You mentioned 'X' — does this refer to [Definition A] or [Definition B]? Or should we define it as something new?"*
+2. **Seek feedback from your human partner**: Use the agent host's structured question tool, or a plain question, to confirm: *"You mentioned 'X' — does this refer to [Definition A] or [Definition B]? Or should we define it as something new?"*
 3. **Update the glossary (propose-then-confirm)**: Draft the entry, get explicit agreement, then immediately update the relevant glossary file using `Edit` or `Write`. Don't batch updates — capture each term as soon as it is confirmed.
 
 ## Guidelines

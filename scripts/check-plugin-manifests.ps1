@@ -1,18 +1,32 @@
 ﻿# check-plugin-manifests.ps1 — repo green-gate manifest parity checker.
 # For every plugin under plugins/ with a .claude-plugin/plugin.json:
 #   - its marketplace entry must exist and match the version;
-#   - if a .codex-plugin/plugin.json exists, its version, description, and
-#     keywords (element-wise, order-sensitive) must equal the .claude-plugin
-#     manifest's. (The Codex manifest's extra "skills" key is expected and
-#     not compared.)
+#   - it must ship a .codex-plugin/plugin.json whose version, description, and
+#     keywords (element-wise, order-sensitive) equal the .claude-plugin
+#     manifest's, and whose "skills" value resolves to the plugin's skills/
+#     directory;
+#   - every skills/<dir>/ must hold a SKILL.md whose frontmatter name: is <dir>.
 # Exits 1 with one line per failure; exits 0 with a summary when clean.
-# Windows PowerShell 5.1-compatible; paths resolved from the script location.
-
+# Windows PowerShell 5.1-compatible. -Root defaults to the repo this script
+# lives in (the parent of scripts/); tests pass a fixture root.
+[CmdletBinding()]
+param([string]$Root)
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
+if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
+$repoRoot = [System.IO.Path]::GetFullPath($Root)
 $failures = @()
 $checked = 0
+
+function Get-FrontmatterName([string]$Path) {
+    $lines = @(Get-Content -LiteralPath $Path -Encoding UTF8)
+    if ($lines.Count -eq 0 -or $lines[0].Trim() -ne '---') { return $null }
+    for ($i = 1; $i -lt $lines.Count; $i++) {
+        if ($lines[$i].Trim() -eq '---') { return $null }
+        if ($lines[$i] -match '^name:\s*(.+)') { return $Matches[1].Trim().Trim('"').Trim("'") }
+    }
+    return $null
+}
 
 $marketplacePath = Join-Path $repoRoot '.claude-plugin\marketplace.json'
 $marketplace = Get-Content -Raw -LiteralPath $marketplacePath | ConvertFrom-Json
@@ -35,9 +49,12 @@ foreach ($dir in $pluginDirs) {
         $failures += "${name}: version mismatch — claude=$($claude.version) codex/marketplace=$($entry.version)"
     }
 
-    # Codex manifest (optional): version, description, keywords must match.
+    # Codex manifest: required; version, description, keywords must match; skills must resolve.
     $codexPath = Join-Path $dir.FullName '.codex-plugin\plugin.json'
-    if (Test-Path -LiteralPath $codexPath) {
+    if (-not (Test-Path -LiteralPath $codexPath)) {
+        $failures += "${name}: missing .codex-plugin/plugin.json (every plugin ships both manifests)"
+    }
+    else {
         $codex = Get-Content -Raw -LiteralPath $codexPath | ConvertFrom-Json
 
         if ($codex.version -ne $claude.version) {
@@ -58,6 +75,33 @@ foreach ($dir in $pluginDirs) {
                     $failures += "${name}: keywords mismatch — claude=$($claudeKeywords -join ',') codex/marketplace=$($codexKeywords -join ',')"
                     break
                 }
+            }
+        }
+
+        $skillsDir = [System.IO.Path]::GetFullPath((Join-Path $dir.FullName 'skills')).TrimEnd('\', '/')
+        if (-not ($codex.skills -is [string]) -or -not $codex.skills) {
+            $failures += "${name}: .codex-plugin/plugin.json has no ""skills"" path"
+        }
+        else {
+            $resolved = [System.IO.Path]::GetFullPath((Join-Path $dir.FullName $codex.skills)).TrimEnd('\', '/')
+            if (-not [string]::Equals($resolved, $skillsDir, [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath $skillsDir -PathType Container)) {
+                $failures += "${name}: .codex-plugin/plugin.json ""skills"" is '$($codex.skills)', which does not resolve to the plugin's skills/ directory"
+            }
+        }
+    }
+
+    # Skills: each skills/<dir>/ holds a SKILL.md whose frontmatter name: is <dir>.
+    $skillsRoot = Join-Path $dir.FullName 'skills'
+    if (Test-Path -LiteralPath $skillsRoot -PathType Container) {
+        foreach ($skill in @(Get-ChildItem -LiteralPath $skillsRoot -Directory)) {
+            $skillFile = Join-Path $skill.FullName 'SKILL.md'
+            if (-not (Test-Path -LiteralPath $skillFile -PathType Leaf)) {
+                $failures += "${name}: skills/$($skill.Name)/ has no SKILL.md"
+                continue
+            }
+            $skillName = Get-FrontmatterName $skillFile
+            if ($skillName -cne $skill.Name) {
+                $failures += "${name}: skills/$($skill.Name)/SKILL.md frontmatter name is '$skillName', expected '$($skill.Name)'"
             }
         }
     }

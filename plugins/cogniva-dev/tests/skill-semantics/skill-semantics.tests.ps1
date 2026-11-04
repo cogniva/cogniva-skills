@@ -83,11 +83,21 @@ Check 'inheritance rule: CLAUDE.md never overrides commits=' `
     ($codex -match 'ever overrides `commits=`')
 
 # --- explicit invocation + plan-feature default -------------------------------
-Check 'docs/codex.md: lifecycle skills are explicit-invocation-only' `
-    ($docs -match '## Lifecycle skills are explicit-invocation-only under Codex')
+Check 'docs/codex.md: explicit-only lifecycle skills carry metadata on both agent hosts' `
+    ($docs -match '## Explicit-only lifecycle skills' -and $docs -match 'disable-model-invocation: true' -and $docs -match 'allow_implicit_invocation: false' -and $docs -notmatch 'explicit-invocation-only under Codex')
+Check 'quick-fix description states its explicit-start rule' `
+    ($qf -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
+Check 'plan-feature description states its explicit-start rule' `
+    ($pf -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
 Check 'plan-feature lean default leaves the plan uncommitted' `
     ($pf -match 'Lean mode default: `commits=none`')
 
+# --- docs/codex.md: the parity record and hooks under Codex --------------------
+$docsFlat = $docs -replace '\s+', ' '
+Check 'docs/codex.md no longer claims runtime verification' `
+    ($docs -notmatch 'Verified against OpenAI' -and $docsFlat -match 'runtime behaviour per agent host is tracked in the cogniva-skills repo''s `docs/host-parity\.md`')
+Check 'docs/codex.md: hooks under Codex need trust and miss apply_patch edits' `
+    ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
 # --- route-first capture invariants ------------------------------------------
 Check 'introduced defects are unfinished work, not followups' `
     ($ef -match 'A defect a task introduced is not a\s+followup')
@@ -201,6 +211,37 @@ Check 'quick-fix does not use applicable-rules as its architecture check' ($qf -
 Check 'worktree quick-fix snapshots after any staleness merge' ($wtQfFlat -match 'record `START_TREE` exactly as Step 0 says' -and $wtQfFlat -match 'after any staleness merge is committed')
 Check 'Codex parity: both backends pass the task body verbatim' ($codexFlat -match 'full `body` VERBATIM' -and $tpl -match 't\.body')
 Check 'Codex parity: quick-fix landing under Codex includes the structural check' ($codexFlat -match 'quick-fix also runs its structural check')
+# --- explicit-only invocation metadata (both agent hosts) ----------------------
+$explicitOnly = @('explore-idea', 'cleanup-work', 'cleanup-allwork', 'repo-init', 'add-module')
+foreach ($name in $explicitOnly) {
+    $skillText = ReadDoc "skills\$name\SKILL.md"
+    $yamlPath = Join-Path $plugin "skills\$name\agents\openai.yaml"
+    $yamlText = ''
+    if (Test-Path $yamlPath) { $yamlText = [System.IO.File]::ReadAllText($yamlPath) }
+    Check "$name is explicit-only on both agent hosts" `
+        ($skillText -match '(?m)^disable-model-invocation: true' -and $yamlText -match '(?m)^policy:' -and $yamlText -match '(?m)^\s+allow_implicit_invocation: false')
+}
+$routed = @('quick-fix', 'plan-feature', 'backlog', 'adr', 'groom-backlog', 'easy-work-scan', 'applicable-rules', 'feature-check', 'gate-check')
+Check 'routed skills stay model-invocable on both agent hosts' `
+    (@($routed | Where-Object { (ReadDoc "skills\$_\SKILL.md") -match 'disable-model-invocation' -or (Test-Path (Join-Path $plugin "skills\$_\agents\openai.yaml")) }).Count -eq 0)
+# --- agent-host-neutral wording in shared skills ------------------------------
+$handoffFlat = $handoff -replace '\s+', ' '
+$bkFmtFlat = (ReadDoc 'skills\backlog\BACKLOG-FORMAT.md') -replace '\s+', ' '
+$eiText = ReadDoc 'skills\explore-idea\SKILL.md'
+$glText = [System.IO.File]::ReadAllText((Join-Path $plugin '..\cogniva-skills\skills\glossary\SKILL.md'))
+$scanFlat = ((ReadDoc 'skills\groom-backlog\SKILL.md') + ' ' + (ReadDoc 'skills\easy-work-scan\SKILL.md')) -replace '\s+', ' '
+Check 'plan-feature summary names execute-feature in both agent hosts'' syntax' `
+    ($pfFlat -match 'Run the execute-feature skill on `<Module>/<Feature>` when ready' -and $pfFlat -match '`\$execute-feature <Module>/<Feature>` in Codex')
+Check 'HANDOFF: skill invocations use the current agent host''s syntax' `
+    ($handoffFlat -match 'write the invocation in the current agent host''s syntax')
+Check 'backlog header names skills, not one agent host''s commands' `
+    ($bkFmtFlat -match 'Promote with the plan-feature skill; trivial fixes can go straight to quick-fix\.')
+Check 'shared skills name no Claude Code question tool' `
+    ($pf -notmatch 'AskUserQuestion' -and $eiText -notmatch 'AskUserQuestion' -and $glText -notmatch 'AskUserQuestion')
+Check 'glossary description names no Claude Code tools' `
+    ($glText -notmatch 'DO NOT use Grep, Glob, Read' -and $glText -match 'DO NOT search the codebase \(grep, file search or file reads\)')
+Check 'scan subagents are described for both agent hosts' `
+    ([regex]::Matches($scanFlat, 'Spawn ONE read-only subagent \(Claude Code: `general-purpose`; Codex: the default agent\)').Count -eq 2)
 
 if ($failures.Count -gt 0) {
     Write-Host ""

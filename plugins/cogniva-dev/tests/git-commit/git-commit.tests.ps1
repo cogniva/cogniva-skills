@@ -23,7 +23,14 @@ try {
 
     # Multi-line commit message — the exact shape that defeats the raw matcher.
     $msg = "feat(x): add a thing`n`nBody line with a quote `" and an em-dash —."
-    $out = & powershell -NoProfile -ExecutionPolicy Bypass -File $script -RepoPath $repo -Path 'a.txt' -Message $msg
+    # Windows PowerShell 5.1 hands a native child an embedded `"` without escaping it,
+    # so the child's command line would end the argument there. Escape it the way the
+    # Windows command-line convention expects (backslashes before a quote are doubled,
+    # the quote becomes \"). PowerShell 7 does this itself, so leave it alone there.
+    # The script still runs as a separate `powershell -File` process, as real callers run it.
+    $msgArg = $msg
+    if ($PSVersionTable.PSVersion.Major -lt 7) { $msgArg = $msg -replace '(\\*)"', '$1$1\"' }
+    $out = & powershell -NoProfile -ExecutionPolicy Bypass -File $script -RepoPath $repo -Path 'a.txt' -Message $msgArg
     $sha = ($out | Select-Object -Last 1).Trim()
 
     Check 'exit 0'                       ($LASTEXITCODE -eq 0)
@@ -31,12 +38,19 @@ try {
     $log = (& git -C $repo log --oneline) -join "`n"
     Check 'one commit exists'            (($log -split "`n").Count -eq 1)
     Check 'subject is the first msg line' ($log -match 'feat\(x\): add a thing')
+    $body = (& git -C $repo log -1 --format=%B) -join "`n"
+    Check 'body keeps the embedded quote' ($body -match 'Body line with a quote " and an em-dash')
     $status = (& git -C $repo status --porcelain) -join "`n"
     Check 'working tree clean after commit' ([string]::IsNullOrWhiteSpace($status))
 
     # Error path: no -Path and no -All -> non-zero exit.
+    # Windows PowerShell 5.1 turns redirected native stderr into an error record, which
+    # 'Stop' would throw on; the exit code is what this case asserts.
+    $ErrorActionPreference = 'Continue'
     & powershell -NoProfile -ExecutionPolicy Bypass -File $script -RepoPath $repo -Message 'x' 2>$null
-    Check 'errors when neither -Path nor -All given' ($LASTEXITCODE -ne 0)
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
+    Check 'errors when neither -Path nor -All given' ($code -ne 0)
 }
 finally {
     Remove-Item -LiteralPath $repo -Recurse -Force -ErrorAction SilentlyContinue

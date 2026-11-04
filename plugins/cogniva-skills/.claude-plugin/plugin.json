@@ -1,6 +1,6 @@
 {
   "name": "cogniva-skills",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Cogniva's general-purpose toolkit: glossary (terminology), reference (bibliography), project-requirement (requirements tracking), and project-context (persistent business context) skills for any project. Development-specific skills moved to the cogniva-dev plugin.",
   "author": {
     "name": "Cogniva"

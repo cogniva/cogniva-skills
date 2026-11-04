@@ -11,7 +11,9 @@ host — only the executor backend differs, and only where it has to.
   (Codex) side by side. Both point at the same `plugins/cogniva-dev/skills/`
   directory; the Codex manifest does it explicitly with `"skills": "./skills/"`,
   a plugin-root-relative path.
-- **Verified against OpenAI's docs (2026-08-19).** The manifest location
+- **Checked against OpenAI's documentation (2026-08-19); runtime behaviour per
+  agent host is tracked in the cogniva-skills repo's `docs/host-parity.md`.**
+  The manifest location
   (`.codex-plugin/plugin.json`), the `"skills": "./skills/"` key with
   `./`-prefixed plugin-root-relative paths, marketplace-based install, the
   Codex CLI `/plugins` browser, and new-session skill visibility all match the
@@ -31,8 +33,10 @@ host — only the executor backend differs, and only where it has to.
   - `plugins/cogniva-dev/.codex-plugin/plugin.json`
   - the `cogniva-dev` entry in the top-level `.claude-plugin/marketplace.json`
 
-  `claude plugin validate .` does NOT catch a mismatch, so bump all three in the
-  same commit and confirm with:
+  `claude plugin validate .` reports a mismatch only as a warning and still
+  exits 0; the marketplace repo's green gate fails on it (its `manifest-parity`
+  check, `scripts/check-plugin-manifests.ps1`). Bump all three in the same
+  commit and confirm with:
 
   ```
   grep -n '"version"' plugins/cogniva-dev/.claude-plugin/plugin.json plugins/cogniva-dev/.codex-plugin/plugin.json .claude-plugin/marketplace.json
@@ -105,6 +109,20 @@ already have checked out.
   by fast-forward. If worktree mode is on and the Workflow tool is absent, the
   skill stops and says so rather than degrading silently.
 
+## Hooks under Codex
+
+cogniva-dev ships four hooks in `hooks/hooks.json`: the primary-checkout edit
+guard and branch-switch guard (worktree mode), the backlog-commit nudge, and
+the opt-in Module-cycle check. Codex loads that file when
+`[features] hooks = true` is set in `~/.codex/config.toml`, and runs each hook
+only after you trust it in `/hooks`, again after any change to `hooks.json` (a
+plugin update can bring one). Until the hook input adapter lands
+(CrossHostParity sub-plan 08 in the cogniva-skills repo), the edit guard, the
+backlog nudge and the Module-cycle hook do not see edits Codex makes with
+`apply_patch`. Hooks are best-effort on both agent hosts: a write made through
+a shell command is not seen, so the guarantees live in the landing checks
+(structural check, `git diff --check`, green gate).
+
 ## Repository CLAUDE.md under Codex
 
 A target repo's CLAUDE.md stays authoritative for **substantive constraints**:
@@ -123,15 +141,35 @@ lifecycle mechanics around it (commits, worktrees, integration) are not
 imported — and nothing in a repo's CLAUDE.md ever overrides `commits=`.
 The full rule lives in `skills/execute-feature/CODEX.md`.
 
-## Lifecycle skills are explicit-invocation-only under Codex
+## Explicit-only lifecycle skills
 
-The presence of a skill never authorizes a lifecycle operation. Under Codex,
-mutation and lifecycle skills — `plan-feature`, `execute-feature`, `quick-fix`,
-ADR writes, backlog writes, cleanup/integration operations, and any branch or
-worktree operation — run only on explicit user invocation or unambiguous user
-intent, never auto-selected because a task description resembles a skill
-description. Read-only status and diagnostic skills (`feature-status`,
-`module-status`, `repo-status`, `workflow-status`) may still be selected
+The presence of a skill never authorizes a lifecycle operation. The entry
+skills that no other skill dispatches or offers to run (`explore-idea`,
+`cleanup-work`, `cleanup-allwork`, `repo-init`, `add-module`)
+carry invocation metadata for both agent hosts, always as a pair:
+
+- **Claude Code:** `disable-model-invocation: true` in the skill's `SKILL.md`
+  frontmatter. Typing the skill (`/cogniva-dev:explore-idea …`) still runs
+  it; the model never starts it on its own.
+- **Codex:** `agents/openai.yaml` beside the skill, with
+  `allow_implicit_invocation: false` under `policy:`. The skill is not offered
+  to the model automatically; naming it (`$explore-idea …`) still runs it.
+
+The cogniva-skills repo's green gate fails when a skill carries only one of
+the pair.
+
+`quick-fix` and `plan-feature` are deliberately not marked: `easy-work-scan`
+and `groom-backlog` dispatch them after you approve a shortlist, and the
+metadata would block that approved dispatch on both agent hosts. Their
+descriptions carry the rule instead: they start only on an explicit request or
+an approved dispatch, never because a task resembles them. `execute-feature` is
+not marked either: `easy-work-scan` routes an approved deferred stub through
+`plan-feature` and then `execute-feature`. Skills that other
+skills route through (`backlog`, the routing gate for work any skill surfaces;
+`adr`; `glossary`) stay model-invocable for the same reason, and each confirms
+with you before it writes. Read-only status and diagnostic skills
+(`feature-status`, `module-status`, `repo-status`, `workflow-status`,
+`applicable-rules`, `feature-check`, `gate-check`) may still be selected
 automatically when appropriate.
 
 ## Workflow-neutral guardrails for externally orchestrated work

@@ -85,6 +85,26 @@ try {
     finally { $env:PATH = $savedPath }
     Check 'without pwsh the profile is UNAVAILABLE and the decision is unchanged' ($noPwsh.Targets[0].ArchitectureProfile.Status -eq 'UNAVAILABLE' -and $noPwsh.Targets[0].Decision -eq 'SAFE_TO_PROCEED')
 
+    # --- a single AGENTS.md and a single CLAUDE.md are reported by their whole paths ---
+    $single = Join-Path ([System.IO.Path]::GetTempPath()) ("cogniva-applicable-single-" + [guid]::NewGuid().ToString('N'))
+    try {
+        New-Item -ItemType Directory -Path $single -Force | Out-Null
+        & git -C $single init -q
+        Set-Content -LiteralPath (Join-Path $single 'AGENTS.md') -Encoding UTF8 -Value "# Rules`n`n- Hosts are composition roots only."
+        Set-Content -LiteralPath (Join-Path $single 'CLAUDE.md') -Encoding UTF8 -Value "@AGENTS.md"
+        $singleFull = (Get-Item -LiteralPath $single).FullName
+        $singleAgents = Join-Path $singleFull 'AGENTS.md'
+        $singleClaude = Join-Path $singleFull 'CLAUDE.md'
+        $s = (& powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $single -Target 'docs/readme.md' -Purpose 'documentation' -Format Json) | ConvertFrom-Json
+        Check 'one AGENTS.md and one CLAUDE.md: two authority entries' (@($s.Targets[0].EffectiveAuthority).Count -eq 2)
+        Check 'a single AGENTS.md is reported by its whole path' ($s.Targets[0].EffectiveAuthority[0].Source -eq 'AGENTS.md' -and $s.Targets[0].EffectiveAuthority[0].Path -eq $singleAgents)
+        Check 'a single CLAUDE.md is reported by its whole path' ($s.Targets[0].EffectiveAuthority[1].Source -eq 'CLAUDE.md' -and $s.Targets[0].EffectiveAuthority[1].Path -eq $singleClaude -and $s.Targets[0].EffectiveAuthority[1].Order -eq 2)
+        $singleLines = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $resolver -Repo $single -Target 'docs/readme.md' -Purpose 'documentation')
+        Check 'text output names both files whole' ($singleLines -contains "  EFFECTIVE AUTHORITY: [1] AGENTS.md: $singleAgents; [2] CLAUDE.md: $singleClaude")
+        Check 'text output has no first-character path' (@($singleLines | Where-Object { $_ -match '\.md: C(;|\s*$)' }).Count -eq 0)
+    }
+    finally { if (Test-Path -LiteralPath $single) { Remove-Item -LiteralPath $single -Recurse -Force } }
+
     # --- profile-driven placement (needs pwsh to adopt the shipped dotnet profile) ---
     $pwshCmd = Get-Command pwsh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $pwshCmd) { Write-Host '  SKIP  profile-driven placement (PowerShell 7 not installed)' }

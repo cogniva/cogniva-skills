@@ -1,6 +1,7 @@
 ---
 name: cleanup-allwork
 description: Checkout-wide safety net that finishes EVERY cleanupable worktree on this checkout, including ones from sessions you closed or forgot. Works from the JSON ledger recipe alone - no original-session context needed. For each cleanupable record it retries integrate if queued, runs the close-out recipe (state.md Status, etc.), removes the merged+clean worktree, and prunes the record. Never touches in-progress worktrees. Replaces sweep-worktrees and complete-feature. Run it when you suspect leftover worktrees or forgot to run /cleanup-work in a session.
+disable-model-invocation: true
 ---
 
 # Cleanup All Work

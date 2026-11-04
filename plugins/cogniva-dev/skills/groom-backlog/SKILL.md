@@ -24,7 +24,7 @@ it is deliberately lazy-loaded so ordinary sessions never pay for it.
    stub folder (`state.md` with `Status: deferred` and no `-plan.md`).
    `module=<Module>` narrows to that Module's file and stubs.
 
-2. **Scan — one read-only subagent.** Spawn ONE general-purpose subagent with:
+2. **Scan — one read-only subagent.** Spawn ONE read-only subagent (Claude Code: `general-purpose`; Codex: the default agent) with:
    the scope list, the absolute path of `GROOMING-CRITERIA.md` to read first,
    and an instruction to return ONLY structured verdicts. The subagent
    inventories every OPEN item, gathers receipts (git log, plan folders and

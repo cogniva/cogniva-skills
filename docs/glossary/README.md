@@ -67,7 +67,17 @@ The style of dividing a system by business capability rather than technical laye
 
 ## Cogniva
 
-The brand name for this team's shared development tooling. The Claude Code plugin marketplace in this repo is named `cogniva` (hosted at github.com/cogniva/cogniva-skills); general-purpose tools ship in `cogniva-skills` (glossary, reference, project-requirement, project-context), development-specific tools in `cogniva-dev` (adr, backlog, repo-init, add-module, and the feature lifecycle). Tools are never named after individual team members.
+The brand name for this team's shared development tooling. The plugin marketplace in this repo, for Claude Code and OpenAI Codex, is named `cogniva` (hosted at github.com/cogniva/cogniva-skills); general-purpose tools ship in `cogniva-skills` (glossary, reference, project-requirement, project-context), development-specific tools in `cogniva-dev` (adr, backlog, repo-init, add-module, and the feature lifecycle). Tools are never named after individual team members.
+
+## Agent host
+
+The coding-agent product a skill runs under — Claude Code or OpenAI Codex — on one of its surfaces (CLI, VS Code extension, desktop app). Distinct from a [Host](#host), which is a runnable .NET project.
+_Avoid_: host (alone), harness, platform
+
+## Parity record
+
+`docs/host-parity.md` in the cogniva-skills repo: one row per capability stating, for each [Agent host](#agent-host), its mechanism, its status (`verified`, `scripts-tested`, `untested`, `partial`, `unsupported`, `n/a`), the evidence behind that status, and any intentional asymmetry with its reason. The green gate derives the skill and hook inventory and fails on anything the record does not cover.
+_Avoid_: parity matrix, compatibility table
 
 ## Plan
 

@@ -24,11 +24,13 @@ Cogniva's plugin marketplace (`cogniva`) for Claude Code and OpenAI Codex — bo
 |---|---|
 | `plugins/cogniva-dev/skills/adr` | Record architectural decisions as ADRs (confirm-first) |
 | `plugins/cogniva-dev/skills/backlog` | Capture planned deferrals — work with a stated reason to wait |
+| `plugins/cogniva-dev/skills/groom-backlog` | Propose closures for stale backlog items; you confirm once before any edit |
+| `plugins/cogniva-dev/skills/easy-work-scan` | Shortlist backlog work that needs little involvement from you |
 | `plugins/cogniva-dev/skills/repo-init` | Scaffold a brand-new .NET repo on the `dotnet` architecture profile |
 | `plugins/cogniva-dev/skills/add-module` | Add a Module to a repo on the Module bundle layout |
 | `plugins/cogniva-dev/skills/explore-idea` | Brainstorm and develop an idea before any planning |
 | `plugins/cogniva-dev/skills/plan-feature` | Design one feature with a strong model before implementation |
-| `plugins/cogniva-dev/skills/execute-feature` | Execute a feature plan task-by-task in isolated worktrees |
+| `plugins/cogniva-dev/skills/execute-feature` | Execute a feature plan task-by-task, one fresh agent per task (on your branch by default; in an isolated worktree in worktree mode) |
 | `plugins/cogniva-dev/skills/quick-fix` | Planless sibling of execute-feature for small changes |
 | `plugins/cogniva-dev/skills/cleanup-work` | Close out this session's integrated worktrees |
 | `plugins/cogniva-dev/skills/cleanup-allwork` | Checkout-wide reap of every cleanupable worktree |
@@ -37,6 +39,9 @@ Cogniva's plugin marketplace (`cogniva`) for Claude Code and OpenAI Codex — bo
 | `plugins/cogniva-dev/skills/module-status` | Read-only view of one Module's features and backlog |
 | `plugins/cogniva-dev/skills/repo-status` | Cross-Module roll-up of the live roadmap |
 | `plugins/cogniva-dev/skills/workflow-status` | Read-only status of background Workflow runs |
+| `plugins/cogniva-dev/skills/applicable-rules` | Read-only: the instruction chain and placement constraints for target paths |
+| `plugins/cogniva-dev/skills/feature-check` | Read-only preflight, review and commit-readiness evidence |
+| `plugins/cogniva-dev/skills/gate-check` | Run the repo's mechanical completion gates without lifecycle changes |
 | `plugins/cogniva-dev/scripts/` | Worktree, integration, and ledger scripts |
 | `plugins/cogniva-dev/hooks/` | Session hooks |
 | `plugins/cogniva-dev/templates/` | Repo scaffolding templates and workflow scripts |

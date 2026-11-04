@@ -1,6 +1,6 @@
 ---
 name: quick-fix
-description: Use for small follow-up changes (UI tweak, bug fix, copy change) without a formal feature plan. Runs the change via a background Workflow so it can be fired repeatedly without bloating context; in worktree mode the change is isolated in a git worktree and auto-integrated.
+description: Use for small follow-up changes (UI tweak, bug fix, copy change) without a formal feature plan. Runs the change via a background Workflow so it can be fired repeatedly without bloating context; in worktree mode the change is isolated in a git worktree and auto-integrated. Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog - never auto-selected because a task resembles it.
 ---
 
 # Quick Fix
