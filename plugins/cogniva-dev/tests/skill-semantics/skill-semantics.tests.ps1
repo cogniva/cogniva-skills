@@ -96,8 +96,12 @@ Check 'plan-feature lean default leaves the plan uncommitted' `
 $docsFlat = $docs -replace '\s+', ' '
 Check 'docs/codex.md no longer claims runtime verification' `
     ($docs -notmatch 'Verified against OpenAI' -and $docsFlat -match 'runtime behaviour per agent host is tracked in the cogniva-skills repo''s `docs/host-parity\.md`')
-Check 'docs/codex.md: hooks under Codex need trust and miss apply_patch edits' `
-    ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
+Check 'docs/codex.md: hooks under Codex need trust and read apply_patch edits' `
+    ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'reads its input through `scripts/hook-input\.js`' -and $docsFlat -notmatch 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
+Check 'docs/codex.md: Codex hooks need trust again after every update' `
+    ($docsFlat -match 'Re-trust after every cogniva-dev update')
+Check 'docs/codex.md: shell writes are unseen; guarantees live in the landing checks' `
+    ($docsFlat -match 'not seen by the edit guard' -and $docsFlat -match 'guarantees live in the landing checks')
 # --- route-first capture invariants ------------------------------------------
 Check 'introduced defects are unfinished work, not followups' `
     ($ef -match 'A defect a task introduced is not a\s+followup')

@@ -838,7 +838,7 @@ record was created, that still says the hooks do not see `apply_patch` edits.
 The skill-semantics suite runs under Windows PowerShell 5.1: regexes you add
 must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, replace the assertion (two lines, joined by a backtick continuation)
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, replace the assertion (two lines, joined by a backtick continuation)
   ```powershell
   Check 'docs/codex.md: hooks under Codex need trust and miss apply_patch edits' `
       ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
@@ -853,7 +853,7 @@ must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
       ($docsFlat -match 'not seen by the edit guard' -and $docsFlat -match 'guarantees live in the landing checks')
   ```
   (`$docsFlat` is defined just above that assertion.) Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → the three checks FAIL, exit 1.
-- [ ] **Step 2 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, replace the body of the `## Hooks under Codex` section (everything between that heading and the next `## ` heading; keep both headings) with the text below. If Task 2 Step 1 changed the `hooks.json` matchers, use the first variant of the bracketed sentence in the **Edits** bullet; otherwise the second.
+- [x] **Step 2 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, replace the body of the `## Hooks under Codex` section (everything between that heading and the next `## ` heading; keep both headings) with the text below. If Task 2 Step 1 changed the `hooks.json` matchers, use the first variant of the bracketed sentence in the **Edits** bullet; otherwise the second.
   ```markdown
   cogniva-dev ships four hooks in `hooks/hooks.json`: the primary-checkout edit
   guard and branch-switch guard (worktree mode), the backlog-commit nudge, and
@@ -886,8 +886,8 @@ must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
     `git diff --check` and the green gate — not in hooks.
   ```
   Write only the chosen sentence of the bracketed pair, without the brackets or the `|`.
-- [ ] **Step 3 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C5 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Hooks read both hosts' edit payloads and remain best-effort` (no `ADR-C5` label), `**Provenance:** Suggested by agent`, then the body paragraph — to `docs/adr/NNNN-hooks-read-both-hosts-edit-payloads-and-remain-best-effort.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 4 (parity record):** Read `docs/host-parity/codex-diagnostics.md` for whether Codex hooks fired on each surface it tested (CLI, VS Code). In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`), edit the four hook rows; `NNNN` below is the number from Step 3:
+- [x] **Step 3 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C5 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Hooks read both hosts' edit payloads and remain best-effort` (no `ADR-C5` label), `**Provenance:** Suggested by agent`, then the body paragraph — to `docs/adr/NNNN-hooks-read-both-hosts-edit-payloads-and-remain-best-effort.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 4 (parity record):** Read `docs/host-parity/codex-diagnostics.md` for whether Codex hooks fired on each surface it tested (CLI, VS Code). In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`), edit the four hook rows; `NNNN` below is the number from Step 3:
   - `Codex` cell of each row: `scripts-tested — hook-input adapter` when the report shows Codex hooks fired on every surface it tested; `partial — hook-input adapter` when it shows a surface where they never fired. A `verified` status already earned from a smoke record stays as it is. Leave the `Claude Code` cells unchanged.
   - `Evidence`: `primary-edit-guard`, `branch-switch-guard` and `backlog-commit-nudge` → `gate:primary-hooks, gate:hook-input`; `module-cycle-hook` → `gate:module-deps-hook, gate:hook-input` (keep any `smoke:` items already there).
   - `Notes`, replacing the whole cell:
@@ -897,5 +897,5 @@ must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
     - `module-cycle-hook`: `Reads every .csproj path of a Claude Code edit or a Codex apply_patch through hook-input.js (ADR NNNN). Codex runs it only after the user trusts it in /hooks, again after any change to hooks.json. Both agent hosts: writes made through a shell command are not seen; module-deps -Check in a completion gate is the guarantee.`
     - For a row set to `partial`, append ` Codex hooks did not fire on <surface> in the diagnostics.` naming the surface from the report.
   Under `## Intentional asymmetries`, add the bullet: `- primary-edit-guard, branch-switch-guard, backlog-commit-nudge, module-cycle-hook — Codex runs plugin hooks only after the user trusts them in /hooks, again after each hooks.json change; this re-trust is accepted and documented rather than not shipping hooks to Codex (ADR NNNN).` Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → a `host-parity: OK - …` line, exit 0.
-- [ ] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (`docs/` is outside its scope).
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "docs(hooks): Codex hook payloads, trust and limits; parity record and ADR"`
+- [x] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (`docs/` is outside its scope).
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "docs(hooks): Codex hook payloads, trust and limits; parity record and ADR"`

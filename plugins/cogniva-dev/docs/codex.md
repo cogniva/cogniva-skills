@@ -119,14 +119,31 @@ already have checked out.
 cogniva-dev ships four hooks in `hooks/hooks.json`: the primary-checkout edit
 guard and branch-switch guard (worktree mode), the backlog-commit nudge, and
 the opt-in Module-cycle check. Codex loads that file when
-`[features] hooks = true` is set in `~/.codex/config.toml`, and runs each hook
-only after you trust it in `/hooks`, again after any change to `hooks.json` (a
-plugin update can bring one). Until the hook input adapter lands
-(CrossHostParity sub-plan 08 in the cogniva-skills repo), the edit guard, the
-backlog nudge and the Module-cycle hook do not see edits Codex makes with
-`apply_patch`. Hooks are best-effort on both agent hosts: a write made through
-a shell command is not seen, so the guarantees live in the landing checks
-(structural check, `git diff --check`, green gate).
+`[features] hooks = true` is set in `~/.codex/config.toml`. Every hook reads its
+input through `scripts/hook-input.js`, so Codex payloads are parsed, not only
+Claude Code's:
+
+- **Edits.** Codex reports an edit as `apply_patch`, with the whole patch text
+  in `tool_input.command`. The adapter reads every `*** Add File:`,
+  `*** Update File:`, `*** Delete File:` and `*** Move to:` path, relative to
+  the payload's `cwd`. The edit guard denies the patch if ANY of its paths is
+  a guarded primary-checkout path, and names only those; the backlog nudge and
+  the Module-cycle check act if any path qualifies. Codex routes `apply_patch`
+  to the `Write`/`Edit` matchers, so the matchers are the same for both agent
+  hosts.
+- **Shell commands.** Codex reports shell calls as `Bash` with
+  `tool_input.command`; the branch-switch guard reads them the same way on
+  both agent hosts.
+- **Trust.** Codex runs each hook only after you trust it in `/hooks`, again
+  after any change to `hooks.json` (a plugin update can bring one). Re-trust
+  after every cogniva-dev update; until then the hooks do not run. This churn
+  is accepted and documented rather than avoided by not shipping hooks to
+  Codex.
+- **Best-effort.** Hooks are best-effort on both agent hosts: they see tool
+  payloads, not effects, so a file written by a shell command
+  (`Set-Content`, `echo >`, a script) is not seen by the edit guard. The
+  guarantees live in the landing checks — the structural check,
+  `git diff --check` and the green gate — not in hooks.
 
 ## Repository CLAUDE.md under Codex
 
