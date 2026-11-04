@@ -285,6 +285,13 @@ Check 'execute-feature: the green gate is read by its last line' (($ef -replace 
 Check 'quick-fix: GREEN-GATE-RESULT: SKIPPED is not a pass' (($qf -replace '\s+', ' ') -match '`GREEN-GATE-RESULT: SKIPPED` is not a pass . report it under Skipped validations')
 Check 'HANDOFF: a green gate that reported SKIPPED goes under Skipped validations' (($handoff -replace '\s+', ' ') -match '\*\*Skipped validations\*\* . anything not run, and why, including a green gate that reported SKIPPED')
 Check 'gate-check: SKIPPED is never reported as passed' (($gc -replace '\s+', ' ') -match 'SKIPPED: green gate not configured' -and ($gc -replace '\s+', ' ') -match 'never as passed')
+# --- status skills see ephemeral plans ------------------------------------------
+foreach ($entry in @(@('feature-status', 'skills\feature-status\SKILL.md'), @('module-status', 'skills\module-status\SKILL.md'), @('repo-status', 'skills\repo-status\SKILL.md'))) {
+    $statusFlat = (ReadDoc $entry[1]) -replace '\s+', ' '
+    Check "$($entry[0]) scans .plans-staging for ephemeral plans" ($statusFlat -match '\.plans-staging/' -and $statusFlat -match 'plan=ephemeral')
+    Check "$($entry[0]) marks ephemeral features" ($statusFlat -match '\(ephemeral . this clone only\)')
+    Check "$($entry[0]) takes status from checkboxes when there is no state.md" ($statusFlat -match 'no `state\.md` \(lean runs keep none\)' -and $statusFlat -match '`in-progress` \(some done\)')
+}
 
 if ($failures.Count -gt 0) {
     Write-Host ""

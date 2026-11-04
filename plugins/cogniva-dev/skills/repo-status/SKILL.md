@@ -13,13 +13,24 @@ Invoke: `/repo-status`.
 
 ## Steps
 
-Scan all of `docs/plans/`:
+Scan all of `docs/plans/`, and also `.plans-staging/` for feature folders
+(lean mode's default `plan=ephemeral` keeps plans there, untracked and
+local to this clone):
 
 1. **Per Module** (`docs/plans/<Module>/`): roll up, without the per-task detail —
    - feature folders (`<Feature>-plan.md`): count by `Status:` and overall
      done/total tasks; note any in-flight (`in-progress`/`blocked`) feature,
    - stub folders (`state.md` `Status: deferred`, no plan): count as deferred,
    - `<Module>/BACKLOG.md`: open vs resolved loose-item counts.
+   Feature folders under `.plans-staging/<Module>/` count like
+   `docs/plans/` features (same checkbox rules; when a converted
+   `<basename>.tasks.md` sits beside the plan, count that file), and a
+   Module that exists only there still gets a row. A feature with no
+   `state.md` (lean runs keep none) takes its status from its checkboxes:
+   `planned` (no task done), `in-progress` (some done), `done` (all done).
+   Wherever such a feature is named (for example in Action items), mark it
+   `(ephemeral — this clone only)`; a feature in both places counts once,
+   from `docs/plans/`.
 
 2. **Repo-level loose items** — `docs/plans/BACKLOG.md` (cross-cutting / no
    Module): list the open (`- [ ]`) ones.

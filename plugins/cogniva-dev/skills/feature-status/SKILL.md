@@ -17,6 +17,14 @@ Invoke: `/feature-status [<Module>]` (omit `<Module>` to scan all).
    but **no `-plan.md`** is a backlog **stub** (`Status: deferred`) — list it as
    `deferred` with the one-line summary from its `backlog.md`; do not treat it as a
    zero-task plan.
+   Also scan `.plans-staging/<Module>/*/` (or `.plans-staging/*/*/` for
+   all): lean mode's default `plan=ephemeral` keeps plans there, untracked
+   and local to this clone. Treat each folder holding a `<Feature>-plan.md`
+   exactly like a `docs/plans/` feature — same task and checkbox rules;
+   when a converted `<basename>.tasks.md` sits beside the plan, count that
+   file, because it is the one the run ticks — and mark it
+   `(ephemeral — this clone only)`. A feature in both places is listed
+   once, from `docs/plans/`.
 2. For each feature with a plan, compute task progress by counting task
    headings (`## Task N` / `## ⛔ Task N`) and whether each task's checkboxes are
    all `- [x]`:
@@ -27,6 +35,9 @@ Invoke: `/feature-status [<Module>]` (omit `<Module>` to scan all).
    in-progress → blocked → integrated → done`), `Target branch`, `Worktree`, and
    `Integration:` status (e.g. `queued` means it finished but is waiting for a
    clean target tree).
+   A feature with no `state.md` (lean runs keep none) takes its status
+   from its checkboxes: `planned` (no task done), `in-progress` (some
+   done), `done` (all done).
 4. List active feature worktrees: `git worktree list` — match `feature/<slug>`
    entries to features.
 
@@ -36,7 +47,7 @@ A compact table per module:
 
 ```
 <Module>
-  <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [worktree: <path>]   [integration: queued]
+  <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [worktree: <path>]   [integration: queued]   [(ephemeral — this clone only)]
   <Idea>      deferred   — <one-line from backlog.md>
   ...
 Totals: <X> features, <Y> tasks remaining, <Z> queued integrations, <W> pending gates

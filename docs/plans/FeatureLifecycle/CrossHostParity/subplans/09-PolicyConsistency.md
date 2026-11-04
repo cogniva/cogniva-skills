@@ -573,7 +573,7 @@ it, and that is the file the run ticks. Lean runs keep no `state.md`. The three
 status skills scan only `docs/plans/` today. The skill-semantics suite runs
 under Windows PowerShell 5.1: every string or regex you add must be ASCII-only.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
   ```powershell
   # --- status skills see ephemeral plans ------------------------------------------
   foreach ($entry in @(@('feature-status', 'skills\feature-status\SKILL.md'), @('module-status', 'skills\module-status\SKILL.md'), @('repo-status', 'skills\repo-status\SKILL.md'))) {
@@ -583,8 +583,8 @@ under Windows PowerShell 5.1: every string or regex you add must be ASCII-only.
       Check "$($entry[0]) takes status from checkboxes when there is no state.md" ($statusFlat -match 'no `state\.md` \(lean runs keep none\)' -and $statusFlat -match '`in-progress` \(some done\)')
   }
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → nine new FAIL lines, exit 1.
-- [ ] **Step 3 (feature-status):** In `plugins/cogniva-dev/skills/feature-status/SKILL.md`:
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → nine new FAIL lines, exit 1.
+- [x] **Step 3 (feature-status):** In `plugins/cogniva-dev/skills/feature-status/SKILL.md`:
   1. Immediately after Step 1's last line (`zero-task plan.`), add these lines, indented as part of Step 1:
      ```markdown
         Also scan `.plans-staging/<Module>/*/` (or `.plans-staging/*/*/` for
@@ -606,7 +606,7 @@ under Windows PowerShell 5.1: every string or regex you add must be ASCII-only.
      `  <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [worktree: <path>]   [integration: queued]`
      with
      `  <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [worktree: <path>]   [integration: queued]   [(ephemeral — this clone only)]`
-- [ ] **Step 4 (module-status):** In `plugins/cogniva-dev/skills/module-status/SKILL.md`:
+- [x] **Step 4 (module-status):** In `plugins/cogniva-dev/skills/module-status/SKILL.md`:
   1. Replace the line `Scan `docs/plans/<Module>/`:` with:
      ```markdown
      Scan `docs/plans/<Module>/`, and also `.plans-staging/<Module>/` for
@@ -626,7 +626,7 @@ under Windows PowerShell 5.1: every string or regex you add must be ASCII-only.
      `    <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [integration: queued]`
      with
      `    <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [integration: queued]   [(ephemeral — this clone only)]`
-- [ ] **Step 5 (repo-status):** In `plugins/cogniva-dev/skills/repo-status/SKILL.md`:
+- [x] **Step 5 (repo-status):** In `plugins/cogniva-dev/skills/repo-status/SKILL.md`:
   1. Replace the line `Scan all of `docs/plans/`:` with:
      ```markdown
      Scan all of `docs/plans/`, and also `.plans-staging/` for feature folders
@@ -645,9 +645,9 @@ under Windows PowerShell 5.1: every string or regex you add must be ASCII-only.
         `(ephemeral — this clone only)`; a feature in both places counts once,
         from `docs/plans/`.
      ```
-- [ ] **Step 6 (parity record):** In `docs/host-parity.md` `## Capabilities`, row `plan-status`: in its `Notes`, replace the sentence `Ephemeral plans in `.plans-staging/` are not scanned yet (CrossHostParity 09).` with `Ephemeral plans in `.plans-staging/` are listed and marked as local to the clone.` (if the sentence is worded differently, replace the sentence that says ephemeral plans are not scanned). Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - …`, exit 0.
-- [ ] **Step 7 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …`.
-- [ ] **Step 8 (commit):** `git add plugins/cogniva-dev/skills/feature-status/SKILL.md plugins/cogniva-dev/skills/module-status/SKILL.md plugins/cogniva-dev/skills/repo-status/SKILL.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/host-parity.md` then `git commit -m "feat(status): feature-, module- and repo-status list ephemeral plans from .plans-staging"`
+- [x] **Step 6 (parity record):** In `docs/host-parity.md` `## Capabilities`, row `plan-status`: in its `Notes`, replace the sentence `Ephemeral plans in `.plans-staging/` are not scanned yet (CrossHostParity 09).` with `Ephemeral plans in `.plans-staging/` are listed and marked as local to the clone.` (if the sentence is worded differently, replace the sentence that says ephemeral plans are not scanned). Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - …`, exit 0.
+- [x] **Step 7 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …`.
+- [x] **Step 8 (commit):** `git add plugins/cogniva-dev/skills/feature-status/SKILL.md plugins/cogniva-dev/skills/module-status/SKILL.md plugins/cogniva-dev/skills/repo-status/SKILL.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/host-parity.md` then `git commit -m "feat(status): feature-, module- and repo-status list ephemeral plans from .plans-staging"`
 
 ## Task 5: Install guidance for both agent hosts; diagnostics remedy; full green gate
 
