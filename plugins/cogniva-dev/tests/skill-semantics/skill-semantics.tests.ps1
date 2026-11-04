@@ -209,7 +209,7 @@ Check 'quick-fix: no pwsh in a repo that declares or owns a profile asks the use
 Check 'quick-fix stays technology-neutral' ($qf -notmatch '(?i)csproj|ProjectReference|\.NET\b|pyproject')
 Check 'quick-fix does not use applicable-rules as its architecture check' ($qf -notmatch 'applicable-rules')
 Check 'worktree quick-fix snapshots after any staleness merge' ($wtQfFlat -match 'record `START_TREE` exactly as Step 0 says' -and $wtQfFlat -match 'after any staleness merge is committed')
-Check 'Codex parity: both backends pass the task body verbatim' ($codexFlat -match 'full `body` VERBATIM' -and $tpl -match 't\.body')
+Check 'Codex parity: both backends send the same prompt, task body verbatim inside it' ($codexFlat -match '`body` VERBATIM' -and $codexFlat -match 'new-task-prompt\.ps1' -and $codexFlat -match 'stdout as its prompt VERBATIM' -and $tpl -match 't\.body')
 Check 'Codex parity: quick-fix landing under Codex includes the structural check' ($codexFlat -match 'quick-fix also runs its structural check')
 # --- explicit-only invocation metadata (both agent hosts) ----------------------
 $explicitOnly = @('explore-idea', 'cleanup-work', 'cleanup-allwork', 'repo-init', 'add-module')
@@ -243,6 +243,17 @@ Check 'glossary description names no Claude Code tools' `
 Check 'scan subagents are described for both agent hosts' `
     ([regex]::Matches($scanFlat, 'Spawn ONE read-only subagent \(Claude Code: `general-purpose`; Codex: the default agent\)').Count -eq 2)
 
+# --- shared worker prompt + result contract (both executors) ------------------
+Check 'CODEX.md builds every worker prompt with new-task-prompt.ps1 -ResultContract' ($codexFlat -match 'new-task-prompt\.ps1' -and $codexFlat -match '-ResultContract')
+Check 'CODEX.md sends the prompt verbatim with no added frame' ($codexFlat -match 'no paraphrase, no summary, no added frame or preamble')
+Check 'CODEX.md starts one fresh subagent per task without this conversation where it can' ($codexFlat -match 'Spawn ONE fresh subagent' -and $codexFlat -match 'WITHOUT this conversation''s history')
+Check 'CODEX.md validates every reply with test-task-result.ps1' ($codexFlat -match 'test-task-result\.ps1" -ReplyFile')
+Check 'CODEX.md: a malformed worker result is BLOCKED, never retried' ($codexFlat -match 'malformed worker result: <reason>' -and $codexFlat -match 'No retry, no re-prompt')
+Check 'CODEX.md prints the template status line after every task' ($codex -match '<tag> \(<title>\): <STATUS>\[ @<commitSha>\]')
+Check 'CODEX.md: under commits=task the worker ticked before committing; the executor verifies' ($codexFlat -match 'under `commits=task` it ticked them before its commit')
+Check 'CODEX.md: structured followups feed the backlog gate' ($codexFlat -match '`followups` arrive structured' -and $codexFlat -match 'backlog gate')
+Check 'CODEX.md no longer parses a textual first line' ($codex -notmatch 'first line of exactly' -and $codex -notmatch 'Parse the subagent''s first line')
+Check 'docs/codex.md: the Codex backend uses the shared JSON result contract' ($docs -match 'task-result\.schema\.json' -and $docs -match 'new-task-prompt\.ps1' -and $docs -notmatch 'textual `DONE` / `BLOCKED` result contract')
 if ($failures.Count -gt 0) {
     Write-Host ""
     Write-Host "FAILED: $($failures.Count) assertion(s)."

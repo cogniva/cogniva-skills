@@ -68,10 +68,15 @@ subagent. How that happens depends on the host:
   the journal it writes.
 - **Codex** — the Workflow tool does not exist. When a skill detects that the
   Workflow tool is unavailable in the session, it follows its `CODEX.md` overlay
-  instead: a **sequential loop of fresh subagents**, one per task, with a
-  **textual `DONE` / `BLOCKED` result contract** parsed by the executor. Tasks
-  run strictly in order in the same workspace; there is no reviewer fan-out and
-  no parallelism.
+  instead: a **sequential loop of fresh subagents**, one per task. Both
+  executors share one worker contract: each prompt is built by
+  `scripts/new-task-prompt.ps1` (kept byte-identical by test to the prompt the
+  Workflow template builds), and each reply ends with one JSON result that
+  conforms to `templates/task-result.schema.json` (kept equal by test to the
+  schema the Workflow template passes to its agents) and is checked by
+  `scripts/test-task-result.ps1`; a malformed reply counts as `BLOCKED`. Tasks
+  run strictly in order in the same workspace; there is no reviewer fan-out
+  and no parallelism.
 
 **No Workflow-API emulation.** The Codex backend never installs, shims, or
 hand-rolls Claude's Workflow JS API. The subagent loop *is* the Codex backend;

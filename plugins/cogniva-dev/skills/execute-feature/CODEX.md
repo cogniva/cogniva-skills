@@ -13,49 +13,68 @@ have, so if worktree mode is ON, STOP and say so rather than improvising.
 
 ## Replaces Step 3 — sequential subagent loop
 
-You are the executor. For each task in the parsed array that is not `done`,
-in order, spawn ONE fresh subagent. Its prompt carries the task's full
-`body` VERBATIM plus this frame:
+You are the executor. Both executors hand task agents the same prompt and
+read the same result shape: the prompt comes from
+`<plugin>/scripts/new-task-prompt.ps1`, kept identical by test to the prompt
+the Workflow template builds, and the result is one JSON object conforming
+to `<plugin>/templates/task-result.schema.json` — the schema the template
+passes to its agents — checked by `<plugin>/scripts/test-task-result.ps1`.
+`<plugin>` = this plugin's root (the parent of `skills/`).
 
-- Work only in WORKSPACE, on BRANCH. Never switch branches. Never push.
-- Follow the ACTIVE commit policy — resolve it from `## Flags` in `SKILL.md`
-  (lean default `commits=none`) and write the resolved rule into the prompt
-  VERBATIM, never a pointer to go and read:
-  - `commits=none` → "Do NOT stage or commit anything; leave your changes in
-    the working tree."
-  - `commits=task` → "FIRST tick THIS task's checkboxes in `<planPath>`, then
-    stage ONLY the files you changed and commit with the task's commit
-    message." (Under `task` the task agent ticks and commits, so the SHA
-    represents the completed task state; the executor-ticks rule below then
-    applies to `none`/`final` only. A planless task has no `planPath` —
-    drop the tick clause and keep only the stage-and-commit instruction.)
-  - `commits=final` → "Do NOT stage or commit anything; leave your changes in
-    the working tree." The single implementation commit happens once, at
-    `SKILL.md` Step 4.
-  Any git failure under `task`/`final` → the task returns `BLOCKED` with the
-  git error as its `note`; no retry loops.
-- When done, reply with a first line of exactly `DONE` or `BLOCKED`, then:
-  - `summary:` — 1–2 lines, what changed.
-  - `commitSha:` — only if a commit was made.
-  - `note:` — only if BLOCKED: exactly what is missing.
-  - `followups:` — only if genuinely surfaced; one line each, with a
-    concrete receipt.
+For each task in the parsed array that is not `done`, in order:
 
-Wait for that subagent to finish before doing anything else.
+1. Write the task as JSON — `{ "n": <n>, "title": "<title>", "body": "<body>" }`
+   with the task's full `body` VERBATIM (the parser's own object for the
+   task works as is; extra fields are ignored) — to a temp file in the
+   system temp directory, never inside the repo.
+2. Build the prompt:
+   `pwsh -NoProfile -File "<plugin>/scripts/new-task-prompt.ps1" -Workspace "<WORKSPACE>" -Branch "<BRANCH>" -Commits <policy> -TaskFile "<task file>" -ResultContract`,
+   adding `-PlanPath "<the task's planPath>"` when the task has one (a
+   planless quick-fix task has none) and `-StatePath "<state.md>"` only
+   when the run has one. `<policy>` is the ACTIVE commit policy resolved
+   from `## Flags` in `SKILL.md` (lean default `none`); the script writes
+   the matching rule into the prompt — under `task`: tick this task's
+   checkboxes in its `planPath` first, then stage only its own files and
+   commit; under `none`/`final`: stage and commit nothing. A non-zero exit
+   → stop and show its output; never hand-write a prompt instead.
+3. Spawn ONE fresh subagent and send the script's stdout as its prompt
+   VERBATIM — no paraphrase, no summary, no added frame or preamble. Where
+   the agent host lets you choose, start it WITHOUT this conversation's
+   history.
+4. Wait for that subagent to finish before doing anything else. A git
+   failure under `task`/`final` comes back as the worker's `BLOCKED`, with
+   the git error as its `note`; no retry loops.
 
 ## After each task
 
-Parse the subagent's first line.
+Save the subagent's whole reply to a temp file in the system temp
+directory and run
+`pwsh -NoProfile -File "<plugin>/scripts/test-task-result.ps1" -ReplyFile "<reply file>"`.
+Delete both temp files once the task's result is recorded.
 
-- `DONE` → tick that task's checkboxes in its `planPath` (the executor
-  ticks; task agents under this backend do not edit the plan — except under
-  `commits=task`, where the agent has already ticked them before its commit,
-  so verify rather than re-tick), record the result, dispatch the next task.
-  A task with no `planPath` (planless quick-fix) has nothing to tick — just
-  record the result and move on.
-- `BLOCKED` → stop the loop; report which task and its `note`.
-- Task `isGate` (`⛔`) and `DONE` → stop the loop after it and report the
-  gate. The user resolves it and re-runs the skill to continue.
+- Exit 1 (`MALFORMED: <reason>`) → the task is `BLOCKED` with the note
+  `malformed worker result: <reason>`. No retry, no re-prompt — the same
+  rule as the Workflow template's null result. Exit 2 means the validator
+  command itself was wrong: fix the command and re-run the validator, never
+  the task.
+- Exit 0 → stdout is the result (`status`, `summary`, and where present
+  `commitSha`, `note`, `followups`). Then:
+  - `DONE` → the worker's prompt told it to tick its own checkboxes in its
+    `planPath` (under `commits=task` it ticked them before its commit):
+    verify they are all `- [x]` and tick any it missed, record the result,
+    and dispatch the next task. A task with no `planPath` (planless
+    quick-fix) has nothing to tick — just record the result and move on.
+  - `BLOCKED` → stop the loop; report which task and its `note`.
+  - Task `isGate` (`⛔`) and `DONE` → stop the loop after it and report the
+    gate. The user resolves it and re-runs the skill to continue.
+- After every task print one status line, the line the Workflow template
+  logs: `<tag> (<title>): <STATUS>[ @<commitSha>]` — `<tag>` is
+  `<subplan>/task-<n>` for a sub-plan task, else `task-<n>`; the
+  ` @<commitSha>` part only when the result carries one.
+- `followups` arrive structured (`description`, `receipt`, `strength`, and
+  optionally `size` and `because`). Collect them from every result and run
+  the backlog gate on them exactly as `SKILL.md` defines it: at a ⛔ gate or
+  `BLOCKED` stop as its Step 3 says, otherwise at landing.
 
 ## Sequencing rules
 
