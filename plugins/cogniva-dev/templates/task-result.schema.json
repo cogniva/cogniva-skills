@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "summary"],
+  "properties": {
+    "status": { "type": "string", "enum": ["DONE", "BLOCKED"] },
+    "summary": { "type": "string", "description": "One or two lines: what changed." },
+    "commitSha": { "type": "string", "description": "Short SHA of the task commit, if committed." },
+    "note": { "type": "string", "description": "If BLOCKED: exactly what is missing or needed." },
+    "followups": {
+      "type": "array",
+      "description": "Route CANDIDATES only — never written to any BACKLOG.md by this agent. Omit or leave empty unless the task surfaced work that is genuinely not covered by this plan or an open plan folder, AND you can point at a concrete observed fact for it. Speculation and \"it would be nice if\" do not qualify. A bug introduced by THIS task is never a followup — fix it before returning DONE.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description", "receipt", "strength"],
+        "properties": {
+          "description": { "type": "string", "description": "One line, as it would appear in BACKLOG.md." },
+          "receipt": { "type": "string", "description": "The concrete observed fact, with a location: \"same off-by-one at handler.ts:88\", \"blocked needing IExportPort, which the plan never defines\"." },
+          "strength": { "type": "string", "enum": ["clear", "ambiguous"], "description": "clear = the fact is unambiguous; ambiguous = a passing observation. When unsure, use ambiguous." },
+          "size": { "type": "string", "enum": ["S", "M", "L"] },
+          "because": { "type": "string", "description": "Deferral reason ONLY if this work genuinely must wait (blocked on something, sequenced after another feature, decision pending). Omit for work that could simply be done or planned next." }
+        }
+      }
+    }
+  }
+}

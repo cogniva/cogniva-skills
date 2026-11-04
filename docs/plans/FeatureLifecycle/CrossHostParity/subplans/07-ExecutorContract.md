@@ -78,7 +78,7 @@ LF line endings. Do NOT modify `templates/execute-feature.workflow.js`: it is
 copied verbatim into the Workflow runtime, so it stays self-contained, and the
 tests below prove the new files equal it.
 
-- [ ] **Step 1 (failing tests):** Create `plugins/cogniva-dev/tests/task-contract/template-loader.mjs`:
+- [x] **Step 1 (failing tests):** Create `plugins/cogniva-dev/tests/task-contract/template-loader.mjs`:
   ```js
   // Evaluates templates/execute-feature.workflow.js the way the Workflow runtime
   // does - top-level await and return inside an async function body, with
@@ -257,8 +257,8 @@ tests below prove the new files equal it.
   Write-Host 'All task-contract assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → `FAIL  templates/task-result.schema.json exists and parses`, every `prompt identical to the template` line FAILs (the script does not exist), then `FAILED: 2 assertion(s).`, exit 1.
-- [ ] **Step 3 (implement the schema):** Create `plugins/cogniva-dev/templates/task-result.schema.json` with exactly this content (the template's `TASK_RESULT`, same properties, descriptions, enums, required and `additionalProperties`; keep the em dashes; no BOM):
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → `FAIL  templates/task-result.schema.json exists and parses`, every `prompt identical to the template` line FAILs (the script does not exist), then `FAILED: 2 assertion(s).`, exit 1.
+- [x] **Step 3 (implement the schema):** Create `plugins/cogniva-dev/templates/task-result.schema.json` with exactly this content (the template's `TASK_RESULT`, same properties, descriptions, enums, required and `additionalProperties`; keep the em dashes; no BOM):
   ```json
   {
     "type": "object",
@@ -289,7 +289,7 @@ tests below prove the new files equal it.
   }
   ```
   If the schema-parity test later reports a difference, the template is the source of truth: copy the differing text from `TASK_RESULT` in `templates/execute-feature.workflow.js` into this file, never the other way round.
-- [ ] **Step 4 (implement the prompt builder):** Create `plugins/cogniva-dev/scripts/new-task-prompt.ps1`. The file is pure ASCII on purpose (the em dash and arrows the template uses are built with `[char]0x2014` / `[char]0x2192`), so its encoding can never change the bytes it prints:
+- [x] **Step 4 (implement the prompt builder):** Create `plugins/cogniva-dev/scripts/new-task-prompt.ps1`. The file is pure ASCII on purpose (the em dash and arrows the template uses are built with `[char]0x2014` / `[char]0x2192`), so its encoding can never change the bytes it prints:
   ```powershell
   #Requires -Version 7.0
   # Builds the task-agent prompt for ONE task - byte-for-byte the prompt that
@@ -387,13 +387,13 @@ tests below prove the new files equal it.
   exit 0
   ```
   If a prompt-parity case fails, the printed `first difference` shows the template text to copy; the template is the source of truth.
-- [ ] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of the `commands` array and append this object as the new last entry (after the `workflow-template` entry that the smoke-harness sub-plan added):
+- [x] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of the `commands` array and append this object as the new last entry (after the `workflow-template` entry that the smoke-harness sub-plan added):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1", "label": "task-contract", "note": "Pins the shared worker contract: the task-result schema equals the Workflow template's, new-task-prompt.ps1 prints the template's prompt byte-for-byte, and test-task-result.ps1 accepts only conforming replies; needs PowerShell 7 and node." }
   ```
   Validate the file: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → `OK   .claude/cogniva-dev/green-gate.json`.
-- [ ] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → all 24 matrix lines PASS (12 cases × exit 0 + identical prompt), the 5 extra prompt-parity checks PASS, `All task-contract assertions passed.`, exit 0. The comparison normalises only one trailing newline on the PowerShell side; nothing else.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/templates/task-result.schema.json plugins/cogniva-dev/scripts/new-task-prompt.ps1 plugins/cogniva-dev/tests/task-contract/template-loader.mjs plugins/cogniva-dev/tests/task-contract/schema-parity.test.mjs plugins/cogniva-dev/tests/task-contract/prompt-parity.test.mjs plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(execute-feature): shared task-result schema and prompt builder, parity-tested against the Workflow template"`
+- [x] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → all 24 matrix lines PASS (12 cases × exit 0 + identical prompt), the 5 extra prompt-parity checks PASS, `All task-contract assertions passed.`, exit 0. The comparison normalises only one trailing newline on the PowerShell side; nothing else.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/templates/task-result.schema.json plugins/cogniva-dev/scripts/new-task-prompt.ps1 plugins/cogniva-dev/tests/task-contract/template-loader.mjs plugins/cogniva-dev/tests/task-contract/schema-parity.test.mjs plugins/cogniva-dev/tests/task-contract/prompt-parity.test.mjs plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(execute-feature): shared task-result schema and prompt builder, parity-tested against the Workflow template"`
 
 ## Task 2: Result validator
 
