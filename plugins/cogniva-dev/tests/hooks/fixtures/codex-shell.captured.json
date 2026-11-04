@@ -1,0 +1,14 @@
+{
+  "_source": "documented, not captured",
+  "session_id": "00000000-0000-0000-0000-000000000000",
+  "turn_id": "00000000-0000-0000-0000-000000000002",
+  "transcript_path": "C:/Users/user/.codex/sessions/rollout.jsonl",
+  "cwd": "C:/fixture",
+  "hook_event_name": "PreToolUse",
+  "model": "model",
+  "permission_mode": "default",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "git status --short"
+  }
+}
