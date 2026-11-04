@@ -117,6 +117,165 @@ try {
     $unexpected = Invoke-Pwsh $checker @('-Repo', $st, '-Since', $tree)
     Check 'QF-STRUCT fixture: without -Expected the same fact is marked UNEXPECTED' ($unexpected.Code -eq 4 -and $unexpected.Out.Contains('FACT 1 dependency-added UNEXPECTED (dotnet-projects)'))
 
+    # --- outcome assertions --------------------------------------------------
+    # Each case copies a base fixture, replaces .smoke/scenario.json with one
+    # expect key, simulates an outcome with plain git/file operations, and runs
+    # assert-smoke-outcome.ps1 -Json.
+    $ef = New-Fixture 'EF-TWO' 'ef-base'
+    $handoffNames = @()
+    $inside = $false
+    foreach ($line in ((Read-Text (Join-Path $plugin 'skills\execute-feature\HANDOFF.md')) -split "`n")) {
+        if ($line.StartsWith('## ')) { $inside = ($line -ceq '## Required sections'); continue }
+        if ($inside -and $line -match '^- \*\*(?<name>[^*]+)\*\*') { $handoffNames += $Matches['name'] }
+    }
+    $fullHandoff = "READY FOR REVIEW`nBranch: feature/smoke`nIntegration: not performed`nRemote push: not performed`n`n" + ((@($handoffNames | ForEach-Object { "**$_** - none" })) -join "`n") + "`n"
+    $caseNo = 0
+    function New-Case([string]$Base, [hashtable]$Expect, [hashtable]$ResumeExpect) {
+        $script:caseNo++
+        $dir = Join-Path $script:root ("case-{0:d2}" -f $script:caseNo)
+        Copy-Item -LiteralPath $Base -Destination $dir -Recurse -Force
+        $file = Join-Path $dir '.smoke\scenario.json'
+        $s = Get-Content -Raw -LiteralPath $file | ConvertFrom-Json -AsHashtable
+        $s['expect'] = $Expect
+        if ($ResumeExpect) { $s['resumeExpect'] = $ResumeExpect }
+        [System.IO.File]::WriteAllText($file, ($s | ConvertTo-Json -Depth 10))
+        return $dir
+    }
+    function Assert-Case([string]$Fixture, [string]$Message, [switch]$Resume, [switch]$NoMessage) {
+        $id = (Get-Content -Raw -LiteralPath (Join-Path $Fixture '.smoke\scenario.json') | ConvertFrom-Json).id
+        $argsList = @('-Fixture', $Fixture, '-Scenario', $id, '-Json')
+        if (-not $NoMessage) {
+            $msg = Join-Path $Fixture '.smoke\final.txt'
+            [System.IO.File]::WriteAllText($msg, $Message)
+            $argsList += @('-FinalMessage', $msg)
+        }
+        if ($Resume) { $argsList += '-Resume' }
+        $r = Invoke-Pwsh $assert $argsList
+        $json = $null
+        try { $json = $r.Out | ConvertFrom-Json } catch { $json = $null }
+        [pscustomobject]@{ Code = $r.Code; Json = $json; Out = $r.Out }
+    }
+    function Passed($Result, [string]$Key) { return ($Result.Code -eq 0 -and @($Result.Json.results | Where-Object { $_.key -eq $Key -and $_.pass }).Count -eq 1) }
+    function Failed($Result, [string]$Key) { return ($Result.Code -eq 1 -and @($Result.Json.results | Where-Object { $_.key -eq $Key -and -not $_.pass }).Count -eq 1) }
+    function Add-Line([string]$File, [string]$Line) { [System.IO.File]::AppendAllText($File, "$Line`n") }
+    function Commit-All([string]$Repo, [string]$Message) { GitOut $Repo @('add', '--', 'src', 'tests') | Out-Null; GitOut $Repo @('commit', '-q', '-m', $Message) | Out-Null }
+
+    # commitsSinceStart
+    $c = New-Case $qf @{ commitsSinceStart = 1 }
+    Add-Line (Join-Path $c 'src\Calc\Calc.ps1') '# change'; Commit-All $c 'one change'
+    Check 'commitsSinceStart: one new commit passes 1' (Passed (Assert-Case $c '') 'commitsSinceStart')
+    $c = New-Case $qf @{ commitsSinceStart = 0 }
+    Add-Line (Join-Path $c 'src\Calc\Calc.ps1') '# change'; Commit-All $c 'one change'
+    Check 'commitsSinceStart: one new commit fails 0' (Failed (Assert-Case $c '') 'commitsSinceStart')
+    # branch
+    $c = New-Case $qf @{ branch = 'feature/smoke' }
+    Check 'branch: still on feature/smoke passes' (Passed (Assert-Case $c '') 'branch')
+    $c = New-Case $qf @{ branch = 'feature/smoke' }
+    GitOut $c @('symbolic-ref', 'HEAD', 'refs/heads/other') | Out-Null
+    Check 'branch: a moved HEAD fails' (Failed (Assert-Case $c '') 'branch')
+    # changedPaths
+    $c = New-Case $qf @{ changedPaths = @('src/Calc/Calc.ps1', 'src/Calc/New.ps1') }
+    Add-Line (Join-Path $c 'src\Calc\Calc.ps1') '# change'; Commit-All $c 'committed change'
+    Write-Text (Join-Path $c 'src\Calc\New.ps1') "# canary-7`n"
+    Check 'changedPaths: a committed edit and an untracked new file both count as changed' (Passed (Assert-Case $c '') 'changedPaths')
+    $c = New-Case $qf @{ changedPaths = @('src/Calc/Calc.ps1') }
+    Check 'changedPaths: an untouched file fails' (Failed (Assert-Case $c '') 'changedPaths')
+    # unchangedPaths
+    $c = New-Case $qf @{ unchangedPaths = @('src/Calc/Calc.ps1') }
+    Check 'unchangedPaths: an untouched file passes' (Passed (Assert-Case $c '') 'unchangedPaths')
+    $c = New-Case $qf @{ unchangedPaths = @('src/Calc/Calc.ps1') }
+    Add-Line (Join-Path $c 'src\Calc\Calc.ps1') '# change'
+    Check 'unchangedPaths: an uncommitted edit fails' (Failed (Assert-Case $c '') 'unchangedPaths')
+    # unrelatedPreserved
+    $c = New-Case $qf @{ unrelatedPreserved = $true }
+    Check 'unrelatedPreserved: the dirty file left alone passes' (Passed (Assert-Case $c '') 'unrelatedPreserved')
+    $c = New-Case $qf @{ unrelatedPreserved = $true }
+    Write-Text (Join-Path $c 'notes\unrelated.txt') "reverted`n"
+    Check 'unrelatedPreserved: overwritten content fails' (Failed (Assert-Case $c '') 'unrelatedPreserved')
+    $c = New-Case $qf @{ unrelatedPreserved = $true }
+    GitOut $c @('add', 'notes/unrelated.txt') | Out-Null; GitOut $c @('commit', '-q', '-m', 'swept up') | Out-Null
+    Check 'unrelatedPreserved: committing it, content unchanged, fails' (Failed (Assert-Case $c '') 'unrelatedPreserved')
+    # planTicked / planUnticked
+    $planRel = 'docs/plans/Smoke/TwoTasks/TwoTasks-plan.md'
+    function Set-Ticks([string]$Repo, [int[]]$Tasks) {
+        $file = Join-Path $Repo $planRel
+        $current = 0
+        $lines = foreach ($line in ((Read-Text $file) -split "`n")) {
+            if ($line -match '^## Task (?<n>\d+):') { $current = [int]$Matches['n'] }
+            if ($Tasks -contains $current) { $line.Replace('- [ ]', '- [x]') } else { $line }
+        }
+        [System.IO.File]::WriteAllText($file, ($lines -join "`n"))
+    }
+    $c = New-Case $ef @{ planTicked = @{ path = $planRel; tasks = @(1, 2) } }
+    Set-Ticks $c @(1, 2)
+    Check 'planTicked: both tasks ticked passes' (Passed (Assert-Case $c '') 'planTicked')
+    $c = New-Case $ef @{ planTicked = @{ path = $planRel; tasks = @(1, 2) } }
+    Set-Ticks $c @(1)
+    Check 'planTicked: task 2 left open fails' (Failed (Assert-Case $c '') 'planTicked')
+    $c = New-Case $ef @{ planUnticked = @{ path = $planRel; tasks = @(1, 2) } }
+    Check 'planUnticked: an untouched plan passes' (Passed (Assert-Case $c '') 'planUnticked')
+    $c = New-Case $ef @{ planUnticked = @{ path = $planRel; tasks = @(1, 2) } }
+    Set-Ticks $c @(1)
+    Check 'planUnticked: a ticked task 1 fails' (Failed (Assert-Case $c '') 'planUnticked')
+    # finalMessageContains / finalMessageNotContains
+    $c = New-Case $qf @{ finalMessageContains = @('READY FOR REVIEW', 'STRUCTURE: FOUND') }
+    Check 'finalMessageContains: both literals present passes' (Passed (Assert-Case $c "READY FOR REVIEW`r`nSTRUCTURE: FOUND - 1 structural change(s)") 'finalMessageContains')
+    $c = New-Case $qf @{ finalMessageContains = @('READY FOR REVIEW') }
+    Check 'finalMessageContains: a different-case literal fails' (Failed (Assert-Case $c 'ready for review') 'finalMessageContains')
+    $c = New-Case $qf @{ finalMessageContains = @('READY FOR REVIEW') }
+    Check 'finalMessageContains: no final message file fails' (Failed (Assert-Case $c '' -NoMessage) 'finalMessageContains')
+    $c = New-Case $qf @{ finalMessageNotContains = @('dependency-added UNEXPECTED') }
+    Check 'finalMessageNotContains: prose about no unexpected facts passes' (Passed (Assert-Case $c 'No UNEXPECTED facts. FACT 1 dependency-added (dotnet-projects)') 'finalMessageNotContains')
+    $c = New-Case $qf @{ finalMessageNotContains = @('dependency-added UNEXPECTED') }
+    Check 'finalMessageNotContains: an UNEXPECTED fact line fails' (Failed (Assert-Case $c 'FACT 1 dependency-added UNEXPECTED (dotnet-projects): src/A/A.csproj -> src/B/B.csproj') 'finalMessageNotContains')
+    # handoffSections
+    Check 'handoffSections: the required sections are read from HANDOFF.md' ($handoffNames.Count -ge 13 -and $handoffNames -contains 'Skipped validations')
+    $c = New-Case $qf @{ handoffSections = $true }
+    Check 'handoffSections: every section plus READY FOR REVIEW passes' (Passed (Assert-Case $c $fullHandoff) 'handoffSections')
+    $c = New-Case $qf @{ handoffSections = $true }
+    Check 'handoffSections: a dropped Skipped validations section fails' (Failed (Assert-Case $c $fullHandoff.Replace('**Skipped validations** - none', '')) 'handoffSections')
+    # noNewFiles
+    $c = New-Case $qf @{ noNewFiles = $true }
+    Write-Text (Join-Path $c 'notes\unrelated.txt') "unrelated work in progress, still theirs`n"
+    Check 'noNewFiles: edits to tracked files and .smoke/ files pass' (Passed (Assert-Case $c '') 'noNewFiles')
+    $c = New-Case $qf @{ noNewFiles = $true }
+    Add-Line (Join-Path $c '.git\info\exclude') '.plans-staging/'
+    Write-Text (Join-Path $c '.plans-staging\Smoke\Probe\Probe-plan.md') "# Probe`n"
+    Check 'noNewFiles: an ignored new file still fails' (Failed (Assert-Case $c '') 'noNewFiles')
+    # gitInfoExcludeUnchanged
+    $c = New-Case $qf @{ gitInfoExcludeUnchanged = $true }
+    Check 'gitInfoExcludeUnchanged: an untouched exclude file passes' (Passed (Assert-Case $c '') 'gitInfoExcludeUnchanged')
+    $c = New-Case $qf @{ gitInfoExcludeUnchanged = $true }
+    Add-Line (Join-Path $c '.git\info\exclude') '.plans-staging/'
+    Check 'gitInfoExcludeUnchanged: an appended line fails' (Failed (Assert-Case $c '') 'gitInfoExcludeUnchanged')
+    # fileStartsWith
+    $c = New-Case $qf @{ fileStartsWith = @{ 'src/Calc/Divide.ps1' = "# canary-7`n# nested-canary-3" } }
+    Write-Text (Join-Path $c 'src\Calc\Divide.ps1') "# canary-7`r`n# nested-canary-3`r`nfunction Get-Quotient(`$a, `$b) { return `$a / `$b }`r`n"
+    Check 'fileStartsWith: both canary lines pass, CRLF or LF' (Passed (Assert-Case $c '') 'fileStartsWith')
+    $c = New-Case $qf @{ fileStartsWith = @{ 'src/Calc/Divide.ps1' = "# canary-7`n# nested-canary-3" } }
+    Write-Text (Join-Path $c 'src\Calc\Divide.ps1') "# canary-7`nfunction Get-Quotient(`$a, `$b) { return `$a / `$b }`n"
+    $r = Assert-Case $c ''
+    Check 'fileStartsWith: a missing nested canary fails and shows the first two lines' ((Failed $r 'fileStartsWith') -and $r.Out.Contains('function Get-Quotient'))
+    # usage errors, -Resume, text output
+    $c = New-Case $qf @{ commitsSinceStart = 0; bogus = 1 }
+    Check 'an unknown expect key is a usage error (exit 2)' ((Assert-Case $c '').Code -eq 2)
+    $c = New-Case $qf @{ noNewFiles = $false }
+    Check 'a boolean key set to false is a usage error (exit 2)' ((Assert-Case $c '').Code -eq 2)
+    Check 'a fixture of another scenario is a usage error (exit 2)' ((Invoke-Pwsh $assert @('-Fixture', $qf, '-Scenario', 'QF-FINAL')).Code -eq 2)
+    $c = New-Case $qf @{ commitsSinceStart = 0 } @{ commitsSinceStart = 1 }
+    Add-Line (Join-Path $c 'src\Calc\Calc.ps1') '# change'; Commit-All $c 'one change'
+    Check '-Resume checks resumeExpect' ((Assert-Case $c '' -Resume).Code -eq 0 -and (Assert-Case $c '').Code -eq 1)
+    Check '-Resume without a resumeExpect is a usage error (exit 2)' ((Invoke-Pwsh $assert @('-Fixture', $qf, '-Scenario', 'QF-NONE', '-Resume')).Code -eq 2)
+    $text = Invoke-Pwsh $assert @('-Fixture', $qf, '-Scenario', 'QF-NONE')
+    Check 'text output: a FAIL line per failing key and the SMOKE verdict; an untouched fixture fails' ($text.Code -eq 1 -and $text.Out.Contains('FAIL changedPaths: unchanged since START: src/Calc/Calc.ps1, tests/Calc.tests.ps1') -and $text.Out.Contains('PASS commitsSinceStart:') -and $text.Out.Contains('SMOKE QF-NONE: FAIL'))
+    $sim = Join-Path $root 'qf-simulated'
+    Copy-Item -LiteralPath $qf -Destination $sim -Recurse -Force
+    Write-Text (Join-Path $sim 'src\Calc\Calc.ps1') "# canary-7`n# nested-canary-3`nfunction Add-Numbers(`$a, `$b, `$c = 0) {`n    return `$a + `$b + `$c`n}`n"
+    Add-Line (Join-Path $sim 'tests\Calc.tests.ps1') "Check 'Add-Numbers adds an optional third number' ((Add-Numbers 1 2 3) -eq 6)"
+    Write-Text (Join-Path $sim '.smoke\final.txt') $fullHandoff
+    $full = Invoke-Pwsh $assert @('-Fixture', $sim, '-Scenario', 'QF-NONE', '-FinalMessage', (Join-Path $sim '.smoke\final.txt'))
+    Check 'a simulated QF-NONE run passes every key' ($full.Code -eq 0 -and $full.Out.Contains('SMOKE QF-NONE: PASS') -and -not $full.Out.Contains('FAIL '))
+
     # --- sections appended by later tasks go above this line ---
 }
 finally {
