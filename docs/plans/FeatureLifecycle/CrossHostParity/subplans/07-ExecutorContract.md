@@ -409,7 +409,7 @@ keywords that file uses: `type`, `enum`, `required`, `properties`,
 `ConvertFrom-Json`, which turns date-like strings into dates. UTF-8 without a
 BOM.
 
-- [ ] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count) { Write-Host ''; Write-Host "FAILED: $($failures.Count) assertion(s)."; exit 1 }`:
+- [x] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count) { Write-Host ''; Write-Host "FAILED: $($failures.Count) assertion(s)."; exit 1 }`:
   ```powershell
   # --- scripts/test-task-result.ps1 --------------------------------------------
   $validator = Join-Path $plugin 'scripts\test-task-result.ps1'
@@ -483,8 +483,8 @@ BOM.
   }
 
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → the two node checks still PASS; all 16 validator cases FAIL (the script does not exist yet, so `pwsh` exits non-zero with a "does not exist" error); `FAILED: 16 assertion(s).`, exit 1.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/test-task-result.ps1`:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → the two node checks still PASS; all 16 validator cases FAIL (the script does not exist yet, so `pwsh` exits non-zero with a "does not exist" error); `FAILED: 16 assertion(s).`, exit 1.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/test-task-result.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Validates a task agent's reply against the shared result contract
@@ -588,8 +588,8 @@ BOM.
   $stdout.Flush()
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → every line PASS, `All task-contract assertions passed.`, exit 0. Also run the gate entry the way the green gate does: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → the `[task-contract]` command exits 0 (the rest of the gate is expected to stay green too).
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/test-task-result.ps1 plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` then `git commit -m "feat(execute-feature): test-task-result.ps1 validates worker replies against the shared result schema"`
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → every line PASS, `All task-contract assertions passed.`, exit 0. Also run the gate entry the way the green gate does: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → the `[task-contract]` command exits 0 (the rest of the gate is expected to stay green too).
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/test-task-result.ps1 plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` then `git commit -m "feat(execute-feature): test-task-result.ps1 validates worker replies against the shared result schema"`
 
 ## Task 3: CODEX.md loop on the shared contract, docs, pins, parity record, ADR
 
