@@ -1751,7 +1751,7 @@ inside its step; write it without that indent.
 **Files:**
 - Create: `plugins/cogniva-dev/tests/host-smoke/README.md`
 
-- [ ] **Step 1 (write the runbook):** Create `plugins/cogniva-dev/tests/host-smoke/README.md` with exactly the content inside the four-backtick fence (indented two spaces here; the file has no indent, and its headings start in column 0):
+- [x] **Step 1 (write the runbook):** Create `plugins/cogniva-dev/tests/host-smoke/README.md` with exactly the content inside the four-backtick fence (indented two spaces here; the file has no indent, and its headings start in column 0):
   ````markdown
   # Agent-host smoke harness
 
@@ -1934,10 +1934,10 @@ inside its step; write it without that indent.
   to the adapters between them (skill overlays, hook input parsing, the worker
   contract) - not on every pull request.
   ````
-- [ ] **Step 2 (check it against the harness):** in PowerShell 7, from the repo root, run
+- [x] **Step 2 (check it against the harness):** in PowerShell 7, from the repo root, run
   ```powershell
   $t = Get-Content -Raw plugins/cogniva-dev/tests/host-smoke/README.md
   @('QF-NONE', 'QF-FINAL', 'EF-TWO', 'EF-BLOCKED', 'EF-GATE', 'QF-STRUCT', 'POLICY', 'HOOKS', 'INSTR', 'smoke-assertions', 'workflow-template', '-DryRun', '-PluginDir', 'codex plugin marketplace add', '/hooks', '## Cost') | Where-Object { -not $t.Contains($_) }
   ```
   → prints nothing (every term is in the runbook). Then `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 -AgentHost claude-code -Scenario EF-GATE -Resume -DryRun` → `SCENARIO: EF-GATE (resume)` and a `/cogniva-dev:execute-feature Smoke/Gate commits=task plan=persisted` prompt (the runbook's resume instruction works as written).
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/README.md` then `git commit -m "docs(host-smoke): smoke harness runbook - install, headless, GUI, records, cost"`
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/README.md` then `git commit -m "docs(host-smoke): smoke harness runbook - install, headless, GUI, records, cost"`
