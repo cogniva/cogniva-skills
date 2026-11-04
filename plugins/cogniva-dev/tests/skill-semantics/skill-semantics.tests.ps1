@@ -292,6 +292,13 @@ foreach ($entry in @(@('feature-status', 'skills\feature-status\SKILL.md'), @('m
     Check "$($entry[0]) marks ephemeral features" ($statusFlat -match '\(ephemeral . this clone only\)')
     Check "$($entry[0]) takes status from checkboxes when there is no state.md" ($statusFlat -match 'no `state\.md` \(lean runs keep none\)' -and $statusFlat -match '`in-progress` \(some done\)')
 }
+# --- install guidance: both plugins, both agent hosts ---------------------------
+$strategy = ReadDoc '..\..\docs\strategy.md'
+foreach ($entry in @(@('repo-init', $ri), @('docs/strategy.md', $strategy))) {
+    $installFlat = $entry[1] -replace '\s+', ' '
+    Check "$($entry[0]) installs both plugins under Claude Code" ($installFlat -match '/plugin marketplace add cogniva/cogniva-skills' -and $installFlat -match '/plugin install cogniva-dev@cogniva' -and $installFlat -match '/plugin install cogniva-skills@cogniva')
+    Check "$($entry[0]) installs both plugins under Codex" ($installFlat -match 'codex plugin marketplace add cogniva/cogniva-skills' -and $installFlat -match '`/plugins`' -and $installFlat -match 'new Codex session' -and $installFlat -match '`/hooks`')
+}
 
 if ($failures.Count -gt 0) {
     Write-Host ""

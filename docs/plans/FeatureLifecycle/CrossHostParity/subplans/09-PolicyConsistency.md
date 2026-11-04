@@ -667,7 +667,7 @@ in a NEW session, and runs plugin hooks only after the user trusts them in
 `/hooks`. The skill-semantics suite runs under Windows PowerShell 5.1: every
 string or regex you add must be ASCII-only.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
   ```powershell
   # --- install guidance: both plugins, both agent hosts ---------------------------
   $strategy = ReadDoc '..\..\docs\strategy.md'
@@ -677,8 +677,8 @@ string or regex you add must be ASCII-only.
       Check "$($entry[0]) installs both plugins under Codex" ($installFlat -match 'codex plugin marketplace add cogniva/cogniva-skills' -and $installFlat -match '`/plugins`' -and $installFlat -match 'new Codex session' -and $installFlat -match '`/hooks`')
   }
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → four new FAIL lines, exit 1.
-- [ ] **Step 3 (repo-init):** In `plugins/cogniva-dev/skills/repo-init/SKILL.md`, replace the whole numbered step that recommends installing the plugin (step 11 at planning time: `11. Recommend the user install this plugin in the new repo:` and its continuation line, ending before `12. Commit everything`) with:
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → four new FAIL lines, exit 1.
+- [x] **Step 3 (repo-init):** In `plugins/cogniva-dev/skills/repo-init/SKILL.md`, replace the whole numbered step that recommends installing the plugin (step 11 at planning time: `11. Recommend the user install this plugin in the new repo:` and its continuation line, ending before `12. Commit everything`) with:
   ```markdown
   11. Recommend the user install both Cogniva plugins, `cogniva-dev` and
       `cogniva-skills`, on each agent host they use in the new repo:
@@ -691,7 +691,7 @@ string or regex you add must be ASCII-only.
         there), and trust the plugin hooks via `/hooks`.
   ```
   Keep the step's number as it is in the file if an earlier sub-plan renumbered the steps.
-- [ ] **Step 4 (strategy):** In `docs/strategy.md`, replace the numbered list under `## Consuming in a new repo` (the three lines `1. `/plugin marketplace add …`, `2. `/plugin install cogniva-skills@cogniva``, `3. Run the repo-init skill.`) with:
+- [x] **Step 4 (strategy):** In `docs/strategy.md`, replace the numbered list under `## Consuming in a new repo` (the three lines `1. `/plugin marketplace add …`, `2. `/plugin install cogniva-skills@cogniva``, `3. Run the repo-init skill.`) with:
   ```markdown
   1. Register the marketplace and install both plugins, `cogniva-skills` and
      `cogniva-dev`, on each agent host you use:
@@ -704,7 +704,7 @@ string or regex you add must be ASCII-only.
        `/hooks`.
   2. Run the repo-init skill.
   ```
-- [ ] **Step 5 (diagnostics remedy — only if selected):** Open `docs/host-parity/codex-diagnostics.md`, find its triage (decision) table, and look for the row about `.git` being read-only in Codex's sandbox (it breaks quick-fix's Step 0 snapshot, which writes git objects, plus commits and `.git/info/exclude`). If that row's `Where` column does NOT name `09`, skip this step entirely and write "no 09 sandbox remedy selected" in the commit message body. If it names `09`, read the report's answer under **Q3** and copy the setting or approval it records VERBATIM — call it SETTING (for example a `config.toml` key and value, or the approval choice to make). This is the only value this plan takes from the report. Then:
+- [x] **Step 5 (diagnostics remedy — only if selected):** Open `docs/host-parity/codex-diagnostics.md`, find its triage (decision) table, and look for the row about `.git` being read-only in Codex's sandbox (it breaks quick-fix's Step 0 snapshot, which writes git objects, plus commits and `.git/info/exclude`). If that row's `Where` column does NOT name `09`, skip this step entirely and write "no 09 sandbox remedy selected" in the commit message body. If it names `09`, read the report's answer under **Q3** and copy the setting or approval it records VERBATIM — call it SETTING (for example a `config.toml` key and value, or the approval choice to make). This is the only value this plan takes from the report. Then:
   1. In `plugins/cogniva-dev/docs/codex.md`, insert this section immediately BEFORE the `## Repository CLAUDE.md under Codex` heading, with SETTING substituted:
      ```markdown
      ## Codex sandbox: `.git` must be writable
@@ -717,7 +717,7 @@ string or regex you add must be ASCII-only.
      ```
   2. In `plugins/cogniva-dev/skills/quick-fix/SKILL.md` Step 0, immediately after the sentence ending `without a valid `START_TREE` the structural check cannot run.`, insert (SETTING substituted): ` If it failed because the agent host's sandbox keeps `.git` read-only, tell the user to allow it with: SETTING.`
   3. Add a pin immediately BEFORE `if ($failures.Count -gt 0) {` in the skill-semantics suite: `Check 'quick-fix and docs/codex.md name the .git sandbox setting' ((($qf -replace '\s+', ' ') -match 'sandbox keeps `\.git` read-only') -and $docs -match '## Codex sandbox: `\.git` must be writable')`.
-- [ ] **Step 6 (parity record):** In `docs/host-parity.md` `## Capabilities`, row `repo-init`: in its `Notes`, replace the sentence `Its install guidance is Claude Code-only (CrossHostParity 09).` with `Its install guidance covers both plugins on both agent hosts.` (if worded differently, replace the sentence that says the install guidance is Claude Code-only). If Step 5 applied the sandbox remedy, also append to the `quick-fix` row's `Notes`: ` docs/codex.md and quick-fix Step 0 name the setting that makes .git writable.` Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - …`, exit 0.
-- [ ] **Step 7 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (the install commands use `/plugin` and `codex plugin`, which are not ratchet tokens; a `FAIL host-token-…` line for a file this task changed → reword the text it names).
-- [ ] **Step 8 (full green gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → `green-gate: GREEN - all N command(s) exited 0.` followed by the last line `GREEN-GATE-RESULT: GREEN`. Any RED → fix the cause inside this sub-plan's files and re-run until GREEN.
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/repo-init/SKILL.md docs/strategy.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` (plus `plugins/cogniva-dev/docs/codex.md` and `plugins/cogniva-dev/skills/quick-fix/SKILL.md` if Step 5 changed them) then `git commit -m "docs(install): both plugins on both agent hosts; Codex sandbox remedy where the diagnostics selected it"`
+- [x] **Step 6 (parity record):** In `docs/host-parity.md` `## Capabilities`, row `repo-init`: in its `Notes`, replace the sentence `Its install guidance is Claude Code-only (CrossHostParity 09).` with `Its install guidance covers both plugins on both agent hosts.` (if worded differently, replace the sentence that says the install guidance is Claude Code-only). If Step 5 applied the sandbox remedy, also append to the `quick-fix` row's `Notes`: ` docs/codex.md and quick-fix Step 0 name the setting that makes .git writable.` Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → `host-parity: OK - …`, exit 0.
+- [x] **Step 7 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (the install commands use `/plugin` and `codex plugin`, which are not ratchet tokens; a `FAIL host-token-…` line for a file this task changed → reword the text it names).
+- [x] **Step 8 (full green gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → `green-gate: GREEN - all N command(s) exited 0.` followed by the last line `GREEN-GATE-RESULT: GREEN`. Any RED → fix the cause inside this sub-plan's files and re-run until GREEN.
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/skills/repo-init/SKILL.md docs/strategy.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` (plus `plugins/cogniva-dev/docs/codex.md` and `plugins/cogniva-dev/skills/quick-fix/SKILL.md` if Step 5 changed them) then `git commit -m "docs(install): both plugins on both agent hosts; Codex sandbox remedy where the diagnostics selected it"`
