@@ -1510,7 +1510,7 @@ harness refuses any template with another module statement. Do not modify the
 template. Node needs no packages. Code below is indented two spaces to sit
 inside its step; write it without that indent.
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` with exactly:
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Dependency-free tests for templates/execute-feature.workflow.js: the template
@@ -1649,8 +1649,8 @@ inside its step; write it without that indent.
   Write-Host 'All workflow-template assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → `FAIL` lines, then an error from a case with no result (node cannot find `run-template.mjs`); exit 1.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/workflow-template/run-template.mjs` with exactly:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → `FAIL` lines, then an error from a case with no result (node cannot find `run-template.mjs`); exit 1.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/workflow-template/run-template.mjs` with exactly:
   ```javascript
   // Runs templates/execute-feature.workflow.js in plain Node with stubbed
   // Workflow globals, so its dispatch logic and the prompts it builds can be
@@ -1737,14 +1737,14 @@ inside its step; write it without that indent.
     }
   }
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → every line `PASS`, last line `All workflow-template assertions passed.`, exit 0.
-- [ ] **Step 5 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the closing `}` of the current last object in `commands` (the `smoke-assertions` entry) and append this object as the new last element:
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → every line `PASS`, last line `All workflow-template assertions passed.`, exit 0.
+- [x] **Step 5 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the closing `}` of the current last object in `commands` (the `smoke-assertions` entry) and append this object as the new last element:
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1", "label": "workflow-template", "note": "Runs the execute-feature Workflow template in plain Node with a stubbed agent: dispatch order, BLOCKED / gate / null-result stops, commit-policy prompt lines; needs PowerShell 7 and node." }
   ```
   Then: `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands[-1].label"` → `workflow-template`.
-- [ ] **Step 6 (run the gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all N command(s) exited 0.`
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/workflow-template/run-template.mjs plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(workflow-template): run the execute-feature Workflow template in Node, gated as workflow-template"`
+- [x] **Step 6 (run the gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all N command(s) exited 0.`
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/workflow-template/run-template.mjs plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(workflow-template): run the execute-feature Workflow template in Node, gated as workflow-template"`
 
 ## Task 5: Runbook
 
