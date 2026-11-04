@@ -27,6 +27,7 @@ $plugin = Split-Path -Parent $PSScriptRoot
 $failures = @()
 $warnings = @()
 $inconclusive = @()
+$skipped = @()
 
 Write-Output "gate-check: mechanical checks for $repoFull (target: $TargetBranch)"
 $status = Invoke-Native 'tree status' { git -C $repoFull status --porcelain }
@@ -52,8 +53,12 @@ if ($staged.Code -ne 0) { $failures += 'git diff --cached --check failed' }
 
 $green = Invoke-Native 'green gate' { powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $plugin 'scripts/run-green-gate.ps1') -Repo $repoFull }
 if ($green.Code -ne 0) { $failures += "green gate exited $($green.Code)" }
+# The runner's last GREEN-GATE-RESULT line says whether the gate ran at all.
+$greenResult = @($green.Lines | Where-Object { $_ -match '^GREEN-GATE-RESULT: ' } | Select-Object -Last 1)
+if ($green.Code -eq 0 -and $greenResult.Count -and $greenResult[0] -match 'SKIPPED') { $skipped += 'green gate not configured' }
 
 foreach ($warning in $warnings) { Write-Output "WARN: $warning" }
+foreach ($reason in $skipped) { Write-Output "SKIPPED: $reason" }
 if ($failures.Count) {
     foreach ($failure in $failures) { Write-Output "FAIL: $failure" }
     exit 1
@@ -62,6 +67,10 @@ if ($inconclusive.Count) {
     foreach ($reason in $inconclusive) { Write-Output "INCONCLUSIVE: $reason" }
     Write-Output 'NOT CERTIFIED: commit readiness cannot be certified until the target branch is resolvable or explicitly supplied.'
     exit 2
+}
+if ($skipped.Count) {
+    Write-Output 'PASS WITH SKIPS: the checks that ran passed; each SKIPPED check did not run and is not a pass.'
+    exit 0
 }
 Write-Output 'PASS: mechanical gate checks completed.'
 exit 0

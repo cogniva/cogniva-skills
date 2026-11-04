@@ -279,6 +279,12 @@ foreach ($entry in @(@('execute-feature', $ef), @('quick-fix', $qf), @('plan-fea
 }
 Check 'plan-feature: the worktree stop comes before the design work' ($pf.IndexOf('worktree mode currently requires Claude Code') -ge 0 -and $pf.IndexOf('worktree mode currently requires Claude Code') -lt $pf.IndexOf('## Gather first'))
 Check 'cleanup skills: the worktree stop sits right after the lean-mode check' ($cw.IndexOf('worktree mode currently requires Claude Code') -gt $cw.IndexOf('## Mode check') -and $cw.IndexOf('worktree mode currently requires Claude Code') -lt $cw.IndexOf('## Step 0') -and $ca.IndexOf('worktree mode currently requires Claude Code') -gt $ca.IndexOf('## Mode check') -and $ca.IndexOf('worktree mode currently requires Claude Code') -lt $ca.IndexOf('## Scope note'))
+# --- a skipped green gate is never a pass ---------------------------------------
+Check 'execute-feature: GREEN-GATE-RESULT: SKIPPED is not a pass' ((($ef -replace '\s+', ' ') -match '`GREEN-GATE-RESULT: SKIPPED` is not a pass') -and (($ef -replace '\s+', ' ') -match 'report it under Skipped validations'))
+Check 'execute-feature: the green gate is read by its last line' (($ef -replace '\s+', ' ') -match 'Read its LAST line, `GREEN-GATE-RESULT: GREEN\|SKIPPED\|RED\|ERROR`')
+Check 'quick-fix: GREEN-GATE-RESULT: SKIPPED is not a pass' (($qf -replace '\s+', ' ') -match '`GREEN-GATE-RESULT: SKIPPED` is not a pass . report it under Skipped validations')
+Check 'HANDOFF: a green gate that reported SKIPPED goes under Skipped validations' (($handoff -replace '\s+', ' ') -match '\*\*Skipped validations\*\* . anything not run, and why, including a green gate that reported SKIPPED')
+Check 'gate-check: SKIPPED is never reported as passed' (($gc -replace '\s+', ' ') -match 'SKIPPED: green gate not configured' -and ($gc -replace '\s+', ' ') -match 'never as passed')
 
 if ($failures.Count -gt 0) {
     Write-Host ""

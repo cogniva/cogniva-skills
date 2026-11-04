@@ -2,6 +2,14 @@
 #
 # This is the single implementation of green-gate command semantics. Consumers
 # include gate-check and the heavyweight lifecycle skills.
+#
+# The LAST line of stdout is always one result marker:
+#   GREEN-GATE-RESULT: GREEN    every command exited 0 (exit 0)
+#   GREEN-GATE-RESULT: SKIPPED  no config, or an empty 'commands' list (exit 0) -
+#                               the build/test gate did NOT run; never report it as a pass
+#   GREEN-GATE-RESULT: RED      a command failed (exit 1)
+#   GREEN-GATE-RESULT: ERROR    usage or config error (exit 2)
+# Windows PowerShell 5.1 compatible.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Repo,
@@ -9,13 +17,18 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-function Fail($Message) { [Console]::Error.WriteLine("green-gate: $Message"); exit 2 }
+function Fail($Message) {
+    [Console]::Error.WriteLine("green-gate: $Message")
+    Write-Output 'GREEN-GATE-RESULT: ERROR'
+    exit 2
+}
 
 if (-not (Test-Path -LiteralPath $Repo -PathType Container)) { Fail "repo not found: $Repo" }
 if (-not $ConfigPath) { $ConfigPath = Join-Path $Repo '.claude/cogniva-dev/green-gate.json' }
 
 if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
     Write-Output 'green-gate: no .claude/cogniva-dev/green-gate.json in this repo - skipping the build/test gate.'
+    Write-Output 'GREEN-GATE-RESULT: SKIPPED'
     exit 0
 }
 
@@ -26,6 +39,7 @@ if ($null -eq $config.commands) { Fail "config $ConfigPath has no 'commands' arr
 $commands = @($config.commands)
 if ($commands.Count -eq 0) {
     Write-Output "green-gate: 'commands' is empty - intentional no-gate."
+    Write-Output 'GREEN-GATE-RESULT: SKIPPED'
     exit 0
 }
 
@@ -49,6 +63,7 @@ try {
         if ($exitCode -ne 0) {
             Write-Output ""
             Write-Output "green-gate: RED - [$label] exited $exitCode. Do NOT integrate until this passes."
+            Write-Output 'GREEN-GATE-RESULT: RED'
             exit 1
         }
     }
@@ -57,4 +72,5 @@ finally { Pop-Location }
 
 Write-Output ""
 Write-Output "green-gate: GREEN - all $number command(s) exited 0."
+Write-Output 'GREEN-GATE-RESULT: GREEN'
 exit 0

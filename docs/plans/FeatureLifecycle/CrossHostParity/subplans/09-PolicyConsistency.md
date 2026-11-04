@@ -248,7 +248,7 @@ every exit-2 case the script itself reports); gate-check, when that marker is
 still exit 0. (A call without the mandatory `-Repo` fails in PowerShell's
 parameter binding before the script runs, so it prints no marker.)
 
-- [ ] **Step 1 (failing tests — green gate):** Replace the content of `plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1` with:
+- [x] **Step 1 (failing tests — green gate):** Replace the content of `plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1` with:
   ```powershell
   # Dependency-free tests for the single green-gate implementation.
   $ErrorActionPreference = 'Stop'
@@ -321,7 +321,7 @@ parameter binding before the script runs, so it prints no marker.)
   if ($failures.Count) { exit 1 }
   Write-Host 'All run-green-gate assertions passed.'
   ```
-- [ ] **Step 2 (failing tests — gate-check):** Replace the content of `plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1` with the version below. The existing pass case now runs in a fixture WITH a committed green-gate config (a fixture without one is the new skipped case):
+- [x] **Step 2 (failing tests — gate-check):** Replace the content of `plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1` with the version below. The existing pass case now runs in a fixture WITH a committed green-gate config (a fixture without one is the new skipped case):
   ```powershell
   # Dependency-free behavioral tests for workflow-neutral gate orchestration.
   $ErrorActionPreference = 'Stop'
@@ -398,7 +398,7 @@ parameter binding before the script runs, so it prints no marker.)
   if ($failures.Count) { exit 1 }
   Write-Host 'All run-gate-check assertions passed.'
   ```
-- [ ] **Step 3 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
+- [x] **Step 3 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
   ```powershell
   # --- a skipped green gate is never a pass ---------------------------------------
   Check 'execute-feature: GREEN-GATE-RESULT: SKIPPED is not a pass' ((($ef -replace '\s+', ' ') -match '`GREEN-GATE-RESULT: SKIPPED` is not a pass') -and (($ef -replace '\s+', ' ') -match 'report it under Skipped validations'))
@@ -407,8 +407,8 @@ parameter binding before the script runs, so it prints no marker.)
   Check 'HANDOFF: a green gate that reported SKIPPED goes under Skipped validations' (($handoff -replace '\s+', ' ') -match '\*\*Skipped validations\*\* . anything not run, and why, including a green gate that reported SKIPPED')
   Check 'gate-check: SKIPPED is never reported as passed' (($gc -replace '\s+', ' ') -match 'SKIPPED: green gate not configured' -and ($gc -replace '\s+', ' ') -match 'never as passed')
   ```
-- [ ] **Step 4 (run them, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1` → the seven `ends with GREEN-GATE-RESULT` / `ERROR` checks FAIL, exit 1. `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1` → `FAIL  an unconfigured green gate is reported as SKIPPED, not passed`, exit 1. `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → the five new checks FAIL, exit 1.
-- [ ] **Step 5 (implement run-green-gate.ps1):** Replace the content of `plugins/cogniva-dev/scripts/run-green-gate.ps1` with (every existing line kept; additions are the header comment, the marker lines and `Fail`'s marker):
+- [x] **Step 4 (run them, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1` → the seven `ends with GREEN-GATE-RESULT` / `ERROR` checks FAIL, exit 1. `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1` → `FAIL  an unconfigured green gate is reported as SKIPPED, not passed`, exit 1. `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → the five new checks FAIL, exit 1.
+- [x] **Step 5 (implement run-green-gate.ps1):** Replace the content of `plugins/cogniva-dev/scripts/run-green-gate.ps1` with (every existing line kept; additions are the header comment, the marker lines and `Fail`'s marker):
   ```powershell
   # Runs a repo's configured green gate: .claude/cogniva-dev/green-gate.json.
   #
@@ -487,7 +487,7 @@ parameter binding before the script runs, so it prints no marker.)
   Write-Output 'GREEN-GATE-RESULT: GREEN'
   exit 0
   ```
-- [ ] **Step 6 (implement run-gate-check.ps1):** In `plugins/cogniva-dev/scripts/run-gate-check.ps1`:
+- [x] **Step 6 (implement run-gate-check.ps1):** In `plugins/cogniva-dev/scripts/run-gate-check.ps1`:
   1. After the line `$inconclusive = @()` add the line `$skipped = @()`.
   2. Replace everything from the line `$green = Invoke-Native 'green gate' { …` to the end of the file with:
      ```powershell
@@ -516,7 +516,7 @@ parameter binding before the script runs, so it prints no marker.)
      exit 0
      ```
   Exit codes are unchanged (a skipped green gate still exits 0); only the final line differs.
-- [ ] **Step 7 (skill wording):**
+- [x] **Step 7 (skill wording):**
   1. `plugins/cogniva-dev/skills/execute-feature/SKILL.md`, Step 4 item 6 (**Green gate**): replace
      ```markdown
         Exit `0` is green or a legitimate skip (absent config or an empty command
@@ -554,8 +554,8 @@ parameter binding before the script runs, so it prints no marker.)
      `SKIPPED: green gate not configured` and ends with `PASS WITH SKIPS:`
      instead of `PASS:`. Report the build/test gate as skipped, never as passed.
      ```
-- [ ] **Step 8 (run until green):** the three suites from Step 4 → `All run-green-gate assertions passed.`, `All run-gate-check assertions passed.`, `All skill-semantics assertions passed.`; then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `GREEN-GATE-RESULT: GREEN`.
-- [ ] **Step 9 (commit):** `git add plugins/cogniva-dev/scripts/run-green-gate.ps1 plugins/cogniva-dev/scripts/run-gate-check.ps1 plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/quick-fix/SKILL.md plugins/cogniva-dev/skills/execute-feature/HANDOFF.md plugins/cogniva-dev/skills/gate-check/SKILL.md plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1 plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1 plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "feat(green-gate): GREEN-GATE-RESULT marker; a skipped gate is reported as skipped, never as a pass"`
+- [x] **Step 8 (run until green):** the three suites from Step 4 → `All run-green-gate assertions passed.`, `All run-gate-check assertions passed.`, `All skill-semantics assertions passed.`; then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `GREEN-GATE-RESULT: GREEN`.
+- [x] **Step 9 (commit):** `git add plugins/cogniva-dev/scripts/run-green-gate.ps1 plugins/cogniva-dev/scripts/run-gate-check.ps1 plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/quick-fix/SKILL.md plugins/cogniva-dev/skills/execute-feature/HANDOFF.md plugins/cogniva-dev/skills/gate-check/SKILL.md plugins/cogniva-dev/tests/run-green-gate/run-green-gate.tests.ps1 plugins/cogniva-dev/tests/run-gate-check/run-gate-check.tests.ps1 plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "feat(green-gate): GREEN-GATE-RESULT marker; a skipped gate is reported as skipped, never as a pass"`
 
 ## Task 4: Status skills see ephemeral plans
 

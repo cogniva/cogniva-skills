@@ -28,3 +28,7 @@ separate lifecycle authority for the human or external orchestrator to satisfy.
 If the target branch cannot be resolved, the result is `INCONCLUSIVE` / `NOT
 CERTIFIED`, even if the independent checks pass; supply the real integration
 target and rerun it.
+
+A repository with no green-gate config, or an empty command list, prints
+`SKIPPED: green gate not configured` and ends with `PASS WITH SKIPS:`
+instead of `PASS:`. Report the build/test gate as skipped, never as passed.

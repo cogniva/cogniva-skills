@@ -242,8 +242,12 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
 6. **Green gate** (mandatory, no shortcuts) — run the canonical shared
    implementation:
    `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/run-green-gate.ps1" -Repo "<WORKSPACE>"`.
-   Exit `0` is green or a legitimate skip (absent config or an empty command
-   list); exit `1` is red; exit `2` is a usage/config error. For either
+   Read its LAST line, `GREEN-GATE-RESULT: GREEN|SKIPPED|RED|ERROR`:
+   `GREEN` (exit `0`) passed. `SKIPPED` (exit `0`: absent config or an
+   empty command list) means the build/test gate did not run —
+   `GREEN-GATE-RESULT: SKIPPED` is not a pass — report it under Skipped
+   validations and never call the run green. `RED` (exit `1`) failed;
+   `ERROR` (exit `2`) is a usage/config error. For either
    non-zero result, report the output and STOP — under `commits=task` the
    checkpoint commits stay on `BRANCH`; under `final` NO commit is made and
    the work stays uncommitted in the tree.

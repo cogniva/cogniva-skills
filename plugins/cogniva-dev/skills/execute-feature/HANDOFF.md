@@ -33,7 +33,9 @@ what this format exists to prevent.
 - **Deviations & surprises** — where the work departed from the plan, and
   anything encountered that the plan did not anticipate.
 - **Checks run** — the exact commands, each with its outcome.
-- **Skipped validations** — anything not run, and why.
+- **Skipped validations** — anything not run, and why, including a green gate
+  that reported SKIPPED (`GREEN-GATE-RESULT: SKIPPED`: no config or an empty
+  command list).
 - **`git diff --check`** — the result (`clean`, or what it flagged and how
   it was resolved).
 - **Final tree status** — a summary of `git status --porcelain`; under
