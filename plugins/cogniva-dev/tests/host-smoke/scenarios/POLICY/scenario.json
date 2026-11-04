@@ -1,0 +1,19 @@
+{
+  "id": "POLICY",
+  "title": "execute-feature with a pasted plan on main: the branch policy stops it before anything is written",
+  "skill": "execute-feature",
+  "args": "commits=none",
+  "argsFile": "pasted-plan.md",
+  "worktreeMode": false,
+  "branch": "main",
+  "plan": null,
+  "expect": {
+    "commitsSinceStart": 0,
+    "branch": "main",
+    "unchangedPaths": ["src/Calc/Calc.ps1"],
+    "noNewFiles": true,
+    "gitInfoExcludeUnchanged": true,
+    "unrelatedPreserved": true,
+    "finalMessageContains": ["feature/"]
+  }
+}

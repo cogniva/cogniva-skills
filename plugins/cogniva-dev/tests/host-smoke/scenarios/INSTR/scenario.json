@@ -1,0 +1,17 @@
+{
+  "id": "INSTR",
+  "title": "instruction canary: the root and nested AGENTS.md rules reach the agent that writes the file",
+  "skill": "quick-fix",
+  "args": "\"Add a new script src/Calc/Divide.ps1 with a Get-Quotient function that divides its first argument by its second, and add a test for it\" commits=none",
+  "worktreeMode": false,
+  "branch": "feature/smoke",
+  "plan": null,
+  "expect": {
+    "commitsSinceStart": 0,
+    "branch": "feature/smoke",
+    "changedPaths": ["src/Calc/Divide.ps1"],
+    "fileStartsWith": { "src/Calc/Divide.ps1": "# canary-7\n# nested-canary-3" },
+    "unrelatedPreserved": true,
+    "handoffSections": true
+  }
+}

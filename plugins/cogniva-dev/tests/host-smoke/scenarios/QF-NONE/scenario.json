@@ -1,0 +1,17 @@
+{
+  "id": "QF-NONE",
+  "title": "quick-fix commits=none: the change stays uncommitted and the handoff is complete",
+  "skill": "quick-fix",
+  "args": "\"Make Add-Numbers accept an optional third number $c (default 0) and add a test for it\" commits=none",
+  "worktreeMode": false,
+  "branch": "feature/smoke",
+  "plan": null,
+  "expect": {
+    "commitsSinceStart": 0,
+    "branch": "feature/smoke",
+    "changedPaths": ["src/Calc/Calc.ps1", "tests/Calc.tests.ps1"],
+    "unrelatedPreserved": true,
+    "handoffSections": true,
+    "finalMessageContains": ["READY FOR REVIEW", "Integration: not performed"]
+  }
+}

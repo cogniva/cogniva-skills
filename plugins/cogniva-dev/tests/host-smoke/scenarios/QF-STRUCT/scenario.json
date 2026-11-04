@@ -1,0 +1,19 @@
+{
+  "id": "QF-STRUCT",
+  "title": "quick-fix: an expected ProjectReference is reported as an expected structural change",
+  "skill": "quick-fix",
+  "args": "\"Add a ProjectReference from src/A/A.csproj to src/B/B.csproj\" commits=none",
+  "worktreeMode": false,
+  "branch": "feature/smoke",
+  "plan": null,
+  "expect": {
+    "commitsSinceStart": 0,
+    "branch": "feature/smoke",
+    "changedPaths": ["src/A/A.csproj"],
+    "unchangedPaths": ["src/B/B.csproj"],
+    "unrelatedPreserved": true,
+    "handoffSections": true,
+    "finalMessageContains": ["STRUCTURE: FOUND"],
+    "finalMessageNotContains": ["dependency-added UNEXPECTED", "profile-changed UNEXPECTED"]
+  }
+}

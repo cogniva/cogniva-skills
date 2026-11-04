@@ -95,7 +95,7 @@ must end up in column 0). Write the files with LF line endings and UTF-8
 without a BOM (the repo's `.gitattributes` turns `*.ps1` into CRLF on
 checkout; that is fine).
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` with exactly:
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Dependency-free tests for the agent-host smoke harness: the scenario files,
@@ -227,8 +227,8 @@ checkout; that is fine).
   Write-Host 'All smoke-assertions assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → stops with an error and exit 1: the `scenarios` folder and the fixture generator do not exist yet.
-- [ ] **Step 3 (scenario files):** Create these files, each with exactly the content shown.
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → stops with an error and exit 1: the `scenarios` folder and the fixture generator do not exist yet.
+- [x] **Step 3 (scenario files):** Create these files, each with exactly the content shown.
   `plugins/cogniva-dev/tests/host-smoke/scenarios/QF-NONE/scenario.json`:
   ```json
   {
@@ -422,7 +422,7 @@ checkout; that is fine).
     }
   }
   ```
-- [ ] **Step 4 (seeded and pasted plans):** Create these files, each with exactly the content inside the four-backtick fence (the plans contain their own three-backtick fences; their task headings must start in column 0 of the written file).
+- [x] **Step 4 (seeded and pasted plans):** Create these files, each with exactly the content inside the four-backtick fence (the plans contain their own three-backtick fences; their task headings must start in column 0 of the written file).
   `plugins/cogniva-dev/tests/host-smoke/scenarios/EF-TWO/plan.md`:
   ````markdown
   # TwoTasks — Feature Plan
@@ -610,7 +610,7 @@ checkout; that is fine).
   - [ ] **Step 1:** Add the line `# policy-probe` at the end of `src/Calc/Calc.ps1`.
   - [ ] **Step 2 (commit):** `git add src/Calc/Calc.ps1` then `git commit -m "chore: policy probe"`
   ````
-- [ ] **Step 5 (implement the generator):** Create `plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1` with exactly:
+- [x] **Step 5 (implement the generator):** Create `plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Builds a throwaway git repository for one agent-host smoke scenario
@@ -760,8 +760,8 @@ checkout; that is fine).
   Write-Output "START: $start"
   exit 0
   ```
-- [ ] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0. If the QF-STRUCT checks fail, run `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` first: the fixture relies on the shipped `dotnet` profile mapping `dependency-added` to standards it has.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/scenarios plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): smoke scenarios and fixture generator"`
+- [x] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0. If the QF-STRUCT checks fail, run `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` first: the fixture relies on the shipped `dotnet` profile mapping `dependency-added` to standards it has.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/scenarios plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): smoke scenarios and fixture generator"`
 
 ## Task 2: Outcome assertions, gated
 

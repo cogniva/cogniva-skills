@@ -1,0 +1,17 @@
+{
+  "id": "QF-FINAL",
+  "title": "quick-fix commits=final: exactly one commit, unrelated work left out of it",
+  "skill": "quick-fix",
+  "args": "\"Make Add-Numbers accept an optional third number $c (default 0) and add a test for it\" commits=final",
+  "worktreeMode": false,
+  "branch": "feature/smoke",
+  "plan": null,
+  "expect": {
+    "commitsSinceStart": 1,
+    "branch": "feature/smoke",
+    "changedPaths": ["src/Calc/Calc.ps1", "tests/Calc.tests.ps1"],
+    "unrelatedPreserved": true,
+    "handoffSections": true,
+    "finalMessageContains": ["READY FOR REVIEW"]
+  }
+}
