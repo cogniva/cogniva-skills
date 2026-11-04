@@ -79,8 +79,8 @@ files as UTF-8 without a BOM, LF line endings. Codex documents its
 `*** End Patch`), paths relative to the payload's `cwd`; Codex reports shell
 calls as `tool_name: "Bash"` with `tool_input.command`.
 
-- [ ] **Step 1 (read the captured payload):** Open `plugins/cogniva-dev/tests/hooks/fixtures/codex-apply-patch.captured.json` and find where the patch text sits. The adapter below reads it from `tool_input.command`, `tool_input.input` or `tool_input.patch` (a string, or a string element of an array), or from `tool_input` itself when that is a string. If the fixture puts the patch text in any OTHER field of `tool_input`, add that field's name to the `PATCH_FIELDS` array in Step 4 and add one test line for it in Step 2, copying the `tool_input.input` test with the field name changed. If the fixture carries `"_source": "documented, not captured"`, it is the documented shape; use it as is.
-- [ ] **Step 2 (failing tests):** Create `plugins/cogniva-dev/tests/hooks/hook-input.test.mjs`:
+- [x] **Step 1 (read the captured payload):** Open `plugins/cogniva-dev/tests/hooks/fixtures/codex-apply-patch.captured.json` and find where the patch text sits. The adapter below reads it from `tool_input.command`, `tool_input.input` or `tool_input.patch` (a string, or a string element of an array), or from `tool_input` itself when that is a string. If the fixture puts the patch text in any OTHER field of `tool_input`, add that field's name to the `PATCH_FIELDS` array in Step 4 and add one test line for it in Step 2, copying the `tool_input.input` test with the field name changed. If the fixture carries `"_source": "documented, not captured"`, it is the documented shape; use it as is.
+- [x] **Step 2 (failing tests):** Create `plugins/cogniva-dev/tests/hooks/hook-input.test.mjs`:
   ```js
   // Unit tests for scripts/hook-input.js (no dependencies; PASS/FAIL lines,
   // exit 1 on any failure). Run through hook-input.tests.ps1 in the green gate.
@@ -195,8 +195,8 @@ calls as `tool_name: "Bash"` with `tool_input.command`.
   Write-Host 'All hook-input assertions passed.'
   exit 0
   ```
-- [ ] **Step 3 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → node fails with `Cannot find module` for `scripts/hook-input.js`, then `FAILED: hook-input assertions (see FAIL lines above).`, exit 1.
-- [ ] **Step 4 (implement):** Create `plugins/cogniva-dev/scripts/hook-input.js` (keep `\uFEFF` as the six-character escape, not a literal BOM character):
+- [x] **Step 3 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → node fails with `Cannot find module` for `scripts/hook-input.js`, then `FAILED: hook-input assertions (see FAIL lines above).`, exit 1.
+- [x] **Step 4 (implement):** Create `plugins/cogniva-dev/scripts/hook-input.js` (keep `\uFEFF` as the six-character escape, not a literal BOM character):
   ```js
   // Shared hook-input adapter for the cogniva-dev hooks: ONE place that knows
   // how each agent host describes a tool call, so every hook reads Claude Code
@@ -283,13 +283,13 @@ calls as `tool_name: "Bash"` with `tool_input.command`.
 
   module.exports = { readHookInput, editedPaths, shellCommand };
   ```
-- [ ] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of `commands` (the `task-contract` entry) and append as the new last entry:
+- [x] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of `commands` (the `task-contract` entry) and append as the new last entry:
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1", "label": "hook-input", "note": "Pins the hook input adapter: Claude Code file_path/notebook_path, every path of a Codex apply_patch (multi-file, move, CRLF, captured payload), shell commands, garbage input; needs PowerShell 7 and node." }
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → `OK   .claude/cogniva-dev/green-gate.json`.
-- [ ] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → every line PASS, `All hook-input assertions passed.`, exit 0.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/hook-input.js plugins/cogniva-dev/tests/hooks/hook-input.test.mjs plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(hooks): hook-input.js reads Claude Code and Codex apply_patch payloads"`
+- [x] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → every line PASS, `All hook-input assertions passed.`, exit 0.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/hook-input.js plugins/cogniva-dev/tests/hooks/hook-input.test.mjs plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(hooks): hook-input.js reads Claude Code and Codex apply_patch payloads"`
 
 ## Task 2: Hooks on the adapter; Codex gaps flipped to deny/nudge
 
