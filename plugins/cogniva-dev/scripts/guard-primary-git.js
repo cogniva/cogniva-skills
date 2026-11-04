@@ -34,11 +34,19 @@ catch (e) { worktreesOn = () => false; }
 // Plain `git branch` (list) and read flags (-a/-v/...) are NOT matched.
 const SWITCH_RE = /\bgit(\s+-C\s+\S+)?\s+(switch\b|checkout\b|branch\s+(--(delete|force|move|copy)\b|-[dDmMcCf]\b|[^-\s]))/;
 
+// Payload parsing is shared (scripts/hook-input.js): shellCommand() reads a
+// Claude Code or Codex Bash call's command (string, or array joined with
+// spaces) and never returns apply_patch text. A missing/broken lib => allow.
+let hookInput;
+try { hookInput = require(path.join(__dirname, 'hook-input.js')); }
+catch (e) { hookInput = null; }
+
 let raw = '';
 process.stdin.on('data', d => (raw += d)).on('end', () => {
   try {
-    const input = JSON.parse(raw || '{}');
-    const cmd = (input.tool_input || {}).command || '';
+    if (!hookInput) return allow();
+    const input = hookInput.readHookInput(raw);
+    const cmd = hookInput.shellCommand(input);
     if (!SWITCH_RE.test(cmd)) return allow();
 
     // Resolve the repo the command targets: an explicit `git -C <path>`, else the hook cwd.
