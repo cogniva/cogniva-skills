@@ -2,7 +2,7 @@
 
 Read this ONLY when the Workflow tool is absent from this session (Codex or
 any other non-Claude host). For `execute-feature` it replaces `SKILL.md`
-Step 3 and nothing else — Steps 0a, 0b, 1, 2 and 4 apply exactly as written
+Step 3 and nothing else — Steps 0, 0a, 0b, 1, 2 and 4 apply exactly as written
 (subject to `## Repository CLAUDE.md under Codex` below). It is ALSO the
 sequential backend `quick-fix` uses in place of that skill's Step 1:
 quick-fix synthesizes one or more PLANLESS tasks — no `planPath`, no

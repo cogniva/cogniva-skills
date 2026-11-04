@@ -258,6 +258,18 @@ Check 'CODEX.md: under commits=task the worker ticked before committing; the exe
 Check 'CODEX.md: structured followups feed the backlog gate' ($codexFlat -match '`followups` arrive structured' -and $codexFlat -match 'backlog gate')
 Check 'CODEX.md no longer parses a textual first line' ($codex -notmatch 'first line of exactly' -and $codex -notmatch 'Parse the subagent''s first line')
 Check 'docs/codex.md: the Codex backend uses the shared JSON result contract' ($docs -match 'task-result\.schema\.json' -and $docs -match 'new-task-prompt\.ps1' -and $docs -notmatch 'textual `DONE` / `BLOCKED` result contract')
+# --- branch policy before any write --------------------------------------------
+$efFlat = $ef -replace '\s+', ' '
+$iPolicy = $ef.IndexOf('Branch policy')
+$iStep0a = $ef.IndexOf('## Step 0a')
+Check 'execute-feature checks the branch policy before Step 0a' ($iPolicy -ge 0 -and $iStep0a -gt $iPolicy -and $ef -match '## Step 0 . branch policy \(before anything else\)')
+Check 'execute-feature: the policy check precedes every write, .git/info/exclude and commit' ($efFlat -match 'BEFORE writing, appending to `\.git/info/exclude`, or committing anything \(Step 0a included\)')
+Check 'execute-feature: Step 0b no longer carries the policy paragraph' ($ef.IndexOf('Branch policy') -eq $ef.LastIndexOf('Branch policy'))
+$iPfPolicy = $pf.IndexOf('**Branch policy (lean mode only)')
+$iPfEmit = $pf.IndexOf('## Emit the plan')
+Check 'plan-feature checks the branch policy before it emits the plan' ($iPfPolicy -ge 0 -and $iPfEmit -gt $iPfPolicy -and $pf -match 'requiredDevelopmentBranchPrefix')
+Check 'plan-feature never creates or switches a branch for the policy' (($pf -replace '\s+', ' ') -match 'NEVER create or switch a branch to satisfy the policy')
+Check 'CODEX.md: execute-feature Step 0 applies under Codex too' ($codex -match 'Steps 0, 0a, 0b, 1, 2 and 4')
 if ($failures.Count -gt 0) {
     Write-Host ""
     Write-Host "FAILED: $($failures.Count) assertion(s)."

@@ -83,7 +83,7 @@ commits it under `commits=final`. The skill-semantics suite runs under Windows
 PowerShell 5.1 and reads the test file as ANSI: every string or regex you add
 to it must be ASCII-only.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, immediately BEFORE the line `if ($failures.Count -gt 0) {`, add:
   ```powershell
   # --- branch policy before any write --------------------------------------------
   $efFlat = $ef -replace '\s+', ' '
@@ -98,8 +98,8 @@ to it must be ASCII-only.
   Check 'plan-feature never creates or switches a branch for the policy' (($pf -replace '\s+', ' ') -match 'NEVER create or switch a branch to satisfy the policy')
   Check 'CODEX.md: execute-feature Step 0 applies under Codex too' ($codex -match 'Steps 0, 0a, 0b, 1, 2 and 4')
   ```
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL` on all six new checks except `Step 0b no longer carries the policy paragraph` (it passes today, because the paragraph exists once); `FAILED: 5 assertion(s).`, exit 1.
-- [ ] **Step 3 (execute-feature):** In `plugins/cogniva-dev/skills/execute-feature/SKILL.md`:
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `FAIL` on all six new checks except `Step 0b no longer carries the policy paragraph` (it passes today, because the paragraph exists once); `FAILED: 5 assertion(s).`, exit 1.
+- [x] **Step 3 (execute-feature):** In `plugins/cogniva-dev/skills/execute-feature/SKILL.md`:
   1. Delete this paragraph from `## Step 0b — workspace` (and the blank line before it), leaving Step 0b's first paragraph — `WORKSPACE` = the repo root … get an OK before dispatching … ⟦worktree⟧ — exactly as it is:
      ```markdown
      **Branch policy (lean mode only).** BEFORE mutating anything, read
@@ -127,8 +127,8 @@ to it must be ASCII-only.
      mode needs no check: its generated branches are `feature/<slug>` by
      construction.
      ```
-- [ ] **Step 4 (CODEX.md):** In `plugins/cogniva-dev/skills/execute-feature/CODEX.md`, replace `Steps 0a, 0b, 1, 2 and 4 apply exactly as written` with `Steps 0, 0a, 0b, 1, 2 and 4 apply exactly as written`.
-- [ ] **Step 5 (plan-feature):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, insert this paragraph immediately BEFORE the line `## Emit the plan` (one blank line before and after it):
+- [x] **Step 4 (CODEX.md):** In `plugins/cogniva-dev/skills/execute-feature/CODEX.md`, replace `Steps 0a, 0b, 1, 2 and 4 apply exactly as written` with `Steps 0, 0a, 0b, 1, 2 and 4 apply exactly as written`.
+- [x] **Step 5 (plan-feature):** In `plugins/cogniva-dev/skills/plan-feature/SKILL.md`, insert this paragraph immediately BEFORE the line `## Emit the plan` (one blank line before and after it):
   ```markdown
   **Branch policy (lean mode only) — before you write anything.** BEFORE
   writing the plan folder, ticking a backlog line, or committing anything,
@@ -142,8 +142,8 @@ to it must be ASCII-only.
   such key → no policy, no behaviour change. Worktree mode needs no check: its
   generated branches are `feature/<slug>` by construction.
   ```
-- [ ] **Step 6 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/execute-feature/CODEX.md plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "fix(lifecycle): check the branch policy before execute-feature or plan-feature writes anything"`
+- [x] **Step 6 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/SKILL.md plugins/cogniva-dev/skills/execute-feature/CODEX.md plugins/cogniva-dev/skills/plan-feature/SKILL.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` then `git commit -m "fix(lifecycle): check the branch policy before execute-feature or plan-feature writes anything"`
 
 ## Task 2: Worktree mode stops without the Workflow tool at every entry point
 
