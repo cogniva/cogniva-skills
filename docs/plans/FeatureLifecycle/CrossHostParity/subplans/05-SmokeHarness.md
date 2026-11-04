@@ -1191,7 +1191,7 @@ prompt from stdin when given `-`. Real runs cost model tokens and are NOT
 gated; only `-DryRun` is tested. Code below is indented two spaces to sit
 inside its step; write it without that indent.
 
-- [ ] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1`, insert this block, followed by one blank line, immediately above the line `    # --- sections appended by later tasks go above this line ---`:
+- [x] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1`, insert this block, followed by one blank line, immediately above the line `    # --- sections appended by later tasks go above this line ---`:
   ```powershell
       # --- driver -DryRun --------------------------------------------------------
       $dryRoot = Join-Path $root 'dry'
@@ -1211,8 +1211,8 @@ inside its step; write it without that indent.
       Check 'DryRun all: nine scenarios plus the EF-GATE re-run' ($d.Code -eq 0 -and ([regex]::Matches($d.Out, '(?m)^SCENARIO: ')).Count -eq 10 -and $d.Out.Contains('SCENARIO: EF-GATE (resume)'))
       Check 'an unknown scenario is a usage error (exit 2)' ((Invoke-Pwsh $driver @('-AgentHost', 'codex', '-Scenario', 'NOPE', '-DryRun')).Code -eq 2)
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → the earlier checks `PASS`; the `DryRun` checks `FAIL` (the driver does not exist yet), except `DryRun: builds no fixture and runs nothing`; exit 1.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1` with exactly:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → the earlier checks `PASS`; the `DryRun` checks `FAIL` (the driver does not exist yet), except `DryRun: builds no fixture and runs nothing`; exit 1.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Runs agent-host smoke scenarios headless on Claude Code or Codex, checks each
@@ -1490,9 +1490,9 @@ inside its step; write it without that indent.
   if (@($summary | Where-Object { $_.Result -ne 'pass' }).Count) { exit 1 }
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0.
-- [ ] **Step 5 (look at a real rendering):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 -AgentHost codex -Scenario QF-NONE -DryRun` → a `COMMAND:` line naming `...\openai.chatgpt-<newest version>-win32-x64\bin\windows-x86_64\codex.exe exec --json --sandbox workspace-write -C ...` (or `<codex.exe not found - pass -CodexExe>` on a machine without the extension) and a `PROMPT:` block starting `$quick-fix "Make Add-Numbers`. Do NOT run without `-DryRun` in this task.
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): headless Claude Code and Codex smoke driver with smoke records"`
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0.
+- [x] **Step 5 (look at a real rendering):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 -AgentHost codex -Scenario QF-NONE -DryRun` → a `COMMAND:` line naming `...\openai.chatgpt-<newest version>-win32-x64\bin\windows-x86_64\codex.exe exec --json --sandbox workspace-write -C ...` (or `<codex.exe not found - pass -CodexExe>` on a machine without the extension) and a `PROMPT:` block starting `$quick-fix "Make Add-Numbers`. Do NOT run without `-DryRun` in this task.
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): headless Claude Code and Codex smoke driver with smoke records"`
 
 ## Task 4: Workflow-template harness, gated
 

@@ -276,6 +276,24 @@ try {
     $full = Invoke-Pwsh $assert @('-Fixture', $sim, '-Scenario', 'QF-NONE', '-FinalMessage', (Join-Path $sim '.smoke\final.txt'))
     Check 'a simulated QF-NONE run passes every key' ($full.Code -eq 0 -and $full.Out.Contains('SMOKE QF-NONE: PASS') -and -not $full.Out.Contains('FAIL '))
 
+    # --- driver -DryRun --------------------------------------------------------
+    $dryRoot = Join-Path $root 'dry'
+    $d = Invoke-Pwsh $driver @('-AgentHost', 'claude-code', '-Scenario', 'QF-NONE', '-DryRun', '-FixtureRoot', $dryRoot)
+    Check 'DryRun claude-code: renders the plugin-qualified invocation with the flags' ($d.Code -eq 0 -and $d.Out.Contains('/cogniva-dev:quick-fix "Make Add-Numbers accept an optional third number $c (default 0) and add a test for it" commits=none'))
+    Check 'DryRun claude-code: prints the headless command, prompt on stdin' ($d.Out.Contains('-p --output-format stream-json --verbose --permission-mode bypassPermissions') -and $d.Out.Contains('(prompt on stdin'))
+    Check 'DryRun: builds no fixture and runs nothing' (-not (Test-Path -LiteralPath (Join-Path $dryRoot 'QF-NONE')))
+    $d = Invoke-Pwsh $driver @('-AgentHost', 'claude-code', '-Scenario', 'QF-NONE', '-DryRun', '-FixtureRoot', $dryRoot, '-PluginDir', $plugin)
+    Check 'DryRun claude-code -PluginDir: loads the checkout plugin, user settings off' ($d.Code -eq 0 -and $d.Out.Contains("--plugin-dir $plugin --setting-sources project,local"))
+    $d = Invoke-Pwsh $driver @('-AgentHost', 'codex', '-Scenario', 'QF-NONE', '-DryRun', '-FixtureRoot', $dryRoot, '-CodexExe', 'C:\nowhere\codex.exe')
+    Check 'DryRun codex: renders the $skill invocation and the exec command' ($d.Code -eq 0 -and $d.Out.Contains('$quick-fix "Make Add-Numbers') -and $d.Out.Contains('C:\nowhere\codex.exe exec --json --sandbox workspace-write -C ') -and $d.Out.Contains('--output-last-message '))
+    $d = Invoke-Pwsh $driver @('-AgentHost', 'claude-code', '-Scenario', 'POLICY', '-DryRun', '-FixtureRoot', $dryRoot)
+    Check 'DryRun POLICY: the pasted plan follows the flags on the next line' ($d.Code -eq 0 -and $d.Out.Contains("/cogniva-dev:execute-feature commits=none`n# PolicyProbe"))
+    $d = Invoke-Pwsh $driver @('-AgentHost', 'codex', '-Scenario', 'HOOKS', '-DryRun', '-FixtureRoot', $dryRoot, '-CodexExe', 'C:\nowhere\codex.exe')
+    Check 'DryRun HOOKS: a plain prompt, no skill prefix' ($d.Code -eq 0 -and $d.Out.Contains("PROMPT:`nFirst run the shell command"))
+    $d = Invoke-Pwsh $driver @('-AgentHost', 'claude-code', '-Scenario', 'all', '-DryRun', '-FixtureRoot', $dryRoot)
+    Check 'DryRun all: nine scenarios plus the EF-GATE re-run' ($d.Code -eq 0 -and ([regex]::Matches($d.Out, '(?m)^SCENARIO: ')).Count -eq 10 -and $d.Out.Contains('SCENARIO: EF-GATE (resume)'))
+    Check 'an unknown scenario is a usage error (exit 2)' ((Invoke-Pwsh $driver @('-AgentHost', 'codex', '-Scenario', 'NOPE', '-DryRun')).Code -eq 2)
+
     # --- sections appended by later tasks go above this line ---
 }
 finally {
