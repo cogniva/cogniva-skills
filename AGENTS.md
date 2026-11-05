@@ -8,7 +8,7 @@ This repo is **cogniva** — Cogniva's plugin marketplace for Claude Code and Op
 - `plugins/cogniva-skills/` — general-purpose skills for any project, plus the plugin template for new skills (`plugin-template/`)
   - Skills: `glossary` (terminology), `project-context` (business context), `project-requirement` (requirements tracking), `reference` (bibliography)
 - `plugins/cogniva-dev/` — development-specific skills, the architecture-profile library (`profiles/`), scripts, hooks, and repo scaffolding templates
-  - Skills: `add-module`, `adr`, `applicable-rules`, `backlog`, `cleanup-allwork`, `cleanup-work`, `easy-work-scan`, `execute-feature`, `explore-idea`, `feature-check`, `feature-status`, `gate-check`, `groom-backlog`, `module-deps`, `module-status`, `plan-feature`, `quick-fix`, `repo-init`, `repo-status`, `workflow-status`
+  - Skills: `add-module`, `adr`, `applicable-rules`, `backlog`, `cleanup-allwork`, `cleanup-work`, `easy-work-scan`, `execute-feature`, `explore-idea`, `feature-check`, `feature-status`, `gate-check`, `groom-backlog`, `investigate`, `module-deps`, `module-status`, `plan-feature`, `quick-fix`, `repo-init`, `repo-status`, `workflow-status`
 - Roster format: each plugin's `Skills:` sub-bullet is ONE line that names every directory under that plugin's `skills/` in backticks. The green gate's `instruction-governance` suite fails when the line and the disk disagree, so add or remove a skill here in the same change.
 - `docs/glossary/README.md` — canonical glossary; use its terms and link them, e.g. [Module](docs/glossary/README.md#module)
 - `docs/strategy.md` — conventions + tooling decisions

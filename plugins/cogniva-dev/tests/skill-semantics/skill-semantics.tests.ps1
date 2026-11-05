@@ -216,7 +216,7 @@ Check 'worktree quick-fix snapshots after any staleness merge' ($wtQfFlat -match
 Check 'Codex parity: both backends send the same prompt, task body verbatim inside it' ($codexFlat -match '`body` VERBATIM' -and $codexFlat -match 'new-task-prompt\.ps1' -and $codexFlat -match 'stdout as its prompt VERBATIM' -and $tpl -match 't\.body')
 Check 'Codex parity: quick-fix landing under Codex includes the structural check' ($codexFlat -match 'quick-fix also runs its structural check')
 # --- explicit-only invocation metadata (both agent hosts) ----------------------
-$explicitOnly = @('explore-idea', 'cleanup-work', 'cleanup-allwork', 'repo-init', 'add-module')
+$explicitOnly = @('explore-idea', 'cleanup-work', 'cleanup-allwork', 'repo-init', 'add-module', 'investigate')
 foreach ($name in $explicitOnly) {
     $skillText = ReadDoc "skills\$name\SKILL.md"
     $yamlPath = Join-Path $plugin "skills\$name\agents\openai.yaml"
