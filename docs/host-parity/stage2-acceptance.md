@@ -10,6 +10,7 @@ final messages they reference: `met`, or `not met — <why>`.
 - 2026-11-05-codex-cli — Codex, CLI: 2 pass, 7 fail, 0 not-run
 - 2026-11-05-codex-cli-2 — Codex, CLI: 1 pass, 0 fail, 0 not-run (HOOKS, cogniva-dev 0.10.1)
 - 2026-11-05-codex-cli-3 — Codex, CLI: 8 pass, 1 fail, 0 not-run (cogniva-dev 0.10.2, automatic approval review)
+- 2026-11-05-codex-cli-4 — Codex, CLI: 1 pass, 0 fail, 0 not-run (HOOKS after fresh review, cogniva-dev 0.10.2)
 
 ## Evidence table
 
@@ -26,9 +27,10 @@ final messages they reference: `met`, or `not met — <why>`.
 
 ## Status changes made from smoke evidence
 
+- primary-edit-guard — Codex: scripts-tested → verified (smoke:2026-11-05-codex-cli-4; CLI only)
 - skipped 2026-11-05-claude-code-cli: failing QF-STRUCT
 - skipped 2026-11-05-codex-cli: failing QF-NONE, QF-FINAL, EF-TWO, EF-GATE, QF-STRUCT, HOOKS, INSTR
-- skipped 2026-11-05-codex-cli-3: failing HOOKS; fresh review of the updated plugin hooks is pending
+- skipped 2026-11-05-codex-cli-3: failing HOOKS before fresh hook review; the later 2026-11-05-codex-cli-4 retest passes
 
 ## Stage 3 inputs
 
@@ -68,5 +70,5 @@ final messages they reference: `met`, or `not met — <why>`.
 
 ## Notes
 
-- The 0.10.2 rerun passed every former Git and parser failure, plus the separate EF-GATE resume assertion. Its HOOKS scenario allowed the edit after installation. A baseline control without automatic approval review also allowed the edit; the installed guard returned a JSON deny decision when invoked directly. The hooks feature remains enabled, and fresh hook review was requested before another enforcement retest. The earlier 0.10.1 hook pass is retained as history; it does not establish enforcement for the updated installation.
+- The 0.10.2 matrix passed eight scenarios and the separate EF-GATE resume assertion. Its initial HOOKS run allowed the edit after installation. A baseline control without automatic approval review also allowed it; the installed guard returned a JSON deny decision when invoked directly. After the user reviewed the 0.10.2 hooks, a fresh CLI retest was blocked by PreToolUse and passed every assertion. All nine scenarios therefore have passing 0.10.2 results across the matrix and hook retest; the historical failed row remains intact. Only the hook capability is promoted from its separate passing record, because the original matrix record still contains a failure. The manual acceptance cells and VS Code checks remain open.
 - Bumping cogniva-dev's minor version at this gate makes the CLI records above one minor version older than `plugin.json`; `check-host-parity.ps1` then prints `WARN stale evidence` for them. That is a warning by design (they were taken from this branch before the bump), not a failure.
