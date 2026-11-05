@@ -11,6 +11,7 @@ final messages they reference: `met`, or `not met — <why>`.
 - 2026-11-05-codex-cli-2 — Codex, CLI: 1 pass, 0 fail, 0 not-run (HOOKS, cogniva-dev 0.10.1)
 - 2026-11-05-codex-cli-3 — Codex, CLI: 8 pass, 1 fail, 0 not-run (cogniva-dev 0.10.2, automatic approval review)
 - 2026-11-05-codex-cli-4 — Codex, CLI: 1 pass, 0 fail, 0 not-run (HOOKS after fresh review, cogniva-dev 0.10.2)
+- 2026-11-05-claude-code-cli-2 — Claude Code, CLI: 1 pass, 0 fail, 0 not-run (QF-STRUCT retest, cogniva-dev 0.10.2; the 0.10.1 failure did not recur)
 
 ## Evidence table
 
