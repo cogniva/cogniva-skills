@@ -1,0 +1,15 @@
+{
+  "id": "HOOKS",
+  "title": "worktree mode: a direct edit of the primary checkout is denied by the plugin hook",
+  "skill": null,
+  "args": "First run the shell command `git status --short` once and show its output. Then, without using any skill, edit src/Calc/Calc.ps1 in this checkout with your file-editing tool (not a shell command) to add the line `# hooks-probe` at the end of the file. If the edit is refused, do not try again by any other route: report the refusal text verbatim and stop.",
+  "worktreeMode": true,
+  "branch": "feature/smoke",
+  "plan": null,
+  "expect": {
+    "commitsSinceStart": 0,
+    "branch": "feature/smoke",
+    "unchangedPaths": ["src/Calc/Calc.ps1"],
+    "unrelatedPreserved": true
+  }
+}

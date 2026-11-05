@@ -1,0 +1,18 @@
+{
+  "id": "EF-TWO",
+  "title": "execute-feature commits=task: two tasks, two commits, both ticked",
+  "skill": "execute-feature",
+  "args": "Smoke/TwoTasks commits=task plan=persisted",
+  "worktreeMode": false,
+  "branch": "feature/smoke",
+  "plan": "docs/plans/Smoke/TwoTasks/TwoTasks-plan.md",
+  "expect": {
+    "commitsSinceStart": 2,
+    "branch": "feature/smoke",
+    "changedPaths": ["src/Calc/Calc.ps1", "tests/Calc.tests.ps1"],
+    "planTicked": { "path": "docs/plans/Smoke/TwoTasks/TwoTasks-plan.md", "tasks": [1, 2] },
+    "unrelatedPreserved": true,
+    "handoffSections": true,
+    "finalMessageContains": ["READY FOR REVIEW"]
+  }
+}

@@ -74,6 +74,20 @@ is durable — it never authorizes a commit on its own.
   there — integration is a fast-forward of commits; reject the combination
   with one clear line and stop, never silently ignore it.
 
+## Step 0 — branch policy (before anything else)
+
+**Branch policy (lean mode only).** BEFORE writing, appending to
+`.git/info/exclude`, or committing anything (Step 0a included), read
+`.claude/cogniva-dev/policy.json`. If it exists and carries
+`requiredDevelopmentBranchPrefix`, the current branch (`git branch
+--show-current`; it becomes `BRANCH` in Step 0b) must start with that
+prefix. Mismatch → STOP with one clear line naming the current branch and
+the required prefix; NEVER create or switch a branch to satisfy the policy
+— which branch to work on is the user's call, not yours. Absent or
+unreadable file, or no such key → no policy, no behaviour change. Worktree
+mode needs no check: its generated branches are `feature/<slug>` by
+construction.
+
 ## Step 0a — resolve the argument: plan reference OR pasted plan text
 
 The argument is one of two things. Decide by SHAPE, before anything else:
@@ -110,15 +124,6 @@ the `planPath` each agent ticks — a file to point at. ⟦worktree⟧
 it); `START` = `git rev-parse HEAD`. If `git status --porcelain` is
 non-empty, show the user what is dirty and get an OK before dispatching —
 the run's commits will land next to their uncommitted work. ⟦worktree⟧
-
-**Branch policy (lean mode only).** BEFORE mutating anything, read
-`.claude/cogniva-dev/policy.json`. If it exists and carries
-`requiredDevelopmentBranchPrefix`, `BRANCH` must start with that prefix.
-Mismatch → STOP with one clear line naming the current branch and the
-required prefix; NEVER create or switch a branch to satisfy the policy —
-which branch to work on is the user's call, not yours. Absent or unreadable
-file, or no such key → no policy, no behaviour change. Worktree mode needs
-no check: its generated branches are `feature/<slug>` by construction.
 
 ## Step 1 — normalize the plan to the task format
 
@@ -237,8 +242,12 @@ backlog gate; STOP. The user resolves it and re-runs this skill to continue.
 6. **Green gate** (mandatory, no shortcuts) — run the canonical shared
    implementation:
    `powershell -NoProfile -ExecutionPolicy Bypass -File "<plugin>/scripts/run-green-gate.ps1" -Repo "<WORKSPACE>"`.
-   Exit `0` is green or a legitimate skip (absent config or an empty command
-   list); exit `1` is red; exit `2` is a usage/config error. For either
+   Read its LAST line, `GREEN-GATE-RESULT: GREEN|SKIPPED|RED|ERROR`:
+   `GREEN` (exit `0`) passed. `SKIPPED` (exit `0`: absent config or an
+   empty command list) means the build/test gate did not run —
+   `GREEN-GATE-RESULT: SKIPPED` is not a pass — report it under Skipped
+   validations and never call the run green. `RED` (exit `1`) failed;
+   `ERROR` (exit `2`) is a usage/config error. For either
    non-zero result, report the output and STOP — under `commits=task` the
    checkpoint commits stay on `BRANCH`; under `final` NO commit is made and
    the work stays uncommitted in the tree.

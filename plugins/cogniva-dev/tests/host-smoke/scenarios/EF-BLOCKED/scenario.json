@@ -1,0 +1,18 @@
+{
+  "id": "EF-BLOCKED",
+  "title": "execute-feature: a blocked first task stops the run with nothing changed",
+  "skill": "execute-feature",
+  "args": "Smoke/Blocked commits=task plan=persisted",
+  "worktreeMode": false,
+  "branch": "feature/smoke",
+  "plan": "docs/plans/Smoke/Blocked/Blocked-plan.md",
+  "expect": {
+    "commitsSinceStart": 0,
+    "branch": "feature/smoke",
+    "unchangedPaths": ["src/Calc/Calc.ps1", "tests/Calc.tests.ps1"],
+    "planUnticked": { "path": "docs/plans/Smoke/Blocked/Blocked-plan.md", "tasks": [1, 2] },
+    "noNewFiles": true,
+    "unrelatedPreserved": true,
+    "finalMessageContains": ["BLOCKED"]
+  }
+}

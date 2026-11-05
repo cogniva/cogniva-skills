@@ -152,8 +152,9 @@ substantive gate — see `../execute-feature/CODEX.md`) → STRUCTURAL CHECK
 → `git diff --check` (whitespace errors or conflict markers → fix them,
 respecting the commit policy, and re-run until clean; record the result)
 → GREEN GATE (`powershell -NoProfile -ExecutionPolicy Bypass -File
-"<plugin>/scripts/run-green-gate.ps1" -Repo "<WORKSPACE>"`; exit 0 = green or
-legitimate skip, 1 = red, 2 = config error) → under `commits=final`, NOW the single implementation commit —
+"<plugin>/scripts/run-green-gate.ps1" -Repo "<WORKSPACE>"`; read its last
+line: `GREEN-GATE-RESULT: GREEN` passed; `GREEN-GATE-RESULT: SKIPPED` is not a pass — report it under Skipped validations;
+`RED` (exit 1) or `ERROR` (exit 2) stops landing) → under `commits=final`, NOW the single implementation commit —
 exactly one, only after the green gate; a git failure → `BLOCKED`, no
 retries → done ⟦worktree⟧. `commits=` stays the sole commit authority
 through every one of these steps, exactly as execute-feature defines it.

@@ -24,6 +24,11 @@ If the target repo's `.claude/cogniva-dev.local.json` is absent or its
 ledger-tracked worktrees to clean (in lean mode, branch hygiene stays with
 you)." and STOP.
 
+**Host dispatch (check second):** if the Workflow tool is not available in
+this session (Codex or any other agent host without it) and worktree mode is
+ON, STOP and say: worktree mode currently requires Claude Code (see the
+parity record).
+
 ## Scope note - surface before running
 
 The primary checkout is **shared by parallel sessions**. This is **checkout-wide**:

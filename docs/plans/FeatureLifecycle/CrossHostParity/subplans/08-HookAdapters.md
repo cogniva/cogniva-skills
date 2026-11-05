@@ -79,8 +79,8 @@ files as UTF-8 without a BOM, LF line endings. Codex documents its
 `*** End Patch`), paths relative to the payload's `cwd`; Codex reports shell
 calls as `tool_name: "Bash"` with `tool_input.command`.
 
-- [ ] **Step 1 (read the captured payload):** Open `plugins/cogniva-dev/tests/hooks/fixtures/codex-apply-patch.captured.json` and find where the patch text sits. The adapter below reads it from `tool_input.command`, `tool_input.input` or `tool_input.patch` (a string, or a string element of an array), or from `tool_input` itself when that is a string. If the fixture puts the patch text in any OTHER field of `tool_input`, add that field's name to the `PATCH_FIELDS` array in Step 4 and add one test line for it in Step 2, copying the `tool_input.input` test with the field name changed. If the fixture carries `"_source": "documented, not captured"`, it is the documented shape; use it as is.
-- [ ] **Step 2 (failing tests):** Create `plugins/cogniva-dev/tests/hooks/hook-input.test.mjs`:
+- [x] **Step 1 (read the captured payload):** Open `plugins/cogniva-dev/tests/hooks/fixtures/codex-apply-patch.captured.json` and find where the patch text sits. The adapter below reads it from `tool_input.command`, `tool_input.input` or `tool_input.patch` (a string, or a string element of an array), or from `tool_input` itself when that is a string. If the fixture puts the patch text in any OTHER field of `tool_input`, add that field's name to the `PATCH_FIELDS` array in Step 4 and add one test line for it in Step 2, copying the `tool_input.input` test with the field name changed. If the fixture carries `"_source": "documented, not captured"`, it is the documented shape; use it as is.
+- [x] **Step 2 (failing tests):** Create `plugins/cogniva-dev/tests/hooks/hook-input.test.mjs`:
   ```js
   // Unit tests for scripts/hook-input.js (no dependencies; PASS/FAIL lines,
   // exit 1 on any failure). Run through hook-input.tests.ps1 in the green gate.
@@ -195,8 +195,8 @@ calls as `tool_name: "Bash"` with `tool_input.command`.
   Write-Host 'All hook-input assertions passed.'
   exit 0
   ```
-- [ ] **Step 3 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → node fails with `Cannot find module` for `scripts/hook-input.js`, then `FAILED: hook-input assertions (see FAIL lines above).`, exit 1.
-- [ ] **Step 4 (implement):** Create `plugins/cogniva-dev/scripts/hook-input.js` (keep `\uFEFF` as the six-character escape, not a literal BOM character):
+- [x] **Step 3 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → node fails with `Cannot find module` for `scripts/hook-input.js`, then `FAILED: hook-input assertions (see FAIL lines above).`, exit 1.
+- [x] **Step 4 (implement):** Create `plugins/cogniva-dev/scripts/hook-input.js` (keep `\uFEFF` as the six-character escape, not a literal BOM character):
   ```js
   // Shared hook-input adapter for the cogniva-dev hooks: ONE place that knows
   // how each agent host describes a tool call, so every hook reads Claude Code
@@ -283,13 +283,13 @@ calls as `tool_name: "Bash"` with `tool_input.command`.
 
   module.exports = { readHookInput, editedPaths, shellCommand };
   ```
-- [ ] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of `commands` (the `task-contract` entry) and append as the new last entry:
+- [x] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of `commands` (the `task-contract` entry) and append as the new last entry:
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1", "label": "hook-input", "note": "Pins the hook input adapter: Claude Code file_path/notebook_path, every path of a Codex apply_patch (multi-file, move, CRLF, captured payload), shell commands, garbage input; needs PowerShell 7 and node." }
   ```
   Then `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → `OK   .claude/cogniva-dev/green-gate.json`.
-- [ ] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → every line PASS, `All hook-input assertions passed.`, exit 0.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/hook-input.js plugins/cogniva-dev/tests/hooks/hook-input.test.mjs plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(hooks): hook-input.js reads Claude Code and Codex apply_patch payloads"`
+- [x] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → every line PASS, `All hook-input assertions passed.`, exit 0.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/scripts/hook-input.js plugins/cogniva-dev/tests/hooks/hook-input.test.mjs plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(hooks): hook-input.js reads Claude Code and Codex apply_patch payloads"`
 
 ## Task 2: Hooks on the adapter; Codex gaps flipped to deny/nudge
 
@@ -317,8 +317,8 @@ unchanged. Both test suites are Windows PowerShell 5.1 compatible and must stay
 so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
 "host" for Claude Code or Codex.
 
-- [ ] **Step 1 (matchers — read the diagnostics report):** Open `docs/host-parity/codex-diagnostics.md` and find what it recorded about which `hooks.json` matcher Codex's `apply_patch` reached. Codex's docs say the `Edit`/`Write` matchers match `apply_patch`, so the default is: **leave `plugins/cogniva-dev/hooks/hooks.json` unchanged.** Only if the report recorded that a Codex `apply_patch` did NOT trigger the `Write|Edit|NotebookEdit` / `Write|Edit` hooks (and named `apply_patch` as the matcher that does), change the two edit matchers to `"Write|Edit|NotebookEdit|apply_patch"` (PreToolUse) and `"Write|Edit|apply_patch"` (PostToolUse), and in `plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` change `Where-Object { $_.matcher -eq 'Write|Edit' }` to `Where-Object { $_.matcher -eq 'Write|Edit|apply_patch' }` and the label's `Write|Edit` to `Write|Edit|apply_patch`. Write down which case applied; Task 3 needs it.
-- [ ] **Step 2 (flip the KNOWN GAP assertions):** In `plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` (pwsh 7; helpers `Invoke-Hook <hook> <payload> <cwd>`, `Test-Denied`, `Test-Silent`, `New-Patch <header>`):
+- [x] **Step 1 (matchers — read the diagnostics report):** Open `docs/host-parity/codex-diagnostics.md` and find what it recorded about which `hooks.json` matcher Codex's `apply_patch` reached. Codex's docs say the `Edit`/`Write` matchers match `apply_patch`, so the default is: **leave `plugins/cogniva-dev/hooks/hooks.json` unchanged.** Only if the report recorded that a Codex `apply_patch` did NOT trigger the `Write|Edit|NotebookEdit` / `Write|Edit` hooks (and named `apply_patch` as the matcher that does), change the two edit matchers to `"Write|Edit|NotebookEdit|apply_patch"` (PreToolUse) and `"Write|Edit|apply_patch"` (PostToolUse), and in `plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` change `Where-Object { $_.matcher -eq 'Write|Edit' }` to `Where-Object { $_.matcher -eq 'Write|Edit|apply_patch' }` and the label's `Write|Edit` to `Write|Edit|apply_patch`. Write down which case applied; Task 3 needs it.
+- [x] **Step 2 (flip the KNOWN GAP assertions):** In `plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` (pwsh 7; helpers `Invoke-Hook <hook> <payload> <cwd>`, `Test-Denied`, `Test-Silent`, `New-Patch <header>`):
   1. In the header comment, replace the lines
      ```powershell
      # Claude Code payloads are asserted against their real behaviour. Codex
@@ -348,7 +348,7 @@ so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
      Check 'Codex payload: nudge fires for a Codex apply_patch to an uncommitted BACKLOG.md' ($r.Code -eq 0 -and $r.Json -and $r.Json.hookSpecificOutput.hookEventName -eq 'PostToolUse' -and $r.Json.hookSpecificOutput.additionalContext -match 'UNCOMMITTED in the PRIMARY checkout')
      ```
   If `Select-String -Path plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1 -Pattern 'KNOWN GAP'` still finds a line (an assertion added after planning), flip it the same way: keep its payload, assert the intended deny/nudge/block, and relabel it `Codex payload: <new expectation>`. Afterwards that command must return nothing. (The suite asserts deny decisions, not the deny message's wording, so the new message needs no other change here.)
-- [ ] **Step 3 (add the Codex and multi-path cases):** In `plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1`, insert this self-contained block immediately BEFORE the suite's final failure-count check (the line `if ($failures.Count) { Write-Host ''; Write-Host "FAILED: $($failures.Count) assertion(s)."; exit 1 }`). It uses the suite's `Check` function (if the suite's assertion function has another name, use that name for every `Check` below) and builds its own fixture:
+- [x] **Step 3 (add the Codex and multi-path cases):** In `plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1`, insert this self-contained block immediately BEFORE the suite's final failure-count check (the line `if ($failures.Count) { Write-Host ''; Write-Host "FAILED: $($failures.Count) assertion(s)."; exit 1 }`). It uses the suite's `Check` function (if the suite's assertion function has another name, use that name for every `Check` below) and builds its own fixture:
   ```powershell
   # --- Codex payloads and multi-path edits (scripts/hook-input.js adapter) -----
   # Self-contained: its own worktree-mode fixture repo, removed in finally.
@@ -446,7 +446,7 @@ so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
   }
 
   ```
-- [ ] **Step 4 (Codex case for the module-deps hook):** In `plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1`:
+- [x] **Step 4 (Codex case for the module-deps hook):** In `plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1`:
   1. Replace
      ```powershell
      function Invoke-Hook([string]$FilePath) {
@@ -474,8 +474,8 @@ so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
              $r = Invoke-HookJson (@{ tool_name = 'apply_patch'; cwd = $repo; tool_input = @{ command = $patch } } | ConvertTo-Json -Compress)
              Check 'a Codex apply_patch that touches no .csproj is silent' ($r.Code -eq 0 -and -not $r.Out)
      ```
-- [ ] **Step 5 (run them, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` → FAIL on both flipped `Codex payload:` assertions and on 11 of the 15 new assertions (`Claude Edit ... still denied`, `a patch touching only exempt paths is allowed`, `Codex Bash git switch ... denied` and the `LIMITATION` check already PASS). `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → `FAIL  a Codex apply_patch that updates a .csproj in an opted-in repo with a cycle is blocked`, exit 1.
-- [ ] **Step 6 (guard-primary-edit.js):** Replace the WHOLE content of `plugins/cogniva-dev/scripts/guard-primary-edit.js` with:
+- [x] **Step 5 (run them, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` → FAIL on both flipped `Codex payload:` assertions and on 11 of the 15 new assertions (`Claude Edit ... still denied`, `a patch touching only exempt paths is allowed`, `Codex Bash git switch ... denied` and the `LIMITATION` check already PASS). `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → `FAIL  a Codex apply_patch that updates a .csproj in an opted-in repo with a cycle is blocked`, exit 1.
+- [x] **Step 6 (guard-primary-edit.js):** Replace the WHOLE content of `plugins/cogniva-dev/scripts/guard-primary-edit.js` with:
   ```js
   // PreToolUse guard (Write|Edit|NotebookEdit; Codex routes apply_patch to the
   // same matcher): block ALL direct edits to the PRIMARY checkout of a clone
@@ -602,7 +602,7 @@ so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
     } catch (e) { return allow(); }
   });
   ```
-- [ ] **Step 7 (nudge-backlog-commit.js):** Replace the WHOLE content of `plugins/cogniva-dev/scripts/nudge-backlog-commit.js` with the code below. One exception: if the message text inside the current file's `nudge(...)` call differs from the one below (an earlier sub-plan reworded it), keep the CURRENT message text and change only the structure.
+- [x] **Step 7 (nudge-backlog-commit.js):** Replace the WHOLE content of `plugins/cogniva-dev/scripts/nudge-backlog-commit.js` with the code below. One exception: if the message text inside the current file's `nudge(...)` call differs from the one below (an earlier sub-plan reworded it), keep the CURRENT message text and change only the structure.
   ```js
   // PostToolUse nudge (Write|Edit; Codex routes apply_patch to the same
   // matcher): a tier-1 BACKLOG.md was just written in the PRIMARY checkout and
@@ -720,7 +720,7 @@ so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
     } catch (e) { return quiet(); }
   });
   ```
-- [ ] **Step 8 (guard-module-cycles.js):** In `plugins/cogniva-dev/scripts/guard-module-cycles.js`, replace this block (from `let raw = '';` through the line `    process.stdout.write(JSON.stringify({`):
+- [x] **Step 8 (guard-module-cycles.js):** In `plugins/cogniva-dev/scripts/guard-module-cycles.js`, replace this block (from `let raw = '';` through the line `    process.stdout.write(JSON.stringify({`):
   ```js
   let raw = '';
   process.stdin.on('data', d => (raw += d)).on('end', () => {
@@ -788,7 +788,7 @@ so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
       process.stdout.write(JSON.stringify({
   ```
   Leave the rest of the file (the `decision: 'block'` reason text and the closing lines) unchanged.
-- [ ] **Step 9 (guard-primary-git.js):** In `plugins/cogniva-dev/scripts/guard-primary-git.js`, replace
+- [x] **Step 9 (guard-primary-git.js):** In `plugins/cogniva-dev/scripts/guard-primary-git.js`, replace
   ```js
   let raw = '';
   process.stdin.on('data', d => (raw += d)).on('end', () => {
@@ -815,8 +815,8 @@ so (no `??`, no `?:`, no pwsh-only APIs). The deny message must not use a bare
       if (!SWITCH_RE.test(cmd)) return allow();
   ```
   Leave the rest unchanged (it still resolves the repo from `git -C` or `input.cwd`, and keeps its deny message).
-- [ ] **Step 10 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` → every line PASS, `All primary-hooks assertions passed.`, exit 0; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → `All guard-module-cycles assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → `All hook-input assertions passed.`; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (the hook scripts are `.js`, outside the ratchet's scope, so nothing here should move it).
-- [ ] **Step 11 (commit):** `git add plugins/cogniva-dev/scripts/guard-primary-edit.js plugins/cogniva-dev/scripts/nudge-backlog-commit.js plugins/cogniva-dev/scripts/guard-module-cycles.js plugins/cogniva-dev/scripts/guard-primary-git.js plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1 plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` (plus `plugins/cogniva-dev/hooks/hooks.json` if Step 1 changed it) then `git commit -m "feat(hooks): all four hooks read Codex apply_patch and shell payloads through hook-input.js"`
+- [x] **Step 10 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1` → every line PASS, `All primary-hooks assertions passed.`, exit 0; `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` → `All guard-module-cycles assertions passed.`; `pwsh -NoProfile -File plugins/cogniva-dev/tests/hooks/hook-input.tests.ps1` → `All hook-input assertions passed.`; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (the hook scripts are `.js`, outside the ratchet's scope, so nothing here should move it).
+- [x] **Step 11 (commit):** `git add plugins/cogniva-dev/scripts/guard-primary-edit.js plugins/cogniva-dev/scripts/nudge-backlog-commit.js plugins/cogniva-dev/scripts/guard-module-cycles.js plugins/cogniva-dev/scripts/guard-primary-git.js plugins/cogniva-dev/tests/hooks/primary-hooks.tests.ps1 plugins/cogniva-dev/tests/module-deps/guard-module-cycles.tests.ps1` (plus `plugins/cogniva-dev/hooks/hooks.json` if Step 1 changed it) then `git commit -m "feat(hooks): all four hooks read Codex apply_patch and shell payloads through hook-input.js"`
 
 ## Task 3: Hook docs, parity record, ADR
 
@@ -838,7 +838,7 @@ record was created, that still says the hooks do not see `apply_patch` edits.
 The skill-semantics suite runs under Windows PowerShell 5.1: regexes you add
 must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, replace the assertion (two lines, joined by a backtick continuation)
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`, replace the assertion (two lines, joined by a backtick continuation)
   ```powershell
   Check 'docs/codex.md: hooks under Codex need trust and miss apply_patch edits' `
       ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
@@ -853,7 +853,7 @@ must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
       ($docsFlat -match 'not seen by the edit guard' -and $docsFlat -match 'guarantees live in the landing checks')
   ```
   (`$docsFlat` is defined just above that assertion.) Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → the three checks FAIL, exit 1.
-- [ ] **Step 2 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, replace the body of the `## Hooks under Codex` section (everything between that heading and the next `## ` heading; keep both headings) with the text below. If Task 2 Step 1 changed the `hooks.json` matchers, use the first variant of the bracketed sentence in the **Edits** bullet; otherwise the second.
+- [x] **Step 2 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, replace the body of the `## Hooks under Codex` section (everything between that heading and the next `## ` heading; keep both headings) with the text below. If Task 2 Step 1 changed the `hooks.json` matchers, use the first variant of the bracketed sentence in the **Edits** bullet; otherwise the second.
   ```markdown
   cogniva-dev ships four hooks in `hooks/hooks.json`: the primary-checkout edit
   guard and branch-switch guard (worktree mode), the backlog-commit nudge, and
@@ -886,8 +886,8 @@ must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
     `git diff --check` and the green gate — not in hooks.
   ```
   Write only the chosen sentence of the bracketed pair, without the brackets or the `|`.
-- [ ] **Step 3 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C5 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Hooks read both hosts' edit payloads and remain best-effort` (no `ADR-C5` label), `**Provenance:** Suggested by agent`, then the body paragraph — to `docs/adr/NNNN-hooks-read-both-hosts-edit-payloads-and-remain-best-effort.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 4 (parity record):** Read `docs/host-parity/codex-diagnostics.md` for whether Codex hooks fired on each surface it tested (CLI, VS Code). In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`), edit the four hook rows; `NNNN` below is the number from Step 3:
+- [x] **Step 3 (write ADR):** scan `docs/adr/` for the next free number and write ADR-C5 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Hooks read both hosts' edit payloads and remain best-effort` (no `ADR-C5` label), `**Provenance:** Suggested by agent`, then the body paragraph — to `docs/adr/NNNN-hooks-read-both-hosts-edit-payloads-and-remain-best-effort.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 4 (parity record):** Read `docs/host-parity/codex-diagnostics.md` for whether Codex hooks fired on each surface it tested (CLI, VS Code). In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`), edit the four hook rows; `NNNN` below is the number from Step 3:
   - `Codex` cell of each row: `scripts-tested — hook-input adapter` when the report shows Codex hooks fired on every surface it tested; `partial — hook-input adapter` when it shows a surface where they never fired. A `verified` status already earned from a smoke record stays as it is. Leave the `Claude Code` cells unchanged.
   - `Evidence`: `primary-edit-guard`, `branch-switch-guard` and `backlog-commit-nudge` → `gate:primary-hooks, gate:hook-input`; `module-cycle-hook` → `gate:module-deps-hook, gate:hook-input` (keep any `smoke:` items already there).
   - `Notes`, replacing the whole cell:
@@ -897,5 +897,5 @@ must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text.
     - `module-cycle-hook`: `Reads every .csproj path of a Claude Code edit or a Codex apply_patch through hook-input.js (ADR NNNN). Codex runs it only after the user trusts it in /hooks, again after any change to hooks.json. Both agent hosts: writes made through a shell command are not seen; module-deps -Check in a completion gate is the guarantee.`
     - For a row set to `partial`, append ` Codex hooks did not fire on <surface> in the diagnostics.` naming the surface from the report.
   Under `## Intentional asymmetries`, add the bullet: `- primary-edit-guard, branch-switch-guard, backlog-commit-nudge, module-cycle-hook — Codex runs plugin hooks only after the user trusts them in /hooks, again after each hooks.json change; this re-trust is accepted and documented rather than not shipping hooks to Codex (ADR NNNN).` Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → a `host-parity: OK - …` line, exit 0.
-- [ ] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (`docs/` is outside its scope).
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "docs(hooks): Codex hook payloads, trust and limits; parity record and ADR"`
+- [x] **Step 5 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0; `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …` (`docs/` is outside its scope).
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/docs/codex.md docs/host-parity.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/adr` then `git commit -m "docs(hooks): Codex hook payloads, trust and limits; parity record and ADR"`

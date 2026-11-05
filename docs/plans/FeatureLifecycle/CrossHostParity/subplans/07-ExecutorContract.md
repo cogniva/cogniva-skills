@@ -78,7 +78,7 @@ LF line endings. Do NOT modify `templates/execute-feature.workflow.js`: it is
 copied verbatim into the Workflow runtime, so it stays self-contained, and the
 tests below prove the new files equal it.
 
-- [ ] **Step 1 (failing tests):** Create `plugins/cogniva-dev/tests/task-contract/template-loader.mjs`:
+- [x] **Step 1 (failing tests):** Create `plugins/cogniva-dev/tests/task-contract/template-loader.mjs`:
   ```js
   // Evaluates templates/execute-feature.workflow.js the way the Workflow runtime
   // does - top-level await and return inside an async function body, with
@@ -257,8 +257,8 @@ tests below prove the new files equal it.
   Write-Host 'All task-contract assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → `FAIL  templates/task-result.schema.json exists and parses`, every `prompt identical to the template` line FAILs (the script does not exist), then `FAILED: 2 assertion(s).`, exit 1.
-- [ ] **Step 3 (implement the schema):** Create `plugins/cogniva-dev/templates/task-result.schema.json` with exactly this content (the template's `TASK_RESULT`, same properties, descriptions, enums, required and `additionalProperties`; keep the em dashes; no BOM):
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → `FAIL  templates/task-result.schema.json exists and parses`, every `prompt identical to the template` line FAILs (the script does not exist), then `FAILED: 2 assertion(s).`, exit 1.
+- [x] **Step 3 (implement the schema):** Create `plugins/cogniva-dev/templates/task-result.schema.json` with exactly this content (the template's `TASK_RESULT`, same properties, descriptions, enums, required and `additionalProperties`; keep the em dashes; no BOM):
   ```json
   {
     "type": "object",
@@ -289,7 +289,7 @@ tests below prove the new files equal it.
   }
   ```
   If the schema-parity test later reports a difference, the template is the source of truth: copy the differing text from `TASK_RESULT` in `templates/execute-feature.workflow.js` into this file, never the other way round.
-- [ ] **Step 4 (implement the prompt builder):** Create `plugins/cogniva-dev/scripts/new-task-prompt.ps1`. The file is pure ASCII on purpose (the em dash and arrows the template uses are built with `[char]0x2014` / `[char]0x2192`), so its encoding can never change the bytes it prints:
+- [x] **Step 4 (implement the prompt builder):** Create `plugins/cogniva-dev/scripts/new-task-prompt.ps1`. The file is pure ASCII on purpose (the em dash and arrows the template uses are built with `[char]0x2014` / `[char]0x2192`), so its encoding can never change the bytes it prints:
   ```powershell
   #Requires -Version 7.0
   # Builds the task-agent prompt for ONE task - byte-for-byte the prompt that
@@ -387,13 +387,13 @@ tests below prove the new files equal it.
   exit 0
   ```
   If a prompt-parity case fails, the printed `first difference` shows the template text to copy; the template is the source of truth.
-- [ ] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of the `commands` array and append this object as the new last entry (after the `workflow-template` entry that the smoke-harness sub-plan added):
+- [x] **Step 5 (wire the gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the current LAST object of the `commands` array and append this object as the new last entry (after the `workflow-template` entry that the smoke-harness sub-plan added):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1", "label": "task-contract", "note": "Pins the shared worker contract: the task-result schema equals the Workflow template's, new-task-prompt.ps1 prints the template's prompt byte-for-byte, and test-task-result.ps1 accepts only conforming replies; needs PowerShell 7 and node." }
   ```
   Validate the file: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/validate-json.ps1 .claude/cogniva-dev/green-gate.json` → `OK   .claude/cogniva-dev/green-gate.json`.
-- [ ] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → all 24 matrix lines PASS (12 cases × exit 0 + identical prompt), the 5 extra prompt-parity checks PASS, `All task-contract assertions passed.`, exit 0. The comparison normalises only one trailing newline on the PowerShell side; nothing else.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/templates/task-result.schema.json plugins/cogniva-dev/scripts/new-task-prompt.ps1 plugins/cogniva-dev/tests/task-contract/template-loader.mjs plugins/cogniva-dev/tests/task-contract/schema-parity.test.mjs plugins/cogniva-dev/tests/task-contract/prompt-parity.test.mjs plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(execute-feature): shared task-result schema and prompt builder, parity-tested against the Workflow template"`
+- [x] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → all 24 matrix lines PASS (12 cases × exit 0 + identical prompt), the 5 extra prompt-parity checks PASS, `All task-contract assertions passed.`, exit 0. The comparison normalises only one trailing newline on the PowerShell side; nothing else.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/templates/task-result.schema.json plugins/cogniva-dev/scripts/new-task-prompt.ps1 plugins/cogniva-dev/tests/task-contract/template-loader.mjs plugins/cogniva-dev/tests/task-contract/schema-parity.test.mjs plugins/cogniva-dev/tests/task-contract/prompt-parity.test.mjs plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "feat(execute-feature): shared task-result schema and prompt builder, parity-tested against the Workflow template"`
 
 ## Task 2: Result validator
 
@@ -409,7 +409,7 @@ keywords that file uses: `type`, `enum`, `required`, `properties`,
 `ConvertFrom-Json`, which turns date-like strings into dates. UTF-8 without a
 BOM.
 
-- [ ] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count) { Write-Host ''; Write-Host "FAILED: $($failures.Count) assertion(s)."; exit 1 }`:
+- [x] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1`, insert this block immediately BEFORE the line `if ($failures.Count) { Write-Host ''; Write-Host "FAILED: $($failures.Count) assertion(s)."; exit 1 }`:
   ```powershell
   # --- scripts/test-task-result.ps1 --------------------------------------------
   $validator = Join-Path $plugin 'scripts\test-task-result.ps1'
@@ -483,8 +483,8 @@ BOM.
   }
 
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → the two node checks still PASS; all 16 validator cases FAIL (the script does not exist yet, so `pwsh` exits non-zero with a "does not exist" error); `FAILED: 16 assertion(s).`, exit 1.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/test-task-result.ps1`:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → the two node checks still PASS; all 16 validator cases FAIL (the script does not exist yet, so `pwsh` exits non-zero with a "does not exist" error); `FAILED: 16 assertion(s).`, exit 1.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/scripts/test-task-result.ps1`:
   ```powershell
   #Requires -Version 7.0
   # Validates a task agent's reply against the shared result contract
@@ -588,8 +588,8 @@ BOM.
   $stdout.Flush()
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → every line PASS, `All task-contract assertions passed.`, exit 0. Also run the gate entry the way the green gate does: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → the `[task-contract]` command exits 0 (the rest of the gate is expected to stay green too).
-- [ ] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/test-task-result.ps1 plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` then `git commit -m "feat(execute-feature): test-task-result.ps1 validates worker replies against the shared result schema"`
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` → every line PASS, `All task-contract assertions passed.`, exit 0. Also run the gate entry the way the green gate does: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → the `[task-contract]` command exits 0 (the rest of the gate is expected to stay green too).
+- [x] **Step 5 (commit):** `git add plugins/cogniva-dev/scripts/test-task-result.ps1 plugins/cogniva-dev/tests/task-contract/task-contract.tests.ps1` then `git commit -m "feat(execute-feature): test-task-result.ps1 validates worker replies against the shared result schema"`
 
 ## Task 3: CODEX.md loop on the shared contract, docs, pins, parity record, ADR
 
@@ -614,7 +614,7 @@ runs under Windows PowerShell 5.1, which reads it as ANSI: every regex you add
 must be ASCII-only. Do not use a bare "host" for Claude Code/Codex in new text:
 say "agent host", or name the product.
 
-- [ ] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`:
+- [x] **Step 1 (failing pins):** In `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`:
   1. Replace the assertion
      ```powershell
      Check 'Codex parity: both backends pass the task body verbatim' ($codexFlat -match 'full `body` VERBATIM' -and $tpl -match 't\.body')
@@ -638,8 +638,8 @@ say "agent host", or name the product.
      Check 'docs/codex.md: the Codex backend uses the shared JSON result contract' ($docs -match 'task-result\.schema\.json' -and $docs -match 'new-task-prompt\.ps1' -and $docs -notmatch 'textual `DONE` / `BLOCKED` result contract')
      ```
   3. Find every other assertion that reads `$codex` or `$codexFlat` (`Select-String -Path plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 -Pattern 'codex'`). The ones present at planning time — `PLANLESS tasks`, `quick-fix ... its own Step 2`, `task with no planPath ... nothing to tick`, `## Repository CLAUDE.md under Codex`, `ever overrides commits=`, `quick-fix also runs its structural check` — match text this task keeps, so they stay unchanged. If an earlier sub-plan added a pin on wording that Step 3 below replaces (the textual `DONE`/`BLOCKED` reply, "Parse the subagent's first line", "full `body` VERBATIM", the frame bullets), replace that assertion with one on the new text in the same way as item 1 — never just delete it. Assertions on `$docs` that the parity-record sub-plan added (`docs/codex.md no longer claims runtime verification`, `docs/codex.md: hooks under Codex …`) cover text this task does not touch and stay unchanged.
-- [ ] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the replaced parity pin and on each new pin except possibly none; `FAILED: 11 assertion(s).`, exit 1.
-- [ ] **Step 3 (rewrite the loop in CODEX.md):** In `plugins/cogniva-dev/skills/execute-feature/CODEX.md`, replace everything from the line `## Replaces Step 3 — sequential subagent loop` up to (NOT including) the line `## Sequencing rules` with the text below. Keep the file's introduction and every later section (`## Sequencing rules`, `## After the loop`, `## Resume`, `## Repository CLAUDE.md under Codex`, `## Never emulate the missing runtime`) exactly as they are.
+- [x] **Step 2 (run it, expect fail):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → FAIL on the replaced parity pin and on each new pin except possibly none; `FAILED: 11 assertion(s).`, exit 1.
+- [x] **Step 3 (rewrite the loop in CODEX.md):** In `plugins/cogniva-dev/skills/execute-feature/CODEX.md`, replace everything from the line `## Replaces Step 3 — sequential subagent loop` up to (NOT including) the line `## Sequencing rules` with the text below. Keep the file's introduction and every later section (`## Sequencing rules`, `## After the loop`, `## Resume`, `## Repository CLAUDE.md under Codex`, `## Never emulate the missing runtime`) exactly as they are.
   ````markdown
   ## Replaces Step 3 — sequential subagent loop
 
@@ -707,7 +707,7 @@ say "agent host", or name the product.
     `BLOCKED` stop as its Step 3 says, otherwise at landing.
 
   ````
-- [ ] **Step 4 (apply the diagnostics remedies that belong here, and only those):** Open `docs/host-parity/codex-diagnostics.md` and find its triage table (the decision table whose rows name a finding, a remedy and a `Where` column giving the sub-plan that applies it). Apply exactly the rows whose `Where` is `07`, as follows, and skip every other row. If no row says `07`, change nothing in this step and note "no 07 remedies selected" in the commit message body.
+- [x] **Step 4 (apply the diagnostics remedies that belong here, and only those):** Open `docs/host-parity/codex-diagnostics.md` and find its triage table (the decision table whose rows name a finding, a remedy and a `Where` column giving the sub-plan that applies it). Apply exactly the rows whose `Where` is `07`, as follows, and skip every other row. If no row says `07`, change nothing in this step and note "no 07 remedies selected" in the commit message body.
   - A selected row whose remedy is an **inline fallback** (the agent host cannot start subagents on that surface, e.g. Codex in VS Code) → insert this paragraph at the END of the `## Replaces Step 3 — sequential subagent loop` section (after item 4, before `## After each task`):
     ```markdown
     **Inline fallback (no subagents on this surface).** If this agent host
@@ -727,7 +727,7 @@ say "agent host", or name the product.
     assumptions in the handoff.
     ```
   For each paragraph inserted, add one pin immediately before `if ($failures.Count -gt 0) {` in the skill-semantics suite: `Check 'CODEX.md carries the inline fallback (diagnostics remedy)' ($codexFlat -match 'Inline fallback \(no subagents on this surface\)')` and/or `Check 'CODEX.md reports workers that saw the executor conversation (diagnostics remedy)' ($codexFlat -match 'workers saw the executor''s conversation')`.
-- [ ] **Step 5 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, under `## Backend selection`, replace the whole bullet that begins `- **Codex** — the Workflow tool does not exist.` (through its last line, `no parallelism.`) with:
+- [x] **Step 5 (docs/codex.md):** In `plugins/cogniva-dev/docs/codex.md`, under `## Backend selection`, replace the whole bullet that begins `- **Codex** — the Workflow tool does not exist.` (through its last line, `no parallelism.`) with:
   ```markdown
   - **Codex** — the Workflow tool does not exist. When a skill detects that the
     Workflow tool is unavailable in the session, it follows its `CODEX.md` overlay
@@ -742,14 +742,14 @@ say "agent host", or name the product.
     and no parallelism.
   ```
   If an earlier sub-plan reworded that bullet, replace the bullet under `## Backend selection` that describes the Codex backend, whatever its current wording.
-- [ ] **Step 6 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0.
-- [ ] **Step 7 (write ADR):** scan `docs/adr/` for the next free number (the highest at planning time was 0050; earlier sub-plans of this feature add more) and write ADR-C4 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Both executors share one worker prompt and result contract` (no `ADR-C4` label), the `**Provenance:** Suggested by agent` line, then the body paragraph — to `docs/adr/NNNN-both-executors-share-one-worker-prompt-and-result-contract.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
-- [ ] **Step 8 (parity record):** In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`; a status cell is `<status> — <mechanism>`), edit the rows `lean-mode`, `execute-feature` and `quick-fix` (the rows whose `Covers` are `mode:lean`, `skill:cogniva-dev/execute-feature`, `skill:cogniva-dev/quick-fix`). Do not change any status word in this sub-plan — statuses are earned from smoke evidence at the acceptance gate.
+- [x] **Step 6 (run until green):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1` → `All skill-semantics assertions passed.`, exit 0.
+- [x] **Step 7 (write ADR):** scan `docs/adr/` for the next free number (the highest at planning time was 0050; earlier sub-plans of this feature add more) and write ADR-C4 from this sub-plan's `## Candidate ADRs` verbatim — heading `# Both executors share one worker prompt and result contract` (no `ADR-C4` label), the `**Provenance:** Suggested by agent` line, then the body paragraph — to `docs/adr/NNNN-both-executors-share-one-worker-prompt-and-result-contract.md` per `plugins/cogniva-dev/skills/adr/ADR-FORMAT.md`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/check-adrs.ps1 -Workspace .` → exit 0.
+- [x] **Step 8 (parity record):** In `docs/host-parity.md` `## Capabilities` (columns `| ID | Capability | Kind | Covers | Claude Code | Codex | Evidence | Notes |`; a status cell is `<status> — <mechanism>`), edit the rows `lean-mode`, `execute-feature` and `quick-fix` (the rows whose `Covers` are `mode:lean`, `skill:cogniva-dev/execute-feature`, `skill:cogniva-dev/quick-fix`). Do not change any status word in this sub-plan — statuses are earned from smoke evidence at the acceptance gate.
   - `Codex` cell: keep the status word; replace the mechanism after ` — ` with `CODEX.md loop on the shared prompt/result contract`.
   - `Claude Code` cell: keep the status word; replace the mechanism with `Workflow template (same prompt/result contract)`.
   - `Evidence`: append `, gate:task-contract`.
   - `execute-feature` row `Notes`: replace the sentence that begins `Task results differ by agent host` (through the end of that sentence) with `Both agent hosts give workers the same prompt (new-task-prompt.ps1) and check the same result schema (task-result.schema.json); a malformed Codex reply is BLOCKED (ADR NNNN).` using the number from Step 7. If that sentence is not there, append the new sentence to the row's Notes instead.
   In `## Intentional asymmetries`, in the bullet for `lean-mode`, `execute-feature`, `quick-fix`, add after its first sentence: ` Both use the same worker prompt and result schema, kept equal by the task-contract suite (ADR NNNN).`
   Then `pwsh -NoProfile -File scripts/check-host-parity.ps1` → a `host-parity: OK - …` line, exit 0.
-- [ ] **Step 9 (host-neutrality ratchet):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …`, exit 0. It counts host-specific tokens (`AskUserQuestion`, `Workflow(`, `subagent_type`, `apply_patch`, `/cogniva-dev:`, …) in shared skill Markdown and plugin `scripts/*.ps1`, and leaves out `CODEX.md` and `docs/`, so this task's new scripts are the only files in scope. A `FAIL host-token-…` line for `new-task-prompt.ps1` or `test-task-result.ps1` → reword the comment or text it names. An `INFO lower the baseline` line → run `pwsh -NoProfile -File scripts/check-host-neutrality.ps1 -Update` and stage `scripts/host-neutrality-baseline.json` with this commit.
-- [ ] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/CODEX.md plugins/cogniva-dev/docs/codex.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/host-parity.md docs/adr` (plus `scripts/host-neutrality-baseline.json` if Step 9 updated it) then `git commit -m "feat(execute-feature): Codex loop uses the shared worker prompt and validates JSON results"`
+- [x] **Step 9 (host-neutrality ratchet):** `pwsh -NoProfile -File scripts/check-host-neutrality.ps1` → `host-neutrality: OK - …`, exit 0. It counts host-specific tokens (`AskUserQuestion`, `Workflow(`, `subagent_type`, `apply_patch`, `/cogniva-dev:`, …) in shared skill Markdown and plugin `scripts/*.ps1`, and leaves out `CODEX.md` and `docs/`, so this task's new scripts are the only files in scope. A `FAIL host-token-…` line for `new-task-prompt.ps1` or `test-task-result.ps1` → reword the comment or text it names. An `INFO lower the baseline` line → run `pwsh -NoProfile -File scripts/check-host-neutrality.ps1 -Update` and stage `scripts/host-neutrality-baseline.json` with this commit.
+- [x] **Step 10 (commit):** `git add plugins/cogniva-dev/skills/execute-feature/CODEX.md plugins/cogniva-dev/docs/codex.md plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1 docs/host-parity.md docs/adr` (plus `scripts/host-neutrality-baseline.json` if Step 9 updated it) then `git commit -m "feat(execute-feature): Codex loop uses the shared worker prompt and validates JSON results"`

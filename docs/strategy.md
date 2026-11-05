@@ -36,9 +36,16 @@ skills in `cogniva-dev`. The authoritative per-plugin roster is AGENTS.md's
 
 ## Consuming in a new repo
 
-1. `/plugin marketplace add cogniva/cogniva-skills` (or the path of your local clone)
-2. `/plugin install cogniva-skills@cogniva`
-3. Run the repo-init skill.
+1. Register the marketplace and install both plugins, `cogniva-skills` and
+   `cogniva-dev`, on each agent host you use:
+   - Claude Code: `/plugin marketplace add cogniva/cogniva-skills` (or the
+     path of your local clone), then `/plugin install cogniva-dev@cogniva`
+     and `/plugin install cogniva-skills@cogniva`.
+   - Codex: `codex plugin marketplace add cogniva/cogniva-skills` (or the
+     path of your local clone), install both plugins from the `/plugins`
+     browser, start a new Codex session, and trust the plugin hooks via
+     `/hooks`.
+2. Run the repo-init skill.
 
 ## Maintenance
 

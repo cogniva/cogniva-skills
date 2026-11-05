@@ -12,7 +12,9 @@ Invoke: `/module-status <Module>`.
 
 ## Steps
 
-Scan `docs/plans/<Module>/`:
+Scan `docs/plans/<Module>/`, and also `.plans-staging/<Module>/` for
+feature folders (lean mode's default `plan=ephemeral` keeps plans there,
+untracked and local to this clone):
 
 1. **Feature folders** (contain `<Feature>-plan.md`): do the same scan as
    `/feature-status`, scoped to this Module —
@@ -21,6 +23,12 @@ Scan `docs/plans/<Module>/`:
    - **pending gate** = next `⛔` task at or before the next actionable,
    - from `state.md`: the **`Status:`** line, `Target branch`, `Worktree`, and
      `Integration:` (e.g. `queued`).
+   A feature folder under `.plans-staging/<Module>/` gets the same scan
+   (when a converted `<basename>.tasks.md` sits beside the plan, count that
+   file) and is marked `(ephemeral — this clone only)`; a feature in both
+   places is listed once, from `docs/plans/`. A feature with no
+   `state.md` (lean runs keep none) takes its status from its checkboxes:
+   `planned` (no task done), `in-progress` (some done), `done` (all done).
 
 2. **Stub folders** (have `state.md` with `Status: deferred`, but **no
    `-plan.md`**): these are feature-sized backlog stubs. List each with the
@@ -40,7 +48,7 @@ Group by lifecycle, then the deferred pile, then loose items:
 <Module>
 
   In flight / planned
-    <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [integration: queued]
+    <Feature>   <Status>   <done>/<total>   next: Task <N> "<title>"   [⛔ gate at Task <G>]   [integration: queued]   [(ephemeral — this clone only)]
     ...
   Deferred (stubs)
     <Idea>   — <one-line from backlog.md>

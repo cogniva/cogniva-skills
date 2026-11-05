@@ -23,7 +23,9 @@ function Add-Project([string]$Repo, [string]$Folder, [string]$Name, [string[]]$R
     Write-Text (Join-Path $Repo "$Folder\$Name\$Name.csproj") "<Project Sdk=`"Microsoft.NET.Sdk`">`r`n  <ItemGroup>`r`n$items`r`n  </ItemGroup>`r`n</Project>`r`n"
 }
 function Invoke-Hook([string]$FilePath) {
-    $payload = @{ tool_name = 'Edit'; tool_input = @{ file_path = $FilePath } } | ConvertTo-Json -Compress
+    Invoke-HookJson (@{ tool_name = 'Edit'; tool_input = @{ file_path = $FilePath } } | ConvertTo-Json -Compress)
+}
+function Invoke-HookJson([string]$payload) {
     $previous = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
@@ -69,6 +71,16 @@ else {
         $decision = $null
         try { $decision = $r.Out | ConvertFrom-Json } catch { }
         Check 'an opted-in repo with a cycle is blocked with the -Check report' ($r.Code -eq 0 -and $decision -and $decision.decision -eq 'block' -and $decision.reason -match 'A <-> B')
+        # Codex reports an edit as apply_patch with the patch text in tool_input.command,
+        # paths relative to the payload's cwd.
+        $patch = "*** Begin Patch`n*** Update File: README.md`n@@`n-a`n+b`n*** Update File: src/Modules/B/B.Application/B.Application.csproj`n@@`n-x`n+y`n*** End Patch`n"
+        $r = Invoke-HookJson (@{ tool_name = 'apply_patch'; cwd = $repo; tool_input = @{ command = $patch } } | ConvertTo-Json -Compress)
+        $decision = $null
+        try { $decision = $r.Out | ConvertFrom-Json } catch { }
+        Check 'a Codex apply_patch that updates a .csproj in an opted-in repo with a cycle is blocked' ($r.Code -eq 0 -and $decision -and $decision.decision -eq 'block' -and $decision.reason -match 'A <-> B')
+        $patch = "*** Begin Patch`n*** Update File: README.md`n@@`n-a`n+b`n*** End Patch`n"
+        $r = Invoke-HookJson (@{ tool_name = 'apply_patch'; cwd = $repo; tool_input = @{ command = $patch } } | ConvertTo-Json -Compress)
+        Check 'a Codex apply_patch that touches no .csproj is silent' ($r.Code -eq 0 -and -not $r.Out)
         Write-Text (Join-Path $repo 'docs\architecture\allowed-cycles.txt') "B <-> A  # reviewed`n"
         $r = Invoke-Hook $csproj
         Check 'an allowed cycle is not blocked' ($r.Code -eq 0 -and -not $r.Out)

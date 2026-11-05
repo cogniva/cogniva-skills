@@ -96,8 +96,12 @@ Check 'plan-feature lean default leaves the plan uncommitted' `
 $docsFlat = $docs -replace '\s+', ' '
 Check 'docs/codex.md no longer claims runtime verification' `
     ($docs -notmatch 'Verified against OpenAI' -and $docsFlat -match 'runtime behaviour per agent host is tracked in the cogniva-skills repo''s `docs/host-parity\.md`')
-Check 'docs/codex.md: hooks under Codex need trust and miss apply_patch edits' `
-    ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
+Check 'docs/codex.md: hooks under Codex need trust and read apply_patch edits' `
+    ($docs -match '## Hooks under Codex' -and $docsFlat -match 'only after you trust it in `/hooks`' -and $docsFlat -match 'reads its input through `scripts/hook-input\.js`' -and $docsFlat -notmatch 'do not see edits Codex makes with `apply_patch`' -and $docsFlat -match 'best-effort on both agent hosts')
+Check 'docs/codex.md: Codex hooks need trust again after every update' `
+    ($docsFlat -match 'Re-trust after every cogniva-dev update')
+Check 'docs/codex.md: shell writes are unseen; guarantees live in the landing checks' `
+    ($docsFlat -match 'not seen by the edit guard' -and $docsFlat -match 'guarantees live in the landing checks')
 # --- route-first capture invariants ------------------------------------------
 Check 'introduced defects are unfinished work, not followups' `
     ($ef -match 'A defect a task introduced is not a\s+followup')
@@ -209,7 +213,7 @@ Check 'quick-fix: no pwsh in a repo that declares or owns a profile asks the use
 Check 'quick-fix stays technology-neutral' ($qf -notmatch '(?i)csproj|ProjectReference|\.NET\b|pyproject')
 Check 'quick-fix does not use applicable-rules as its architecture check' ($qf -notmatch 'applicable-rules')
 Check 'worktree quick-fix snapshots after any staleness merge' ($wtQfFlat -match 'record `START_TREE` exactly as Step 0 says' -and $wtQfFlat -match 'after any staleness merge is committed')
-Check 'Codex parity: both backends pass the task body verbatim' ($codexFlat -match 'full `body` VERBATIM' -and $tpl -match 't\.body')
+Check 'Codex parity: both backends send the same prompt, task body verbatim inside it' ($codexFlat -match '`body` VERBATIM' -and $codexFlat -match 'new-task-prompt\.ps1' -and $codexFlat -match 'stdout as its prompt VERBATIM' -and $tpl -match 't\.body')
 Check 'Codex parity: quick-fix landing under Codex includes the structural check' ($codexFlat -match 'quick-fix also runs its structural check')
 # --- explicit-only invocation metadata (both agent hosts) ----------------------
 $explicitOnly = @('explore-idea', 'cleanup-work', 'cleanup-allwork', 'repo-init', 'add-module')
@@ -242,6 +246,59 @@ Check 'glossary description names no Claude Code tools' `
     ($glText -notmatch 'DO NOT use Grep, Glob, Read' -and $glText -match 'DO NOT search the codebase \(grep, file search or file reads\)')
 Check 'scan subagents are described for both agent hosts' `
     ([regex]::Matches($scanFlat, 'Spawn ONE read-only subagent \(Claude Code: `general-purpose`; Codex: the default agent\)').Count -eq 2)
+
+# --- shared worker prompt + result contract (both executors) ------------------
+Check 'CODEX.md builds every worker prompt with new-task-prompt.ps1 -ResultContract' ($codexFlat -match 'new-task-prompt\.ps1' -and $codexFlat -match '-ResultContract')
+Check 'CODEX.md sends the prompt verbatim with no added frame' ($codexFlat -match 'no paraphrase, no summary, no added frame or preamble')
+Check 'CODEX.md starts one fresh subagent per task without this conversation where it can' ($codexFlat -match 'Spawn ONE fresh subagent' -and $codexFlat -match 'WITHOUT this conversation''s history')
+Check 'CODEX.md validates every reply with test-task-result.ps1' ($codexFlat -match 'test-task-result\.ps1" -ReplyFile')
+Check 'CODEX.md: a malformed worker result is BLOCKED, never retried' ($codexFlat -match 'malformed worker result: <reason>' -and $codexFlat -match 'No retry, no re-prompt')
+Check 'CODEX.md prints the template status line after every task' ($codex -match '<tag> \(<title>\): <STATUS>\[ @<commitSha>\]')
+Check 'CODEX.md: under commits=task the worker ticked before committing; the executor verifies' ($codexFlat -match 'under `commits=task` it ticked them before its commit')
+Check 'CODEX.md: structured followups feed the backlog gate' ($codexFlat -match '`followups` arrive structured' -and $codexFlat -match 'backlog gate')
+Check 'CODEX.md no longer parses a textual first line' ($codex -notmatch 'first line of exactly' -and $codex -notmatch 'Parse the subagent''s first line')
+Check 'docs/codex.md: the Codex backend uses the shared JSON result contract' ($docs -match 'task-result\.schema\.json' -and $docs -match 'new-task-prompt\.ps1' -and $docs -notmatch 'textual `DONE` / `BLOCKED` result contract')
+# --- branch policy before any write --------------------------------------------
+$efFlat = $ef -replace '\s+', ' '
+$iPolicy = $ef.IndexOf('Branch policy')
+$iStep0a = $ef.IndexOf('## Step 0a')
+Check 'execute-feature checks the branch policy before Step 0a' ($iPolicy -ge 0 -and $iStep0a -gt $iPolicy -and $ef -match '## Step 0 . branch policy \(before anything else\)')
+Check 'execute-feature: the policy check precedes every write, .git/info/exclude and commit' ($efFlat -match 'BEFORE writing, appending to `\.git/info/exclude`, or committing anything \(Step 0a included\)')
+Check 'execute-feature: Step 0b no longer carries the policy paragraph' ($ef.IndexOf('Branch policy') -eq $ef.LastIndexOf('Branch policy'))
+$iPfPolicy = $pf.IndexOf('**Branch policy (lean mode only)')
+$iPfEmit = $pf.IndexOf('## Emit the plan')
+Check 'plan-feature checks the branch policy before it emits the plan' ($iPfPolicy -ge 0 -and $iPfEmit -gt $iPfPolicy -and $pf -match 'requiredDevelopmentBranchPrefix')
+Check 'plan-feature never creates or switches a branch for the policy' (($pf -replace '\s+', ' ') -match 'NEVER create or switch a branch to satisfy the policy')
+Check 'CODEX.md: execute-feature Step 0 applies under Codex too' ($codex -match 'Steps 0, 0a, 0b, 1, 2 and 4')
+# --- worktree mode stops without the Workflow tool, at every entry point -------
+$cw = ReadDoc 'skills\cleanup-work\SKILL.md'
+$ca = ReadDoc 'skills\cleanup-allwork\SKILL.md'
+$noWorkflowStop = 'worktree mode is ON and the Workflow tool is absent, STOP|Workflow tool is not available in this session \(Codex or any other agent host without it\) and worktree mode is ON, STOP and say: worktree mode currently requires Claude Code \(see the parity record\)'
+foreach ($entry in @(@('execute-feature', $ef), @('quick-fix', $qf), @('plan-feature', $pf), @('cleanup-work', $cw), @('cleanup-allwork', $ca))) {
+    Check "$($entry[0]) stops in worktree mode when the Workflow tool is absent" (($entry[1] -replace '\s+', ' ') -match $noWorkflowStop)
+}
+Check 'plan-feature: the worktree stop comes before the design work' ($pf.IndexOf('worktree mode currently requires Claude Code') -ge 0 -and $pf.IndexOf('worktree mode currently requires Claude Code') -lt $pf.IndexOf('## Gather first'))
+Check 'cleanup skills: the worktree stop sits right after the lean-mode check' ($cw.IndexOf('worktree mode currently requires Claude Code') -gt $cw.IndexOf('## Mode check') -and $cw.IndexOf('worktree mode currently requires Claude Code') -lt $cw.IndexOf('## Step 0') -and $ca.IndexOf('worktree mode currently requires Claude Code') -gt $ca.IndexOf('## Mode check') -and $ca.IndexOf('worktree mode currently requires Claude Code') -lt $ca.IndexOf('## Scope note'))
+# --- a skipped green gate is never a pass ---------------------------------------
+Check 'execute-feature: GREEN-GATE-RESULT: SKIPPED is not a pass' ((($ef -replace '\s+', ' ') -match '`GREEN-GATE-RESULT: SKIPPED` is not a pass') -and (($ef -replace '\s+', ' ') -match 'report it under Skipped validations'))
+Check 'execute-feature: the green gate is read by its last line' (($ef -replace '\s+', ' ') -match 'Read its LAST line, `GREEN-GATE-RESULT: GREEN\|SKIPPED\|RED\|ERROR`')
+Check 'quick-fix: GREEN-GATE-RESULT: SKIPPED is not a pass' (($qf -replace '\s+', ' ') -match '`GREEN-GATE-RESULT: SKIPPED` is not a pass . report it under Skipped validations')
+Check 'HANDOFF: a green gate that reported SKIPPED goes under Skipped validations' (($handoff -replace '\s+', ' ') -match '\*\*Skipped validations\*\* . anything not run, and why, including a green gate that reported SKIPPED')
+Check 'gate-check: SKIPPED is never reported as passed' (($gc -replace '\s+', ' ') -match 'SKIPPED: green gate not configured' -and ($gc -replace '\s+', ' ') -match 'never as passed')
+# --- status skills see ephemeral plans ------------------------------------------
+foreach ($entry in @(@('feature-status', 'skills\feature-status\SKILL.md'), @('module-status', 'skills\module-status\SKILL.md'), @('repo-status', 'skills\repo-status\SKILL.md'))) {
+    $statusFlat = (ReadDoc $entry[1]) -replace '\s+', ' '
+    Check "$($entry[0]) scans .plans-staging for ephemeral plans" ($statusFlat -match '\.plans-staging/' -and $statusFlat -match 'plan=ephemeral')
+    Check "$($entry[0]) marks ephemeral features" ($statusFlat -match '\(ephemeral . this clone only\)')
+    Check "$($entry[0]) takes status from checkboxes when there is no state.md" ($statusFlat -match 'no `state\.md` \(lean runs keep none\)' -and $statusFlat -match '`in-progress` \(some done\)')
+}
+# --- install guidance: both plugins, both agent hosts ---------------------------
+$strategy = ReadDoc '..\..\docs\strategy.md'
+foreach ($entry in @(@('repo-init', $ri), @('docs/strategy.md', $strategy))) {
+    $installFlat = $entry[1] -replace '\s+', ' '
+    Check "$($entry[0]) installs both plugins under Claude Code" ($installFlat -match '/plugin marketplace add cogniva/cogniva-skills' -and $installFlat -match '/plugin install cogniva-dev@cogniva' -and $installFlat -match '/plugin install cogniva-skills@cogniva')
+    Check "$($entry[0]) installs both plugins under Codex" ($installFlat -match 'codex plugin marketplace add cogniva/cogniva-skills' -and $installFlat -match '`/plugins`' -and $installFlat -match 'new Codex session' -and $installFlat -match '`/hooks`')
+}
 
 if ($failures.Count -gt 0) {
     Write-Host ""

@@ -95,7 +95,7 @@ must end up in column 0). Write the files with LF line endings and UTF-8
 without a BOM (the repo's `.gitattributes` turns `*.ps1` into CRLF on
 checkout; that is fine).
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` with exactly:
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Dependency-free tests for the agent-host smoke harness: the scenario files,
@@ -227,8 +227,8 @@ checkout; that is fine).
   Write-Host 'All smoke-assertions assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → stops with an error and exit 1: the `scenarios` folder and the fixture generator do not exist yet.
-- [ ] **Step 3 (scenario files):** Create these files, each with exactly the content shown.
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → stops with an error and exit 1: the `scenarios` folder and the fixture generator do not exist yet.
+- [x] **Step 3 (scenario files):** Create these files, each with exactly the content shown.
   `plugins/cogniva-dev/tests/host-smoke/scenarios/QF-NONE/scenario.json`:
   ```json
   {
@@ -422,7 +422,7 @@ checkout; that is fine).
     }
   }
   ```
-- [ ] **Step 4 (seeded and pasted plans):** Create these files, each with exactly the content inside the four-backtick fence (the plans contain their own three-backtick fences; their task headings must start in column 0 of the written file).
+- [x] **Step 4 (seeded and pasted plans):** Create these files, each with exactly the content inside the four-backtick fence (the plans contain their own three-backtick fences; their task headings must start in column 0 of the written file).
   `plugins/cogniva-dev/tests/host-smoke/scenarios/EF-TWO/plan.md`:
   ````markdown
   # TwoTasks — Feature Plan
@@ -610,7 +610,7 @@ checkout; that is fine).
   - [ ] **Step 1:** Add the line `# policy-probe` at the end of `src/Calc/Calc.ps1`.
   - [ ] **Step 2 (commit):** `git add src/Calc/Calc.ps1` then `git commit -m "chore: policy probe"`
   ````
-- [ ] **Step 5 (implement the generator):** Create `plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1` with exactly:
+- [x] **Step 5 (implement the generator):** Create `plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Builds a throwaway git repository for one agent-host smoke scenario
@@ -760,8 +760,8 @@ checkout; that is fine).
   Write-Output "START: $start"
   exit 0
   ```
-- [ ] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0. If the QF-STRUCT checks fail, run `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` first: the fixture relies on the shipped `dotnet` profile mapping `dependency-added` to standards it has.
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/scenarios plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): smoke scenarios and fixture generator"`
+- [x] **Step 6 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0. If the QF-STRUCT checks fail, run `pwsh -NoProfile -File plugins/cogniva-dev/tests/structural-changes/structural-changes.tests.ps1` first: the fixture relies on the shipped `dotnet` profile mapping `dependency-added` to standards it has.
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/scenarios plugins/cogniva-dev/tests/host-smoke/new-smoke-fixture.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): smoke scenarios and fixture generator"`
 
 ## Task 2: Outcome assertions, gated
 
@@ -784,7 +784,7 @@ in it), `untracked.before` (`git ls-files --others`) and `scenario.json`
 `Write-Text`, `New-Fixture`. Code below is indented two spaces to sit inside
 its step; write it without that indent.
 
-- [ ] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1`, insert this block, followed by one blank line, immediately above the line `    # --- sections appended by later tasks go above this line ---`:
+- [x] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1`, insert this block, followed by one blank line, immediately above the line `    # --- sections appended by later tasks go above this line ---`:
   ```powershell
       # --- outcome assertions --------------------------------------------------
       # Each case copies a base fixture, replaces .smoke/scenario.json with one
@@ -945,8 +945,8 @@ its step; write it without that indent.
       $full = Invoke-Pwsh $assert @('-Fixture', $sim, '-Scenario', 'QF-NONE', '-FinalMessage', (Join-Path $sim '.smoke\final.txt'))
       Check 'a simulated QF-NONE run passes every key' ($full.Code -eq 0 -and $full.Out.Contains('SMOKE QF-NONE: PASS') -and -not $full.Out.Contains('FAIL '))
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → the Task 1 checks still `PASS`; every new check that runs `assert-smoke-outcome.ps1` prints `FAIL` (the script does not exist yet); exit 1.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.ps1` with exactly:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → the Task 1 checks still `PASS`; every new check that runs `assert-smoke-outcome.ps1` prints `FAIL` (the script does not exist yet); exit 1.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Checks a smoke fixture (built by new-smoke-fixture.ps1) after an agent-host
@@ -1157,14 +1157,14 @@ its step; write it without that indent.
   }
   exit $(if ($pass) { 0 } else { 1 })
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0.
-- [ ] **Step 5 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the closing `}` of the current last object in `commands` and append this object as the new last element (same one-line style as the others):
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0.
+- [x] **Step 5 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the closing `}` of the current last object in `commands` and append this object as the new last element (same one-line style as the others):
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1", "label": "smoke-assertions", "note": "Proves the agent-host smoke scenarios, fixture generator and outcome assertions with simulated outcomes - no model runs; needs PowerShell 7." }
   ```
   Then confirm the file still parses: `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands[-1].label"` → `smoke-assertions`.
-- [ ] **Step 6 (run the gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all N command(s) exited 0.`
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(host-smoke): deterministic smoke outcome assertions, gated as smoke-assertions"`
+- [x] **Step 6 (run the gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all N command(s) exited 0.`
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(host-smoke): deterministic smoke outcome assertions, gated as smoke-assertions"`
 
 ## Task 3: Headless driver and smoke records
 
@@ -1191,7 +1191,7 @@ prompt from stdin when given `-`. Real runs cost model tokens and are NOT
 gated; only `-DryRun` is tested. Code below is indented two spaces to sit
 inside its step; write it without that indent.
 
-- [ ] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1`, insert this block, followed by one blank line, immediately above the line `    # --- sections appended by later tasks go above this line ---`:
+- [x] **Step 1 (failing tests):** In `plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1`, insert this block, followed by one blank line, immediately above the line `    # --- sections appended by later tasks go above this line ---`:
   ```powershell
       # --- driver -DryRun --------------------------------------------------------
       $dryRoot = Join-Path $root 'dry'
@@ -1211,8 +1211,8 @@ inside its step; write it without that indent.
       Check 'DryRun all: nine scenarios plus the EF-GATE re-run' ($d.Code -eq 0 -and ([regex]::Matches($d.Out, '(?m)^SCENARIO: ')).Count -eq 10 -and $d.Out.Contains('SCENARIO: EF-GATE (resume)'))
       Check 'an unknown scenario is a usage error (exit 2)' ((Invoke-Pwsh $driver @('-AgentHost', 'codex', '-Scenario', 'NOPE', '-DryRun')).Code -eq 2)
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → the earlier checks `PASS`; the `DryRun` checks `FAIL` (the driver does not exist yet), except `DryRun: builds no fixture and runs nothing`; exit 1.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1` with exactly:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → the earlier checks `PASS`; the `DryRun` checks `FAIL` (the driver does not exist yet), except `DryRun: builds no fixture and runs nothing`; exit 1.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Runs agent-host smoke scenarios headless on Claude Code or Codex, checks each
@@ -1490,9 +1490,9 @@ inside its step; write it without that indent.
   if (@($summary | Where-Object { $_.Result -ne 'pass' }).Count) { exit 1 }
   exit 0
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0.
-- [ ] **Step 5 (look at a real rendering):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 -AgentHost codex -Scenario QF-NONE -DryRun` → a `COMMAND:` line naming `...\openai.chatgpt-<newest version>-win32-x64\bin\windows-x86_64\codex.exe exec --json --sandbox workspace-write -C ...` (or `<codex.exe not found - pass -CodexExe>` on a machine without the extension) and a `PROMPT:` block starting `$quick-fix "Make Add-Numbers`. Do NOT run without `-DryRun` in this task.
-- [ ] **Step 6 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): headless Claude Code and Codex smoke driver with smoke records"`
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` → every line `PASS`, last line `All smoke-assertions assertions passed.`, exit 0.
+- [x] **Step 5 (look at a real rendering):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 -AgentHost codex -Scenario QF-NONE -DryRun` → a `COMMAND:` line naming `...\openai.chatgpt-<newest version>-win32-x64\bin\windows-x86_64\codex.exe exec --json --sandbox workspace-write -C ...` (or `<codex.exe not found - pass -CodexExe>` on a machine without the extension) and a `PROMPT:` block starting `$quick-fix "Make Add-Numbers`. Do NOT run without `-DryRun` in this task.
+- [x] **Step 6 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 plugins/cogniva-dev/tests/host-smoke/assert-smoke-outcome.tests.ps1` then `git commit -m "test(host-smoke): headless Claude Code and Codex smoke driver with smoke records"`
 
 ## Task 4: Workflow-template harness, gated
 
@@ -1510,7 +1510,7 @@ harness refuses any template with another module statement. Do not modify the
 template. Node needs no packages. Code below is indented two spaces to sit
 inside its step; write it without that indent.
 
-- [ ] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` with exactly:
+- [x] **Step 1 (failing test):** Create `plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` with exactly:
   ```powershell
   #Requires -Version 7.0
   # Dependency-free tests for templates/execute-feature.workflow.js: the template
@@ -1649,8 +1649,8 @@ inside its step; write it without that indent.
   Write-Host 'All workflow-template assertions passed.'
   exit 0
   ```
-- [ ] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → `FAIL` lines, then an error from a case with no result (node cannot find `run-template.mjs`); exit 1.
-- [ ] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/workflow-template/run-template.mjs` with exactly:
+- [x] **Step 2 (run it, expect fail):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → `FAIL` lines, then an error from a case with no result (node cannot find `run-template.mjs`); exit 1.
+- [x] **Step 3 (implement):** Create `plugins/cogniva-dev/tests/workflow-template/run-template.mjs` with exactly:
   ```javascript
   // Runs templates/execute-feature.workflow.js in plain Node with stubbed
   // Workflow globals, so its dispatch logic and the prompts it builds can be
@@ -1737,21 +1737,21 @@ inside its step; write it without that indent.
     }
   }
   ```
-- [ ] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → every line `PASS`, last line `All workflow-template assertions passed.`, exit 0.
-- [ ] **Step 5 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the closing `}` of the current last object in `commands` (the `smoke-assertions` entry) and append this object as the new last element:
+- [x] **Step 4 (run until green):** `pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1` → every line `PASS`, last line `All workflow-template assertions passed.`, exit 0.
+- [x] **Step 5 (wire into the green gate):** In `.claude/cogniva-dev/green-gate.json`, add a comma after the closing `}` of the current last object in `commands` (the `smoke-assertions` entry) and append this object as the new last element:
   ```json
       { "run": "pwsh -NoProfile -File plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1", "label": "workflow-template", "note": "Runs the execute-feature Workflow template in plain Node with a stubbed agent: dispatch order, BLOCKED / gate / null-result stops, commit-policy prompt lines; needs PowerShell 7 and node." }
   ```
   Then: `pwsh -NoProfile -Command "(Get-Content -Raw .claude/cogniva-dev/green-gate.json | ConvertFrom-Json).commands[-1].label"` → `workflow-template`.
-- [ ] **Step 6 (run the gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all N command(s) exited 0.`
-- [ ] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/workflow-template/run-template.mjs plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(workflow-template): run the execute-feature Workflow template in Node, gated as workflow-template"`
+- [x] **Step 6 (run the gate):** `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .` → last line `green-gate: GREEN - all N command(s) exited 0.`
+- [x] **Step 7 (commit):** `git add plugins/cogniva-dev/tests/workflow-template/run-template.mjs plugins/cogniva-dev/tests/workflow-template/workflow-template.tests.ps1 .claude/cogniva-dev/green-gate.json` then `git commit -m "test(workflow-template): run the execute-feature Workflow template in Node, gated as workflow-template"`
 
 ## Task 5: Runbook
 
 **Files:**
 - Create: `plugins/cogniva-dev/tests/host-smoke/README.md`
 
-- [ ] **Step 1 (write the runbook):** Create `plugins/cogniva-dev/tests/host-smoke/README.md` with exactly the content inside the four-backtick fence (indented two spaces here; the file has no indent, and its headings start in column 0):
+- [x] **Step 1 (write the runbook):** Create `plugins/cogniva-dev/tests/host-smoke/README.md` with exactly the content inside the four-backtick fence (indented two spaces here; the file has no indent, and its headings start in column 0):
   ````markdown
   # Agent-host smoke harness
 
@@ -1934,10 +1934,10 @@ inside its step; write it without that indent.
   to the adapters between them (skill overlays, hook input parsing, the worker
   contract) - not on every pull request.
   ````
-- [ ] **Step 2 (check it against the harness):** in PowerShell 7, from the repo root, run
+- [x] **Step 2 (check it against the harness):** in PowerShell 7, from the repo root, run
   ```powershell
   $t = Get-Content -Raw plugins/cogniva-dev/tests/host-smoke/README.md
   @('QF-NONE', 'QF-FINAL', 'EF-TWO', 'EF-BLOCKED', 'EF-GATE', 'QF-STRUCT', 'POLICY', 'HOOKS', 'INSTR', 'smoke-assertions', 'workflow-template', '-DryRun', '-PluginDir', 'codex plugin marketplace add', '/hooks', '## Cost') | Where-Object { -not $t.Contains($_) }
   ```
   → prints nothing (every term is in the runbook). Then `pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 -AgentHost claude-code -Scenario EF-GATE -Resume -DryRun` → `SCENARIO: EF-GATE (resume)` and a `/cogniva-dev:execute-feature Smoke/Gate commits=task plan=persisted` prompt (the runbook's resume instruction works as written).
-- [ ] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/README.md` then `git commit -m "docs(host-smoke): smoke harness runbook - install, headless, GUI, records, cost"`
+- [x] **Step 3 (commit):** `git add plugins/cogniva-dev/tests/host-smoke/README.md` then `git commit -m "docs(host-smoke): smoke harness runbook - install, headless, GUI, records, cost"`

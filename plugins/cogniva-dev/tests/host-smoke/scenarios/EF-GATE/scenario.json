@@ -1,0 +1,26 @@
+{
+  "id": "EF-GATE",
+  "title": "execute-feature: stops after the manual-validation gate task; the re-run finishes task 3 only",
+  "skill": "execute-feature",
+  "args": "Smoke/Gate commits=task plan=persisted",
+  "worktreeMode": false,
+  "branch": "feature/smoke",
+  "plan": "docs/plans/Smoke/Gate/Gate-plan.md",
+  "expect": {
+    "commitsSinceStart": 2,
+    "branch": "feature/smoke",
+    "changedPaths": ["src/Calc/Calc.ps1", "docs/gate.txt"],
+    "planTicked": { "path": "docs/plans/Smoke/Gate/Gate-plan.md", "tasks": [1, 2] },
+    "planUnticked": { "path": "docs/plans/Smoke/Gate/Gate-plan.md", "tasks": [3] },
+    "unrelatedPreserved": true
+  },
+  "resumeExpect": {
+    "commitsSinceStart": 3,
+    "branch": "feature/smoke",
+    "changedPaths": ["src/Calc/Calc.ps1", "tests/Calc.tests.ps1", "docs/gate.txt"],
+    "planTicked": { "path": "docs/plans/Smoke/Gate/Gate-plan.md", "tasks": [1, 2, 3] },
+    "unrelatedPreserved": true,
+    "handoffSections": true,
+    "finalMessageContains": ["READY FOR REVIEW"]
+  }
+}

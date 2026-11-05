@@ -1,0 +1,14 @@
+{
+  "_source": "documented, not captured",
+  "session_id": "00000000-0000-0000-0000-000000000000",
+  "turn_id": "00000000-0000-0000-0000-000000000001",
+  "transcript_path": "C:/Users/user/.codex/sessions/rollout.jsonl",
+  "cwd": "C:/fixture",
+  "hook_event_name": "PreToolUse",
+  "model": "model",
+  "permission_mode": "default",
+  "tool_name": "apply_patch",
+  "tool_input": {
+    "command": "*** Begin Patch\n*** Update File: src/Calc/Calc.ps1\n@@\n     return $a + $b\n }\n+# hooks-probe\n*** Add File: src/Calc/Probe.ps1\n+# canary-7\n*** End Patch\n"
+  }
+}

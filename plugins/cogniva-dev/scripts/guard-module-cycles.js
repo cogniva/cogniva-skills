@@ -46,27 +46,42 @@ function runCheck(top) {
   return null;
 }
 
+// Payload parsing is shared (scripts/hook-input.js): Claude Code's file_path
+// or every path in a Codex apply_patch. It also strips the UTF-8 BOM Windows
+// PowerShell 5.1 can prefix to piped stdin. A missing/broken lib => silent.
+let hookInput;
+try { hookInput = require(path.join(__dirname, 'hook-input.js')); }
+catch (e) { hookInput = null; }
+
+// The repo top of an opted-in repo holding this .csproj, else null.
+function optedInTop(fp) {
+  const dir = path.dirname(fp);
+  if (!fs.existsSync(dir)) return null;
+  let top;
+  try {
+    // execFileSync, not execSync: the edited path must never pass through a shell.
+    top = execFileSync('git', ['-C', dir, 'rev-parse', '--show-toplevel'], {
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch (e) { return null; } // not a git repo
+  return top && optedIn(top) ? top : null;
+}
+
 let raw = '';
 process.stdin.on('data', d => (raw += d)).on('end', () => {
   try {
-    // Windows PowerShell 5.1 can prefix piped stdin with a UTF-8 BOM.
-    const input = JSON.parse((raw || '{}').replace(/^\uFEFF/, ''));
-    const fp = (input.tool_input || {}).file_path;
-    if (!fp || !/\.csproj$/i.test(fp)) return allow();
+    if (!hookInput || !fs.existsSync(SCRIPT)) return allow();
+    const csprojs = hookInput.editedPaths(hookInput.readHookInput(raw)).filter(p => /\.csproj$/i.test(p));
+    if (csprojs.length === 0) return allow();
 
-    const dir = path.dirname(path.resolve(fp));
-    if (!fs.existsSync(dir)) return allow();
-
-    let top;
-    try {
-      // execFileSync, not execSync: the edited path must never pass through a shell.
-      top = execFileSync('git', ['-C', dir, 'rev-parse', '--show-toplevel'], {
-        encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
-      }).trim();
-    } catch (e) { return allow(); } // not a git repo
-    if (!top || !optedIn(top) || !fs.existsSync(SCRIPT)) return allow();
-
-    const report = runCheck(top);
+    // One -Check per opted-in repo, however many of its .csproj files the edit touched.
+    const tops = [];
+    for (const fp of csprojs) {
+      const top = optedInTop(fp);
+      if (top && !tops.includes(top)) tops.push(top);
+    }
+    let report = null;
+    for (const top of tops) { report = runCheck(top); if (report) break; }
     if (!report) return allow();
     process.stdout.write(JSON.stringify({
       decision: 'block',

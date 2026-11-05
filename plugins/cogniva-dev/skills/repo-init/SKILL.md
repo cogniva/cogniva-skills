@@ -86,8 +86,15 @@ the profile, a project is created only when it is needed.
      marker for the user to run once PowerShell 7 is installed. A marker
      without an adopted profile would make every path an ERROR.
 10. `dotnet build` - must succeed.
-11. Recommend the user install this plugin in the new repo:
-    `/plugin marketplace add cogniva/cogniva-skills` (or the path of your local clone) then `/plugin install cogniva-skills@cogniva`.
+11. Recommend the user install both Cogniva plugins, `cogniva-dev` and
+    `cogniva-skills`, on each agent host they use in the new repo:
+    - Claude Code: `/plugin marketplace add cogniva/cogniva-skills` (or the
+      path of your local clone), then `/plugin install cogniva-dev@cogniva`
+      and `/plugin install cogniva-skills@cogniva`.
+    - Codex: `codex plugin marketplace add cogniva/cogniva-skills` (or the
+      path of your local clone), install both plugins from the `/plugins`
+      browser, start a new Codex session (a new plugin's skills appear only
+      there), and trust the plugin hooks via `/hooks`.
 12. Commit everything: `git add -A && git commit -m "chore: scaffold <Repo> via cogniva-skills"`.
 
 ## Rules baked into the scaffold

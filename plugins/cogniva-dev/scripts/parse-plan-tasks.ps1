@@ -107,8 +107,9 @@ try {
     $json = $tasks | ConvertTo-Json -Depth 5
     # ConvertTo-Json renders a single-element array as a bare object; force an array shape.
     if ($tasks.Count -eq 1) { $json = "[$json]" }
-    [Console]::Out.Write($json)
-    [Console]::Out.Write("`n")
+    # Use the success stream so an in-process PowerShell caller can capture
+    # the same JSON that a native `powershell -File` caller receives.
+    Write-Output $json
     exit 0
 }
 catch {

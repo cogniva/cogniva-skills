@@ -14,6 +14,11 @@ repo's `.claude/cogniva-dev.local.json` has `"worktrees": true`. ON → read
 `WORKTREE.md` beside this file NOW; it replaces the ⟦worktree⟧ steps. OFF →
 ignore the tags; author directly on the user's checkout and current branch.
 
+**Host dispatch (check second):** if the Workflow tool is not available in
+this session (Codex or any other agent host without it) and worktree mode is
+ON, STOP and say: worktree mode currently requires Claude Code (see the
+parity record).
+
 The target repo is the checkout you were invoked from. This skill's own
 files and the `<plugin>` scripts live in the plugin install — read formats
 there, but never treat that checkout as the subject of the feature.
@@ -81,6 +86,18 @@ a receipt AND a `because:` reason; silence is not deferral;
 vague-and-unimportant is dropped with a one-line mention.
 Write confirmed backlog items via `/cogniva-dev:backlog`. Approved ADR candidates go INTO the plan (below);
 execute-feature materializes them.
+
+**Branch policy (lean mode only) — before you write anything.** BEFORE
+writing the plan folder, ticking a backlog line, or committing anything,
+read `.claude/cogniva-dev/policy.json`. If it exists and carries
+`requiredDevelopmentBranchPrefix`, the current branch (`git branch
+--show-current`) must start with that prefix. Mismatch → STOP with one clear
+line naming the current branch and the required prefix, and keep the design
+in this conversation so it can be emitted once the user is on a matching
+branch; NEVER create or switch a branch to satisfy the policy — which branch
+to work on is the user's call, not yours. Absent or unreadable file, or no
+such key → no policy, no behaviour change. Worktree mode needs no check: its
+generated branches are `feature/<slug>` by construction.
 
 ## Emit the plan
 
