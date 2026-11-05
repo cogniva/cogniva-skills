@@ -12,23 +12,24 @@ final messages they reference: `met`, or `not met — <why>`.
 - 2026-11-05-codex-cli-3 — Codex, CLI: 8 pass, 1 fail, 0 not-run (cogniva-dev 0.10.2, automatic approval review)
 - 2026-11-05-codex-cli-4 — Codex, CLI: 1 pass, 0 fail, 0 not-run (HOOKS after fresh review, cogniva-dev 0.10.2)
 - 2026-11-05-claude-code-cli-2 — Claude Code, CLI: 1 pass, 0 fail, 0 not-run (QF-STRUCT retest, cogniva-dev 0.10.2; the 0.10.1 failure did not recur)
+- 2026-11-05-claude-code-cli-3 — Claude Code, CLI: 4 pass, 0 fail, 0 not-run (EF-TWO, EF-BLOCKED, EF-GATE and resume on cogniva-dev 0.10.2, after the shared worker prompt gained the Git-permission line)
 
 ## Evidence table
 
 | Evidence area | Required evidence, per agent host | Claude Code | Codex |
 |---|---|---|---|
-| Execution | `QF-NONE`, `EF-TWO` assertions pass: intended files changed, tests in the fixture's green gate pass, and every `HANDOFF.md` section heading is present in the final message. | | |
-| Commit policies | `QF-NONE`: 0 new commits. `QF-FINAL`: exactly 1, created after the gate. `EF-TWO`: 2, with plan ticks committed. Checked by `git rev-list` in the assertion script, never by the agent's word. | | |
-| Branch and unrelated work | Every scenario: branch name unchanged, and the pre-dirtied `notes/unrelated.txt` keeps its content and is in no new commit. `POLICY`: stops with no file written, no `.git/info/exclude` change, and no commit. | | |
-| Blocked / manual gate | `EF-BLOCKED`: 0 commits and task 2 untouched. `EF-GATE`: stops after task 2 with task 3 untouched; the re-run completes task 3 only. | | |
-| Structural checks | `QF-STRUCT`: final message carries `STRUCTURE: FOUND` with no `UNEXPECTED`. The snapshot step succeeded or the Codex sandbox remedy from 06 applied. | | |
-| Hooks + documented limits | `HOOKS`: a Claude `Edit` and a Codex `apply_patch` to the primary checkout are both denied (where Codex hooks fire on that surface; otherwise the record says `partial` with the surface named). A shell-mediated write is documented as uncaught, not claimed. | | |
-| Honest handoffs and status | All `HANDOFF.md` sections present. A skipped gate appears under Skipped validations. `feature-status` lists the ephemeral `EF-GATE` plan as in progress. | | |
-| Install + discoverability | Smoke record per agent host and surface: plugin version, both plugins' skills listed, explicit-only skills absent from implicit selection (Codex `/skills` view; Claude Code `/` menu still lists them), hook trust state noted. | | |
+| Execution | `QF-NONE`, `EF-TWO` assertions pass: intended files changed, tests in the fixture's green gate pass, and every `HANDOFF.md` section heading is present in the final message. | met — CLI: QF-NONE (claude-code-cli), EF-TWO (claude-code-cli-3, 0.10.2). VS Code not run. | met — CLI: QF-NONE, EF-TWO (codex-cli-3, 0.10.2). VS Code not run. |
+| Commit policies | `QF-NONE`: 0 new commits. `QF-FINAL`: exactly 1, created after the gate. `EF-TWO`: 2, with plan ticks committed. Checked by `git rev-list` in the assertion script, never by the agent's word. | met — CLI: QF-NONE, QF-FINAL (claude-code-cli), EF-TWO (claude-code-cli-3). | met — CLI: QF-NONE, QF-FINAL, EF-TWO (codex-cli-3). |
+| Branch and unrelated work | Every scenario: branch name unchanged, and the pre-dirtied `notes/unrelated.txt` keeps its content and is in no new commit. `POLICY`: stops with no file written, no `.git/info/exclude` change, and no commit. | met — CLI: every scenario across claude-code-cli, -2 and -3; POLICY stops with nothing written. | met — CLI: POLICY and the lifecycle scenarios (codex-cli-3); HOOKS re-run in codex-cli-4. |
+| Blocked / manual gate | `EF-BLOCKED`: 0 commits and task 2 untouched. `EF-GATE`: stops after task 2 with task 3 untouched; the re-run completes task 3 only. | met — CLI: EF-BLOCKED, EF-GATE and its resume (claude-code-cli-3, 0.10.2). | met — CLI: EF-BLOCKED, EF-GATE and the separate resume assertion (codex-cli-3). |
+| Structural checks | `QF-STRUCT`: final message carries `STRUCTURE: FOUND` with no `UNEXPECTED`. The snapshot step succeeded or the Codex sandbox remedy from 06 applied. | met — CLI: QF-STRUCT (claude-code-cli-2, 0.10.2); the 0.10.1 failure did not recur. | met — CLI: QF-STRUCT (codex-cli-3), with approved execution for the snapshot. |
+| Hooks + documented limits | `HOOKS`: a Claude `Edit` and a Codex `apply_patch` to the primary checkout are both denied (where Codex hooks fire on that surface; otherwise the record says `partial` with the surface named). A shell-mediated write is documented as uncaught, not claimed. | met — CLI: HOOKS (claude-code-cli). Shell-mediated writes documented in docs/codex.md. VS Code not run. | met on CLI only — HOOKS denied after fresh hook review (codex-cli-4). VS Code not run, so primary-edit-guard stays scripts-tested. |
+| Honest handoffs and status | All `HANDOFF.md` sections present. A skipped gate appears under Skipped validations. `feature-status` lists the ephemeral `EF-GATE` plan as in progress. | not met — HANDOFF sections are asserted in the CLI runs, but feature-status in the EF-GATE fixture and the skipped-gate wording were not checked. Stage 3 input. | not met — HANDOFF sections are asserted in the CLI runs, but feature-status in the EF-GATE fixture and the skipped-gate wording were not checked. Stage 3 input. |
+| Install + discoverability | Smoke record per agent host and surface: plugin version, both plugins' skills listed, explicit-only skills absent from implicit selection (Codex `/skills` view; Claude Code `/` menu still lists them), hook trust state noted. | not met — no VS Code record; CLI records carry plugin versions only. Explicit-only discovery was checked by hand at Stage 1 (stage1-review rows 4–5) on an earlier build. Stage 3 input. | not met — no VS Code record; CLI records carry plugin versions only. Explicit-only discovery was checked by hand at Stage 1 (stage1-review row 4) on an earlier build. Stage 3 input. |
 
 ## Status changes made from smoke evidence
 
-- primary-edit-guard — Codex: scripts-tested → verified (smoke:2026-11-05-codex-cli-4; CLI only)
+- primary-edit-guard — Codex: kept at scripts-tested (smoke:2026-11-05-codex-cli-4 passes on CLI; held until a VS Code record shows the hook firing — user decision in the cross-host review)
 - skipped 2026-11-05-claude-code-cli: failing QF-STRUCT
 - skipped 2026-11-05-codex-cli: failing QF-NONE, QF-FINAL, EF-TWO, EF-GATE, QF-STRUCT, HOOKS, INSTR
 - skipped 2026-11-05-codex-cli-3: failing HOOKS before fresh hook review; the later 2026-11-05-codex-cli-4 retest passes
@@ -63,6 +64,9 @@ final messages they reference: `met`, or `not met — <why>`.
 - glossary — Codex: untested — Consulting the glossary before searching is instruction-level on both agent hosts.
 - project-records — Claude Code: untested — Plain instructions with no agent-host-specific steps.
 - project-records — Codex: untested — Plain instructions with no agent-host-specific steps.
+- VS Code surface — both agent hosts: not run at the Stage 2 gate (user decision, 2026-11-05). Needed for the Hooks, Honest handoffs and Install rows above and for any VS Code `verified`.
+- Honest handoffs and status — both agent hosts: run `feature-status` in the EF-GATE fixture before its re-run, and check a skipped gate is reported under Skipped validations.
+- Independent Codex review of sub-plans 07–09 (`bfcbd2e..fd413a3`, implemented by Claude Code): not done.
 
 ## Cross-host review
 
@@ -70,6 +74,12 @@ final messages they reference: `met`, or `not met — <why>`.
 - Claude Code reviewer: `/cogniva-dev:feature-check review` over `6e66eea..ae4bf90`, focusing on Codex's follow-up fixes in `45625f6` and their evidence.
 - Attribution correction: the original sub-plans 07–09 (`bfcbd2e..fd413a3`) were implemented by Claude Code, per the Stage 2a diagnostics. Confirm or obtain independent Codex review evidence for that range; the original template's Codex-implementation claim was inaccurate.
 - Findings and how each was resolved:
+  - Reviewed 2026-11-05 by Claude Code over `6e66eea..deb3874` (Codex's follow-up; implemented by Codex). Parser, prompt-builder parity, overlay placement and the three-file 0.10.2 bump: no findings.
+  - The shared worker prompt gained a Git-permission line in `45625f6`, but Claude Code's execute-feature scenarios predated it. Resolved: EF-TWO, EF-BLOCKED, EF-GATE and resume re-run on 0.10.2, all pass (smoke:2026-11-05-claude-code-cli-3).
+  - `-CodexApproveForMe` drops `--sandbox workspace-write`, but the README and docs/codex.md said workspace sandboxing was retained. Resolved: both now say the sandbox mode comes from the Codex configuration or the CLI default.
+  - primary-edit-guard was promoted to Codex `verified` on CLI evidence while VS Code is untested. Resolved: held at scripts-tested until a VS Code record exists (user decision).
+  - Outside the range: the `primary-hooks` note in `.claude/cogniva-dev/green-gate.json` still described the Codex apply_patch gap as pending. Resolved: note updated.
+- Independent Codex review of 07–09: not done at this gate (user decision to close Stage 2); listed under Stage 3 inputs.
 
 ## Notes
 

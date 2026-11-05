@@ -105,8 +105,9 @@ pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1
 
 - For lifecycle runs whose sandbox protects `.git`, pass
   `-CodexApproveForMe`. This selects `codex exec --approve-for-me`, which
-  keeps workspace sandboxing and routes execution approval requests through
-  automatic review. The executor and workers must request permission before
+  routes execution approval requests through automatic review. It replaces
+  `--sandbox workspace-write`, so the sandbox mode comes from your Codex
+  configuration or the CLI default, not from the driver. The executor and workers must request permission before
   their first Git-writing command, including the quick-fix snapshot under
   `commits=none`. A denied approval remains blocked; no Git failure is retried.
   Omit the switch to reproduce the baseline without automatic review. The

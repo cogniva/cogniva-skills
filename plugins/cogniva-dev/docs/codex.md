@@ -133,8 +133,11 @@ blocks without retries. The detailed rule is in
 `skills/execute-feature/CODEX.md`.
 
 For unattended smoke runs, `invoke-host-smoke.ps1 -AgentHost codex
--CodexApproveForMe ...` enables automatic approval review while retaining the
-workspace sandbox. This is process-local and does not edit user configuration.
+-CodexApproveForMe ...` enables automatic approval review. It passes
+`--approve-for-me` instead of `--sandbox workspace-write`, so the sandbox mode
+is whatever your Codex configuration or the CLI default selects; check it
+before relying on the run. This is process-local and does not edit user
+configuration.
 The switch needs a CLI that supports `--approve-for-me`; baseline runs remain
 available without it. See the [official permissions documentation](https://learn.chatgpt.com/docs/permissions).
 

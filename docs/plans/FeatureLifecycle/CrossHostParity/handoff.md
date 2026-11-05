@@ -64,8 +64,9 @@ single newly recorded nine-row all-pass matrix. Preserve the historical
 failed rows. The original Claude nine-scenario run and its later structural
 retest likewise span two records and plugin patch versions.
 
-Only `primary-edit-guard` was promoted to `verified` for Codex, scoped in its
-notes to CLI evidence. The conservative parity rule disqualifies a whole
+`primary-edit-guard` was first promoted to `verified` for Codex on CLI
+evidence; the Claude Code cross-host review held it back at `scripts-tested`
+until a VS Code record exists (user decision, 2026-11-05). The conservative parity rule disqualifies a whole
 record with any failed row, so the mixed-result matrix did not promote
 execute-feature or quick-fix. Do not infer VS Code verification from CLI
 records or treat the Stage 3 inputs list as an approved backlog deferral.
