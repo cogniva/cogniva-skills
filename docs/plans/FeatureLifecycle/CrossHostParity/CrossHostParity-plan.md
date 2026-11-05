@@ -34,6 +34,8 @@ worktree-mode entry point stops under Codex. Implementation and review alternate
 between hosts at each stage gate (see "Cross-host review points").
 
 **Read these first:**
+- [Continuation handoff](handoff.md) — current execution position, evidence,
+  review ownership and the remaining Stage 2 manual gate.
 - Evidence (not in the repo; findings are summarised where used):
   the Claude audit `cross-host-parity-audit.md` (2026-10-09) and the Codex
   "Cross-agent parity audit" (2026-10-09, Codex session

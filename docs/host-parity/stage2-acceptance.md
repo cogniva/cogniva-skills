@@ -66,7 +66,9 @@ final messages they reference: `met`, or `not met — <why>`.
 
 ## Cross-host review
 
-- Reviewer: a Claude Code session, `/cogniva-dev:feature-check review` over the sub-plan 07–09 diff (implemented by Codex).
+- Continuation: [CrossHostParity handoff](../plans/FeatureLifecycle/CrossHostParity/handoff.md).
+- Claude Code reviewer: `/cogniva-dev:feature-check review` over `6e66eea..ae4bf90`, focusing on Codex's follow-up fixes in `45625f6` and their evidence.
+- Attribution correction: the original sub-plans 07–09 (`bfcbd2e..fd413a3`) were implemented by Claude Code, per the Stage 2a diagnostics. Confirm or obtain independent Codex review evidence for that range; the original template's Codex-implementation claim was inaccurate.
 - Findings and how each was resolved:
 
 ## Notes
