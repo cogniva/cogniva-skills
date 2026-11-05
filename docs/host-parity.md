@@ -88,5 +88,7 @@ scenarios on one agent host and surface, written to
 `docs/host-parity/smoke/<YYYY-MM-DD>-<claude-code|codex>-<cli|vscode|desktop>.md`
 in the format described in `docs/host-parity/smoke/README.md`. Cite it in a
 row's Evidence as `smoke:<record-id>`. A record with a `fail` result is kept as
-evidence for `partial`, never for `verified`. No smoke record exists yet, so no
-capability is `verified`.
+evidence for `partial`, never for `verified`. The first record,
+`smoke:2026-11-04-claude-code-cli` (the Claude Code CLI baseline), is not yet
+cited by any row, so no capability is `verified`; sub-plan 10 of
+CrossHostParity assigns statuses from the smoke records.
