@@ -11,6 +11,26 @@ Step 2, not through `execute-feature` Step 4. Only lean mode is
 supported here: worktree mode depends on the runtime this host does not
 have, so if worktree mode is ON, STOP and say so rather than improvising.
 
+## Git metadata permissions — before the first write
+
+Apply this before any Git-writing step, including quick-fix Step 0's
+snapshot, execute-feature's `.git/info/exclude` append, staging and commits,
+and the structural check at landing. A snapshot uses a temporary index but
+still writes objects into `.git`, even under `commits=none`.
+
+Workspace-write access alone does not grant writable Git metadata. If the
+active sandbox protects `.git`, request approved execution for the specific
+command BEFORE its first attempt (`sandbox_permissions: require_escalated`
+on the shell tool where supported). Read-only Git commands need no such
+request. Workers receive the same permission requirement in the shared
+prompt; obtain permission for their own commands as well as console steps.
+
+If the host cannot request approval, or approval is denied, return `BLOCKED`
+before that write and name the required operation. Do not disable the
+sandbox, change user configuration, or probe with a known-denied write.
+Execution permission never authorizes a commit forbidden by `commits=`.
+An actual Git failure still stops the task with no retry, as before.
+
 ## Replaces Step 3 — sequential subagent loop
 
 You are the executor. Both executors hand task agents the same prompt and
@@ -37,6 +57,9 @@ For each task in the parsed array that is not `done`, in order:
    checkboxes in its `planPath` first, then stage only its own files and
    commit; under `none`/`final`: stage and commit nothing. A non-zero exit
    → stop and show its output; never hand-write a prompt instead.
+   Run the shown `pwsh -File` command as an external process when capturing
+   the prompt: the builder emits byte-exact stdout, not PowerShell pipeline
+   objects. The plan parser supports both external and in-process capture.
 3. Spawn ONE fresh subagent and send the script's stdout as its prompt
    VERBATIM — no paraphrase, no summary, no added frame or preamble. Where
    the agent host lets you choose, start it WITHOUT this conversation's

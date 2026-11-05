@@ -83,6 +83,7 @@ for (let i = 0; i < tasks.length; i++) {
     `Implement EXACTLY ONE task of a feature plan, then stop. Do not start the next task.`,
     `Your only working directory is: ${workspace}`,
     `You are already checked out on ${branch}. NEVER run git switch / checkout / branch — work where you are.`,
+    `Before the first command that writes Git metadata, obtain any execution permission required by the active sandbox. If permission is unavailable, return BLOCKED before that write. Never change sandbox settings or the commit policy.`,
     `Use absolute paths under the workspace. Follow the task's steps verbatim, TDD-style:`,
     `write the failing test → run it (confirm it fails) → minimal implementation → run until green → run the task's full verification.`,
     // Commit policy. planPath and statePath are both OPTIONAL (planless quick-fix runs;

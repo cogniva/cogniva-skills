@@ -103,6 +103,17 @@ pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1
 pwsh -NoProfile -File plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1 -AgentHost codex -Scenario all
 ```
 
+- For lifecycle runs whose sandbox protects `.git`, pass
+  `-CodexApproveForMe`. This selects `codex exec --approve-for-me`, which
+  keeps workspace sandboxing and routes execution approval requests through
+  automatic review. The executor and workers must request permission before
+  their first Git-writing command, including the quick-fix snapshot under
+  `commits=none`. A denied approval remains blocked; no Git failure is retried.
+  Omit the switch to reproduce the baseline without automatic review. The
+  generated record's command shows which mode was exercised. Use a fresh
+  session with the branch build loaded; an installed older overlay does not
+  contain the permission guidance.
+
 - `-Scenario all` runs the nine scenarios and then EF-GATE again on the same
   fixture (the resume run). One scenario: `-Scenario QF-NONE`; its resume
   run: `-Scenario EF-GATE -Resume`.

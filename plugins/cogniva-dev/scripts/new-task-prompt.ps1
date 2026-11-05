@@ -52,6 +52,7 @@ $lines = [System.Collections.Generic.List[string]]::new()
 $lines.Add('Implement EXACTLY ONE task of a feature plan, then stop. Do not start the next task.')
 $lines.Add("Your only working directory is: $Workspace")
 $lines.Add("You are already checked out on $Branch. NEVER run git switch / checkout / branch " + [char]0x2014 + ' work where you are.')
+$lines.Add('Before the first command that writes Git metadata, obtain any execution permission required by the active sandbox. If permission is unavailable, return BLOCKED before that write. Never change sandbox settings or the commit policy.')
 $lines.Add("Use absolute paths under the workspace. Follow the task's steps verbatim, TDD-style:")
 $lines.Add('write the failing test ' + [char]0x2192 + ' run it (confirm it fails) ' + [char]0x2192 + ' minimal implementation ' + [char]0x2192 + ' run until green ' + [char]0x2192 + " run the task's full verification.")
 if ($Commits -eq 'task') {

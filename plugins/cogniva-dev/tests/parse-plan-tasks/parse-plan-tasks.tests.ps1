@@ -52,6 +52,26 @@ Check 'nest: 2 tasks'                                 ($nest.Count -eq 2)
 Check 'nest: Task 1 done=true (nested-fence "- [ ]" ignored)' ($nest[0].done -eq $true)
 Check 'nest: Task 2 done=false (real "- [ ]")'        ($nest[1].done -eq $false)
 
+# A same-process script call must produce success-stream JSON, just like a
+# native `powershell -File` call. Console-only output cannot be captured by
+# `$tasks = & $script ... | ConvertFrom-Json` in the executor.
+$console = [Console]::Out
+$consoleOnly = [System.IO.StringWriter]::new()
+try {
+    [Console]::SetOut($consoleOnly)
+    $pipelineJson = @(& $script -PlanPath (Join-Path $here 'synthetic-plan.md'))
+}
+finally { [Console]::SetOut($console) }
+$pipelineTasks = $pipelineJson -join "`n" | ConvertFrom-Json
+Check 'pipeline: captures one JSON document' ($pipelineJson.Count -eq 1)
+Check 'pipeline: matches external task bodies, gates and resume state' (
+    $pipelineTasks.Count -eq 3 -and
+    (ConvertTo-Json -InputObject @($pipelineTasks) -Depth 5 -Compress) -eq
+    (ConvertTo-Json -InputObject @($syn) -Depth 5 -Compress)
+)
+Check 'pipeline: no JSON bypasses the success stream' ($consoleOnly.ToString().Length -eq 0)
+$consoleOnly.Dispose()
+
 if ($failures.Count -gt 0) {
     Write-Host ""
     Write-Host "FAILED: $($failures.Count) assertion(s)."

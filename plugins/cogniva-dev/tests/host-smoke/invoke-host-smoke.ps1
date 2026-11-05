@@ -16,6 +16,7 @@
 #                        extension (openai.chatgpt-<version>-win32-x64)
 #   -RecordPath <file>   append to this record instead of starting a new one
 #   -ExtraArgs <args>    passed to the agent host after the harness's own flags
+#   -CodexApproveForMe  use automatic approval review with workspace sandboxing
 # Exit 0 = every run passed; 1 = a run failed or did not finish; 2 = usage or
 # harness error.
 [CmdletBinding()]
@@ -23,6 +24,7 @@ param(
     [Parameter(Mandatory)][ValidateSet('claude-code', 'codex')][string]$AgentHost,
     [Parameter(Mandatory)][string]$Scenario,
     [string]$CodexExe,
+    [switch]$CodexApproveForMe,
     [string]$PluginDir,
     [switch]$Resume,
     [string]$OutDir,
@@ -43,6 +45,8 @@ $order = @('QF-NONE', 'QF-FINAL', 'EF-TWO', 'EF-BLOCKED', 'EF-GATE', 'QF-STRUCT'
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 
 function Fail([string]$Message) { [Console]::Error.WriteLine("invoke-host-smoke: $Message"); exit 2 }
+
+if ($CodexApproveForMe -and $AgentHost -ne 'codex') { Fail '-CodexApproveForMe requires -AgentHost codex' }
 
 if ($Scenario -ceq 'all') {
     if ($Resume) { Fail '-Resume takes one scenario, not all' }
@@ -97,7 +101,10 @@ function Get-AgentCommand([string]$Fixture, [string]$FinalFile) {
     }
     else {
         $exe = Resolve-CodexExe
-        $list = @('exec', '--json', '--sandbox', 'workspace-write', '-C', $Fixture, '--output-last-message', $FinalFile)
+        $list = @('exec', '--json')
+        if ($CodexApproveForMe) { $list += '--approve-for-me' }
+        else { $list += @('--sandbox', 'workspace-write') }
+        $list += @('-C', $Fixture, '--output-last-message', $FinalFile)
     }
     $list += @($ExtraArgs)
     if ($AgentHost -eq 'codex') { $list += '-' }

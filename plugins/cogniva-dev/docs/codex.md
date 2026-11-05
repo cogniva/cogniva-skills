@@ -117,6 +117,27 @@ already have checked out.
   and the Workflow tool is absent, and the parity record marks worktree mode
   `unsupported` for Codex (ADR 0056).
 
+## Git metadata under the sandbox
+
+Workspace-write mode can protect `.git` even when the rest of the repository
+is writable. This affects snapshots (`git add` with a temporary index and
+`git write-tree`), `.git/info/exclude`, staging and commits. A quick-fix
+snapshot needs approved execution even under `commits=none`; it creates Git
+objects without making a commit.
+
+The executor and every worker must request approval for a protected
+Git-writing command before its first attempt, using the host's execution
+permission mechanism. If approval is unavailable or denied, stop before the
+write. Commit policy remains unchanged, and an actual Git failure still
+blocks without retries. The detailed rule is in
+`skills/execute-feature/CODEX.md`.
+
+For unattended smoke runs, `invoke-host-smoke.ps1 -AgentHost codex
+-CodexApproveForMe ...` enables automatic approval review while retaining the
+workspace sandbox. This is process-local and does not edit user configuration.
+The switch needs a CLI that supports `--approve-for-me`; baseline runs remain
+available without it. See the [official permissions documentation](https://learn.chatgpt.com/docs/permissions).
+
 ## Hooks under Codex
 
 cogniva-dev ships four hooks in `hooks/hooks.json`: the primary-checkout edit
