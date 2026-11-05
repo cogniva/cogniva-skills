@@ -8,6 +8,8 @@ final messages they reference: `met`, or `not met — <why>`.
 
 - 2026-11-05-claude-code-cli — Claude Code, CLI: 8 pass, 1 fail, 0 not-run
 - 2026-11-05-codex-cli — Codex, CLI: 2 pass, 7 fail, 0 not-run
+- 2026-11-05-codex-cli-2 — Codex, CLI: 1 pass, 0 fail, 0 not-run (HOOKS, cogniva-dev 0.10.1)
+- 2026-11-05-codex-cli-3 — Codex, CLI: 8 pass, 1 fail, 0 not-run (cogniva-dev 0.10.2, automatic approval review)
 
 ## Evidence table
 
@@ -26,16 +28,17 @@ final messages they reference: `met`, or `not met — <why>`.
 
 - skipped 2026-11-05-claude-code-cli: failing QF-STRUCT
 - skipped 2026-11-05-codex-cli: failing QF-NONE, QF-FINAL, EF-TWO, EF-GATE, QF-STRUCT, HOOKS, INSTR
+- skipped 2026-11-05-codex-cli-3: failing HOOKS; fresh review of the updated plugin hooks is pending
 
 ## Stage 3 inputs
 
-- lean-mode — Claude Code: untested — The plan parser, commit wrapper and green-gate runner are gate-covered. Neither agent host's task loop has a suite (the Workflow template gets one in CrossHostParity 05). Under Codex the sandbox may make `.git` read-only (diagnosed in CrossHostParity 06).
-- lean-mode — Codex: untested — The plan parser, commit wrapper and green-gate runner are gate-covered. Neither agent host's task loop has a suite (the Workflow template gets one in CrossHostParity 05). Under Codex the sandbox may make `.git` read-only (diagnosed in CrossHostParity 06).
+- lean-mode — Claude Code: untested — The shared parser, prompt/result contract and Workflow template are gate-covered. The Codex overlay and shared worker prompt require approval before protected Git metadata writes; the smoke driver offers process-local automatic review. Full real-host acceptance remains pending.
+- lean-mode — Codex: untested — The shared parser, prompt/result contract and Workflow template are gate-covered. The Codex overlay and shared worker prompt require approval before protected Git metadata writes; the smoke driver offers process-local automatic review. Full real-host acceptance remains pending.
 - worktree-mode — Claude Code: untested — Codex: stops at every entry point (ADR 0056); not wanted; what it would need is in CrossHostParity Stage 3. Claude Code: the integration and ledger scripts are gate-covered; the worktree task loop is not.
-- execute-feature — Claude Code: untested — The Codex loop has never run end to end. Both agent hosts give workers the same prompt (new-task-prompt.ps1) and check the same result schema (task-result.schema.json); a malformed Codex reply is BLOCKED (ADR 0054). Model-invocable: routed from easy-work-scan (plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md:73).
-- execute-feature — Codex: untested — The Codex loop has never run end to end. Both agent hosts give workers the same prompt (new-task-prompt.ps1) and check the same result schema (task-result.schema.json); a malformed Codex reply is BLOCKED (ADR 0054). Model-invocable: routed from easy-work-scan (plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md:73).
-- quick-fix — Claude Code: untested — The structural snapshot and landing check are gate-covered. Under Codex the snapshot writes objects into `.git`, which the sandbox may make read-only (CrossHostParity 06). Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule.
-- quick-fix — Codex: untested — The structural snapshot and landing check are gate-covered. Under Codex the snapshot writes objects into `.git`, which the sandbox may make read-only (CrossHostParity 06). Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule.
+- execute-feature — Claude Code: untested — Both agent hosts share the worker prompt and result schema (ADR 0054). Parser JSON is capturable both in-process and through an external shell; the prompt builder still requires external stdout capture. Workers request required execution permission before their first Git metadata write. The initial Codex CLI matrix failed; acceptance remains pending. Model-invocable: routed from easy-work-scan (plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md:73).
+- execute-feature — Codex: untested — Both agent hosts share the worker prompt and result schema (ADR 0054). Parser JSON is capturable both in-process and through an external shell; the prompt builder still requires external stdout capture. Workers request required execution permission before their first Git metadata write. The initial Codex CLI matrix failed; acceptance remains pending. Model-invocable: routed from easy-work-scan (plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md:73).
+- quick-fix — Claude Code: untested — The structural snapshot and landing check are gate-covered. Under Codex both need approved execution before protected Git object writes, including commits=none; the overlay makes this a preflight obligation. Initial CLI failures preceded implementation, so acceptance remains pending. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule.
+- quick-fix — Codex: untested — The structural snapshot and landing check are gate-covered. Under Codex both need approved execution before protected Git object writes, including commits=none; the overlay makes this a preflight obligation. Initial CLI failures preceded implementation, so acceptance remains pending. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule.
 - plan-feature — Claude Code: untested — The profile and phase-block resolvers it calls are gate-covered; the design conversation is not. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule. In worktree mode it stops without the Workflow tool, so under Codex it runs in lean mode only (ADR 0056).
 - plan-feature — Codex: untested — The profile and phase-block resolvers it calls are gate-covered; the design conversation is not. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule. In worktree mode it stops without the Workflow tool, so under Codex it runs in lean mode only (ADR 0056).
 - explore-idea — Claude Code: untested — Explicit-only (metadata, both agent hosts). A conversation only; it may start read-only subagents.
@@ -65,4 +68,5 @@ final messages they reference: `met`, or `not met — <why>`.
 
 ## Notes
 
+- The 0.10.2 rerun passed every former Git and parser failure, plus the separate EF-GATE resume assertion. Its HOOKS scenario allowed the edit after installation. A baseline control without automatic approval review also allowed the edit; the installed guard returned a JSON deny decision when invoked directly. The hooks feature remains enabled, and fresh hook review was requested before another enforcement retest. The earlier 0.10.1 hook pass is retained as history; it does not establish enforcement for the updated installation.
 - Bumping cogniva-dev's minor version at this gate makes the CLI records above one minor version older than `plugin.json`; `check-host-parity.ps1` then prints `WARN stale evidence` for them. That is a warning by design (they were taken from this branch before the bump), not a failure.
