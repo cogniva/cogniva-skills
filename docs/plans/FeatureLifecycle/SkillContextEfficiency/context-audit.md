@@ -1614,4 +1614,90 @@ Console before-integrate obligations were resolved from AGENTS.md; applicable
 parity notes are updated. `check-adrs.ps1 -Workspace C:/dev/cogniva-skills -Since
 5b9b65393b588997e502e11d540ad21b768e12fa` passed, and `git diff --check` was clean.
 The approved version changes receive a local landing commit before the mandatory
-clean-tree full green gate rerun. Final post-bump gate results are pending here.
+clean-tree full green gate rerun. Final post-bump gate results are recorded below.
+
+
+### Final console validation and disposition (2026-11-10)
+
+Approved release bookkeeping is committed as `3e994de`. From that clean tree,
+the console reran `powershell -NoProfile -ExecutionPolicy Bypass -File
+plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .`: all 28 configured commands
+exited 0, the process exited 0 and the final line is **GREEN-GATE-RESULT: GREEN**.
+Both new plugin versions match all six manifest/marketplace locations. The same
+Windows case-collision and Linux-only containment fixture skips remain explicit;
+the gate itself is not SKIPPED. No test or gate was weakened.
+
+Recomputed the accepted 51-file instruction fingerprint unchanged after release
+metadata edits. All six parsed plan tasks are done. The earlier standalone
+neutrality/parity/manifest, ADR and diff checks passed; manifest parity also
+passed explicitly after bump application. Final audit additions only record
+these outcomes and the per-path inventory below, without changing accepted
+instructions or historical smoke versions/results. The final documentation
+commit is followed by `git diff --check` and clean-tree verification.
+
+Implemented/source-reviewed with Codex; behavioral smoke validation on Claude
+Code and Codex. Independent Claude source review and mutation persistence are
+not claimed. No net quick-fix runtime or billed-token saving is established.
+Original Codex caches/configuration were restored and freshly verified before
+release bookkeeping; they are deliberately not updated to the new local patch
+versions by this repository-only step. Claude used session-local plugin paths.
+Normal approved test-session state and isolated fixtures are retained; cleanup
+was not authorized. No branch switch, integration or remote push was performed.
+There are no implementation tasks or surfaced backlog candidates remaining.
+
+### Final changed-file inventory
+
+Full feature delta from pinned baseline `5b9b65393b588997e502e11d540ad21b768e12fa`.
+Each entry names one real repository path; ignored scratch and external logs
+are excluded. Historical before/control failures and measured-read limits are
+preserved in the evidence files.
+
+| Path | Change |
+|---|---|
+| [.claude-plugin/marketplace.json](../../../../.claude-plugin/marketplace.json) | Approved matching patch version metadata. |
+| [docs/host-parity.md](../../../../docs/host-parity.md) | Bounded loading/evidence notes and release bookkeeping. |
+| [docs/host-parity/smoke/2026-11-10-claude-code-cli-2.md](../../../../docs/host-parity/smoke/2026-11-10-claude-code-cli-2.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-claude-code-cli-3.md](../../../../docs/host-parity/smoke/2026-11-10-claude-code-cli-3.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-claude-code-cli-4.md](../../../../docs/host-parity/smoke/2026-11-10-claude-code-cli-4.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-claude-code-cli-5.md](../../../../docs/host-parity/smoke/2026-11-10-claude-code-cli-5.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-claude-code-cli.md](../../../../docs/host-parity/smoke/2026-11-10-claude-code-cli.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-codex-cli-2.md](../../../../docs/host-parity/smoke/2026-11-10-codex-cli-2.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-codex-cli-3.md](../../../../docs/host-parity/smoke/2026-11-10-codex-cli-3.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-codex-cli-4.md](../../../../docs/host-parity/smoke/2026-11-10-codex-cli-4.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-codex-cli-5.md](../../../../docs/host-parity/smoke/2026-11-10-codex-cli-5.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/host-parity/smoke/2026-11-10-codex-cli.md](../../../../docs/host-parity/smoke/2026-11-10-codex-cli.md) | Actual host smoke evidence, including controls, retained limits and before/after reads. |
+| [docs/plans/FeatureLifecycle/SkillContextEfficiency/SkillContextEfficiency-plan.md](../../../../docs/plans/FeatureLifecycle/SkillContextEfficiency/SkillContextEfficiency-plan.md) | Feature plan and all six completed task checkboxes. |
+| [docs/plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md](../../../../docs/plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md) | Metrics, approvals, evidence, restoration and validation ledger. |
+| [plugins/cogniva-dev/.claude-plugin/plugin.json](../../../../plugins/cogniva-dev/.claude-plugin/plugin.json) | Approved matching patch version metadata. |
+| [plugins/cogniva-dev/.codex-plugin/plugin.json](../../../../plugins/cogniva-dev/.codex-plugin/plugin.json) | Approved matching patch version metadata. |
+| [plugins/cogniva-dev/skills/add-module/SKILL.md](../../../../plugins/cogniva-dev/skills/add-module/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/adr/SKILL.md](../../../../plugins/cogniva-dev/skills/adr/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/applicable-rules/SKILL.md](../../../../plugins/cogniva-dev/skills/applicable-rules/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md](../../../../plugins/cogniva-dev/skills/backlog/CAPTURE-BAR.md) | Delegates coverage and retains routing intent tests. |
+| [plugins/cogniva-dev/skills/backlog/COVERAGE.md](../../../../plugins/cogniva-dev/skills/backlog/COVERAGE.md) | New shared coverage-only check. |
+| [plugins/cogniva-dev/skills/backlog/SKILL.md](../../../../plugins/cogniva-dev/skills/backlog/SKILL.md) | Short description; direct coverage helper read. |
+| [plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md](../../../../plugins/cogniva-dev/skills/cleanup-allwork/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/cleanup-work/SKILL.md](../../../../plugins/cogniva-dev/skills/cleanup-work/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/easy-work-scan/SKILL.md](../../../../plugins/cogniva-dev/skills/easy-work-scan/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/execute-feature/COMMIT-POLICY.md](../../../../plugins/cogniva-dev/skills/execute-feature/COMMIT-POLICY.md) | New shared commit authority, modes and safeguards. |
+| [plugins/cogniva-dev/skills/execute-feature/SKILL.md](../../../../plugins/cogniva-dev/skills/execute-feature/SKILL.md) | Short description; shared commit policy read. |
+| [plugins/cogniva-dev/skills/explore-idea/SKILL.md](../../../../plugins/cogniva-dev/skills/explore-idea/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/feature-check/SKILL.md](../../../../plugins/cogniva-dev/skills/feature-check/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/feature-status/SKILL.md](../../../../plugins/cogniva-dev/skills/feature-status/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/gate-check/SKILL.md](../../../../plugins/cogniva-dev/skills/gate-check/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/groom-backlog/SKILL.md](../../../../plugins/cogniva-dev/skills/groom-backlog/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/investigate/SKILL.md](../../../../plugins/cogniva-dev/skills/investigate/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/module-deps/SKILL.md](../../../../plugins/cogniva-dev/skills/module-deps/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/module-status/SKILL.md](../../../../plugins/cogniva-dev/skills/module-status/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/plan-feature/SKILL.md](../../../../plugins/cogniva-dev/skills/plan-feature/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/quick-fix/SKILL.md](../../../../plugins/cogniva-dev/skills/quick-fix/SKILL.md) | Short description; shared commit policy read. |
+| [plugins/cogniva-dev/skills/repo-init/SKILL.md](../../../../plugins/cogniva-dev/skills/repo-init/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/repo-status/SKILL.md](../../../../plugins/cogniva-dev/skills/repo-status/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/skills/workflow-status/SKILL.md](../../../../plugins/cogniva-dev/skills/workflow-status/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1](../../../../plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1) | Narrow semantic assertions for the changed loading contracts. |
+| [plugins/cogniva-skills/.claude-plugin/plugin.json](../../../../plugins/cogniva-skills/.claude-plugin/plugin.json) | Approved matching patch version metadata. |
+| [plugins/cogniva-skills/.codex-plugin/plugin.json](../../../../plugins/cogniva-skills/.codex-plugin/plugin.json) | Approved matching patch version metadata. |
+| [plugins/cogniva-skills/skills/glossary/SKILL.md](../../../../plugins/cogniva-skills/skills/glossary/SKILL.md) | Protected short trigger; deduplicated body. |
+| [plugins/cogniva-skills/skills/project-context/SKILL.md](../../../../plugins/cogniva-skills/skills/project-context/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+| [plugins/cogniva-skills/skills/project-requirement/SKILL.md](../../../../plugins/cogniva-skills/skills/project-requirement/SKILL.md) | Short description; conditional format read. |
+| [plugins/cogniva-skills/skills/reference/SKILL.md](../../../../plugins/cogniva-skills/skills/reference/SKILL.md) | Short discovery description; body and invocation metadata retained. |
