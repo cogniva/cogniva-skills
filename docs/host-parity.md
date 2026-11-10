@@ -142,6 +142,12 @@ unobservable before-worker reads. Codex's original two-plugin state was
 restored and freshly verified; Claude used session-local loading. No new
 intentional host asymmetry or capability-wide no-regression claim is added.
 
+The human approved final patch bookkeeping: cogniva-dev 0.11.1 and
+cogniva-skills 0.8.2, matching both host manifests and marketplace entries.
+Only version metadata changes after the accepted Gate B instruction fingerprint;
+the actual smoke records retain their tested 0.11.0/0.8.1 labels. No new runtime
+verification claim or installed-plugin refresh follows from these version edits.
+
 ## Intentional asymmetries
 
 - `worktree-mode`, `worktree-cleanup` — worktree mode is Claude Code only: it

@@ -1591,3 +1591,27 @@ including raw before/after delivery checks, recovered after-worker calls,
 exact record/session/tool references, metadata, source fingerprint and links.
 No new permanent test or production change was needed. Task 6's five
 checkboxes were completed after the full GREEN result, before task staging.
+
+### Console landing — approved patch release bookkeeping (2026-11-10)
+
+Task 6 completed in commit `a90a92c` with all six plan tasks checked and a clean
+tree. The human then answered **"Apply both patch bumps"** to the deferred offer:
+cogniva-dev 0.11.0 -> 0.11.1 and cogniva-skills 0.8.1 -> 0.8.2. Patch is appropriate
+because context loading and wording improve while skill intent and lifecycle
+contracts stay unchanged. This is explicit bump authorization, separate from
+Gate A/B behavioral acceptance.
+
+The console updates each plugin's `.claude-plugin/plugin.json` and
+`.codex-plugin/plugin.json`, plus both entries in `.claude-plugin/marketplace.json`
+(five physical files, six matching version locations). The parity record notes
+this metadata-only change. Real smoke records keep their actual tested version
+labels; no old record is rewritten to imply a new run. The 51-file instruction
+fingerprint remains the accepted Gate B value because manifests are outside its
+documented scope. No installed plugin/config refresh, external cleanup, branch
+switch, integration or remote push is authorized or performed by this step.
+
+Console before-integrate obligations were resolved from AGENTS.md; applicable
+parity notes are updated. `check-adrs.ps1 -Workspace C:/dev/cogniva-skills -Since
+5b9b65393b588997e502e11d540ad21b768e12fa` passed, and `git diff --check` was clean.
+The approved version changes receive a local landing commit before the mandatory
+clean-tree full green gate rerun. Final post-bump gate results are pending here.
