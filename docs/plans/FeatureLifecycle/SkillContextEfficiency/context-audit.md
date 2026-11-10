@@ -128,11 +128,13 @@ no directory sweep is authorized.
 
 ### Gate B acceptance and evidence index
 
-No validation has run; Task 5 will prepare the after-run materials while preserving before evidence.
+No Gate B validation has run. Task 5's prepared operator packet below preserves all before evidence; completion of preparation does not accept the build.
 
 Human decision: pending.
 
 Accepted source fingerprint: not yet evaluated.
+
+Source offered for Gate B: `6d1b7abb15223a33acaa1a575c5c4d42f38bbe286a5f96ae1a1fefdafaec9d22` (51 instruction files; after-body). Recompute before actual loading and acceptance; a changed fingerprint needs renewed evaluation/acceptance.
 
 Smoke-record references: none.
 
@@ -933,3 +935,401 @@ host-parity passed (26 rows/33 covered items), and host-neutrality passed
 The full green gate remains scheduled for Task 6; Task 3's existing full-gate
 result is not presented as verification of these later edits. Only Task 4's
 six checkboxes were completed before its task-scoped commit.
+
+### Task 5 — prepared Gate B operator packet
+
+Prepared on Codex, 2026-11-10, from source HEAD `76d3cb767f1e83a357d3e667425604628724723b`.
+Owning unit: FeatureLifecycle/SkillContextEfficiency documentation; no product or
+dependency changes. Applicable-rules reported SAFE_TO_PROCEED with root AGENTS.md
+and its CLAUDE.md import, architecture profile undeclared. No model sessions,
+harness executions (including DryRun), external writes, plugin installs, or
+restoration actions were performed. Gate A setup/run/restoration approvals and
+acceptance apply only to Gate A. Gate B setup, runs, persistent refresh and
+restoration each still need the console's concrete approvals.
+
+#### Gate B exact approval inventory
+
+Use the already reserved root
+`C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110`.
+The six following after-only roots were absent in read-only Task 5 inspection:
+
+| Purpose | Exact path to approve |
+|---|---|
+| Neutral fixtures | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/gate-b` |
+| Neutral transcripts, setup/build/state/restore evidence | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output/gate-b` |
+| Claude QF fixture parent (driver creates QF-NONE beneath it) | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/qf-after-claude` |
+| Claude QF output | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output/qf-after-claude` |
+| Codex QF fixture parent (driver creates QF-NONE beneath it) | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/qf-after-codex` |
+| Codex QF output | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output/qf-after-codex` |
+
+The bounded neutral suffix list for **each** of `claude-code` and `codex` is
+`discovery`, `glossary-first`, `glossary-missing`, `backlog-direct`,
+`backlog-dirty`, `requirements-view`, `requirements-status`, `requirements-add`,
+`requirements-refine`. Each fixture is exactly `<neutral-fixtures>/<host>/<suffix>`
+and each output is exactly `<neutral-output>/<host>/<suffix>`. The discovery
+copy is a separate build probe, outside the ten behavioral acceptance checks.
+The PowerShell inventory below prints all 36 resolved neutral fixture/output
+paths before any write. The console must expand them in the setup approval;
+the listed parents do not authorize unrelated children, cleanup, or retries.
+Do not overwrite any occupied path: preserve it and obtain approval for a new
+named path. Gate A/control/before-QF trees remain read-only comparison inputs.
+
+Run approval must also name normal runtime state writes under
+`C:/Users/canuc/.claude`, `C:/Users/canuc/.claude.json`, and
+`C:/Users/canuc/.codex`, limited to these fresh sessions' history, logs, trust
+and project/session state. Persistent Codex refresh and **separate restoration**
+approval must name `C:/Users/canuc/.codex/config.toml`,
+`C:/Users/canuc/.codex/plugins` (only both Cogniva installs, marketplace metadata
+and installer state), and `C:/Users/canuc/.codex/.hook-trust` if trust changes.
+Prefer session-local Claude CLI, which requires no marketplace/install change.
+If Claude VS Code is deliberately selected instead, enumerate its captured
+scope and approve `C:/Users/canuc/.claude/settings.json`,
+`C:/Users/canuc/.claude/plugins/known_marketplaces.json`,
+`C:/Users/canuc/.claude/plugins/installed_plugins.json`, and
+`C:/Users/canuc/.claude/plugins/cache/cogniva` for two-plugin refresh and,
+separately, restoration. Stop for an additional exact-path approval if a host
+reports a new write target. None of these are inherited Gate A permissions.
+
+The bounded run offer is 18 fresh neutral sessions (nine per host, one deliberate
+same-session backlog repeat included), two unchanged QF-NONE driver sessions,
+and one fresh restoration probe for each persistently changed host. Each QF run
+keeps the driver's 40-minute timeout. Keep interactive runs bounded to the
+selected request and clarification/proposal, then close them; approve any
+additional retry separately and retain its predecessor. No new published
+control is required: the six Gate A records remain the comparison evidence.
+
+#### Fresh after fixtures
+
+Reuse the five raw files and their exact SHA256s in Task 2's raw staging table,
+and the unchanged `prompts.md`. Do not copy mutated Gate A fixtures or host
+policies. This human-only PowerShell 7 recipe performs a no-write inventory
+first; run the write section only after approval, in the creating user's context
+(Gate A read-only Git inspection under the sandbox identity hit ownership
+protection). It changes no safe.directory or user config. Fixture Git settings
+are local. Do not precreate QF-NONE: its unchanged driver owns that fixture.
+
+```powershell
+$contextStage = 'C:/dev/cogniva-skills/.plans-staging/SkillContextEfficiency/validation'
+$contextRoot = 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110'
+$contextScenarios = @('discovery','glossary-first','glossary-missing','backlog-direct','backlog-dirty','requirements-view','requirements-status','requirements-add','requirements-refine')
+$contextRows = @(foreach ($contextHost in @('claude-code','codex')) {
+    foreach ($contextScenario in $contextScenarios) {
+        [pscustomobject]@{ HostName = $contextHost; Scenario = $contextScenario; Fixture = "$contextRoot/gate-b/$contextHost/$contextScenario"; Output = "$contextRoot/output/gate-b/$contextHost/$contextScenario" }
+    }
+})
+$contextRows | ForEach-Object { $_.Fixture; $_.Output }
+# STOP here for the console's setup approval. Following commands write externally.
+foreach ($contextUnused in @("$contextRoot/gate-b","$contextRoot/output/gate-b","$contextRoot/qf-after-claude","$contextRoot/qf-after-codex","$contextRoot/output/qf-after-claude","$contextRoot/output/qf-after-codex")) {
+    if (Test-Path -LiteralPath $contextUnused) { throw "Occupied path; preserve it and obtain new approval: $contextUnused" }
+}
+function Invoke-GateBGit([string]$Fixture, [string[]]$GitArgs) {
+    $contextGitOutput = @(& git -C $Fixture @GitArgs 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw ($contextGitOutput -join "`n") }
+    $contextGitOutput
+}
+foreach ($contextRow in $contextRows) {
+    New-Item -ItemType Directory -Path $contextRow.Fixture,$contextRow.Output -ErrorAction Stop | Out-Null
+    $contextPairs = @()
+    if ($contextRow.Scenario -like 'glossary-*') {
+        $contextPairs = @(@('glossary/docs/glossary/README.md','docs/glossary/README.md'),@('glossary/src/Window.ps1','src/Window.ps1'))
+    } elseif ($contextRow.Scenario -like 'requirements-*') {
+        $contextPairs = @(,@('requirements/docs/REQUIREMENTS.md','docs/REQUIREMENTS.md'))
+    } elseif ($contextRow.Scenario -like 'backlog-*') {
+        $contextPairs = @(,@('backlog/ledger-input.md','BACKLOG.md'))
+    }
+    $contextHashes = @(foreach ($contextPair in $contextPairs) {
+        $contextSource = Join-Path $contextStage $contextPair[0]
+        $contextTarget = Join-Path $contextRow.Fixture $contextPair[1]
+        New-Item -ItemType Directory -Path (Split-Path -Parent $contextTarget) -Force | Out-Null
+        Copy-Item -LiteralPath $contextSource -Destination $contextTarget -ErrorAction Stop
+        $contextHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $contextSource).Hash
+        if ((Get-FileHash -Algorithm SHA256 -LiteralPath $contextTarget).Hash -ne $contextHash) { throw 'Neutral input differs.' }
+        [pscustomobject]@{ Path = $contextPair[1]; SHA256 = $contextHash }
+    })
+    Invoke-GateBGit $contextRow.Fixture @('init','-q','-b','feature/context-smoke') | Out-Null
+    Invoke-GateBGit $contextRow.Fixture @('config','core.autocrlf','false') | Out-Null
+    Invoke-GateBGit $contextRow.Fixture @('add','--all') | Out-Null
+    Invoke-GateBGit $contextRow.Fixture @('-c','user.name=Cogniva','-c','user.email=cogniva@example.invalid','commit','--allow-empty','-m','test: seed neutral context inputs') | Out-Null
+    if ($contextRow.Scenario -eq 'backlog-dirty') {
+        Add-Content -LiteralPath (Join-Path $contextRow.Fixture 'BACKLOG.md') -Value "`nPre-existing operator note; preserve this uncommitted line."
+    }
+    [pscustomobject]@{ Fixture = $contextRow.Fixture; Output = $contextRow.Output; CopiedInputHashes = $contextHashes; Status = @(Invoke-GateBGit $contextRow.Fixture @('status','--porcelain')); HEAD = @(Invoke-GateBGit $contextRow.Fixture @('rev-parse','HEAD')); Remotes = @(Invoke-GateBGit $contextRow.Fixture @('remote')); HostRun = 'not-run'; LoadedBuildAttestation = 'pending' } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $contextRow.Output 'setup-manifest.json') -Encoding utf8
+}
+```
+
+Before launch, verify every fixture's input hashes against the recorded Gate A
+raw hashes, no remotes, expected clean state (only backlog-dirty is dirty), and
+no fixture AGENTS.md/CLAUDE.md. Inspect actual ancestor/global/managed instructions
+and fresh memory mapping/retrieved memories without editing them. Retain any
+unobservable memory source or glossary-rule contamination as an attribution
+limit. The visible `glossary-first`/`glossary-missing` cwd cue remains shared
+with Gate A and must be disclosed. Never evaluate from staging or the checkout.
+
+#### After-build loading and attestation
+
+The unchanged fingerprint recipe above now covers **51 instruction files**,
+43 in cogniva-dev and eight in cogniva-skills, including COVERAGE.md and
+COMMIT-POLICY.md. Intended after-body fingerprint:
+`6d1b7abb15223a33acaa1a575c5c4d42f38bbe286a5f96ae1a1fefdafaec9d22`.
+Versions remain 0.11.0/0.8.1; the release offer is still deferred to Task 6.
+Recompute immediately before loading/acceptance and record actual full HEAD.
+Audit/checkbox commits do not change this fingerprint. It does not attest a run.
+
+For **interactive Claude CLI**, start each fresh process from its own external
+fixture. Gate A's tested workaround was a cmd session without a positional
+prompt; type the exact selected neutral request only after startup. The
+PowerShell PTY launch failure and truncated cmd positional-prompt attempt remain
+in Gate A evidence. Human launch example in `cmd.exe` (choose the corresponding
+approved fixture for each run; both current checkout directories are mandatory):
+
+```bat
+cd /d C:\Users\canuc\AppData\Local\Temp\cogniva-skill-context-efficiency-20261110\gate-b\claude-code\glossary-missing
+claude --plugin-dir C:\dev\cogniva-skills\plugins\cogniva-dev --plugin-dir C:\dev\cogniva-skills\plugins\cogniva-skills --setting-sources project,local --permission-mode default
+```
+
+Match and record Gate A's actual model/effort where available (Claude
+claude-opus-4-8[1m], high; Codex gpt-6.1-sol, high), host version and settings;
+disclose any difference. Do not prepend build-attestation/discovery questions
+to either glossary request. Capture startup plugin roots/menu/debug information;
+run the discovery prompt only in the separate discovery fixture or after the
+behavioral result. Confirm unchanged source/config between probe and behavior.
+Closing all CLI processes ends session-local loading; no reinstall is needed.
+
+For **Codex**, first capture fresh pre-Gate-B manager/config/enabled/trust state
+and complete two-plugin byte inventories in
+`output/gate-b/codex/discovery`. Gate A's restore-verification proves that
+earlier restoration, not the current starting state. Before replacement, ensure
+an exact-byte recovery source is available under approved Gate B output and
+verify it against this fresh snapshot. The retained Gate A
+`output/gate-a/codex/discovery/original-plugin-source` is readable as a candidate
+only if every original hash still matches; do not write to or overwrite it.
+The captured original marketplace was absent, so restoring a published pointer
+alone would be wrong. If exact restoration cannot be prepared with supported
+manager operations, stop before refresh and return that prerequisite to the
+console. Do not silently substitute newer published bytes.
+
+The existing README/audit supported manager sequence explicitly reinstalls
+**both** plugins even when their versions equal Gate A's. After fresh exact-path
+refresh/restoration approvals, run in PowerShell 7 (re-resolve the binary if the
+extension changes; inspect current help before using a changed command):
+
+```powershell
+$contextCodex = 'C:/Users/canuc/.vscode/extensions/openai.chatgpt-26.1021.22027-win32-x64/bin/windows-x86_64/codex.exe'
+& $contextCodex plugin remove cogniva-dev@cogniva
+if ($LASTEXITCODE -ne 0) { throw 'Stop; preserve refresh error and restore original state.' }
+& $contextCodex plugin remove cogniva-skills@cogniva
+if ($LASTEXITCODE -ne 0) { throw 'Stop; preserve refresh error and restore original state.' }
+& $contextCodex plugin marketplace remove cogniva
+if ($LASTEXITCODE -ne 0) { throw 'Stop; inspect recorded original marketplace absence before continuing.' }
+& $contextCodex plugin marketplace add 'C:/dev/cogniva-skills'
+if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
+& $contextCodex plugin add cogniva-dev@cogniva
+if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
+& $contextCodex plugin add cogniva-skills@cogniva
+if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
+```
+
+Gate A restored the marketplace to absence. The console must query manager
+state before the sequence: when `cogniva` is absent, **omit only its remove
+command**, explicitly recording that absence. All other errors stop the
+sequence. This is a supported reinstall, never manual cache deletion or a forced
+version bump. Start new evaluation sessions only after comparing actual loaded
+cache instruction lists/hashes for both plugins against all 43+8 source files
+(report missing/extra/differing files), and recording manifests and enabled
+selections. Startup catalog paths/descriptions and source/cache matching must
+agree; version labels and pointer changes alone are insufficient.
+
+Interactive missing-term Codex uses Gate A's CLI-prescribed daemon workaround;
+type the neutral question after startup, with no unattended policy. Example:
+
+```powershell
+& 'C:/Users/canuc/.vscode/extensions/openai.chatgpt-26.1021.22027-win32-x64/bin/windows-x86_64/codex.exe' --no-daemon --no-alt-screen --sandbox read-only -C 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/gate-b/codex/glossary-missing'
+```
+
+Use the matching scenario cwd; backlog mutation sessions need the approved
+workspace-write route and execution permission before their first Git write.
+Do not silently change the QF driver or its permission policy. Record any
+TERM=dumb continuation, fixture trust, `/hooks` trust choice, hook-approval
+failure and human response. Gate A's plugin hook failures do not establish hook
+parity. Save actual rollout custom_tool_call events as well as ordinary tool
+calls; final text alone cannot establish read ordering/extent.
+
+For an explicitly selected **Claude VS Code persistent route**, capture scope,
+marketplace, versions/enabled state and original bytes first; apply the earlier
+Installation, refresh and Restoration worksheet's scoped uninstall/install
+commands for **both** plugins even at equal versions, then reload. Record a
+different surface as a comparison limit. Do not alter other scopes. Verify
+actual loaded files after reload and prepare exact original-state restoration
+before the swap. No persistent route may leave the local marketplace active
+without an explicit human retention decision.
+
+#### Gate B run and read-evidence matrix
+
+Use Task 2's Neutral prompts and outcome criteria verbatim and unchanged raw
+`prompts.md`; only explicit host invocation syntax differs. Never paste the
+criteria or expected answer into an evaluating request. GLOSSARY-MISSING is
+interactive; allow clarification and the offer to document, and stop at the
+proposal without meaning/write confirmation, as in Gate A. It has no QF
+no-questions policy. REQUIREMENTS-READ groups four independent fresh copies;
+BACKLOG-DIRECT groups direct capture, its same-session covered repeat, and the
+independent dirty copy. Check the actual canonical capture path
+`docs/plans/BACKLOG.md` as well as the seeded root ledger; Gate A's first scratch
+launcher missed that distinction. Preserve/compare status and commits around
+the repeat and dirty run; do not certify duplicate/dirty behavior from prose.
+
+| Check family (one per host) | Before evidence to retain | After observation to capture |
+|---|---|---|
+| GLOSSARY-FIRST | Both pinned controls and description-only passes in the existing host records; shared cwd cue | Actual activation, glossary instruction/data lookup ordering before implementation search; read extent and answer; separate build probe |
+| GLOSSARY-MISSING | Both interactive passes; no definition/write confirmed; retained launcher failures | Missing lookup, clarification, offer to document, no invented meaning/unconfirmed write; all operator replies and close state |
+| BACKLOG-DIRECT | Codex capture/repeat/dirty result, whole CAPTURE-BAR 13,276 normalized characters; Claude capture permission-blocked and no observed CAPTURE-BAR read | Direct COVERAGE.md/helper and BACKLOG-FORMAT reads and actual extents; no unnecessary CAPTURE-BAR routing; coverage stop, human-later fallback, tier/dirty/path-scoped commit rules |
+| QUICK-FIX-FLAGS | Native QF-NONE pass on both; Codex parent Flags lines 34–66, 1,988 normalized characters, not whole entrypoint; Claude parent no Flags read; workers unobservable | Native assertions unchanged; actual COMMIT-POLICY.md, HANDOFF.md, quick-fix and conditional overlays plus any execute-feature/Flags read, with whole/section extent per caller |
+| REQUIREMENTS-READ | Codex whole REQUIREMENTS-FORMAT.md 9,951 characters on view/status/add/refine; Claude attempted format reads denied | Ordinary view/status correct without unnecessary format load; add/refine consult required grammar before acting and preserve confirmation/source/severity/lifecycle and independent questions; separate each path's extent |
+
+Compare **observed** normalized delivered text/line ranges from saved tool calls,
+not requested paths, attempted denied reads, source size or final summaries.
+Count mandatory companions/overlays once in a whole-invocation comparison and
+state whether worker reads are visible. Missing/inaccessible worker traces stay
+unobservable. Claude has no loaded-format or CAPTURE-BAR before measurement;
+do not fabricate a paired saving if its after read succeeds. Source-prescribed
+comparisons from Tasks 3–4 remain separate from runtime measurements. Keep all
+prior failures, not-run observations and native assertion statuses unchanged.
+
+QF uses the **existing QF-NONE driver/scenario/prompt/assertions unchanged**.
+Human-only commands below are exact after-root previews; after approving the
+actual runs, repeat without `-DryRun`. Update PluginSource to actual current
+HEAD and attest the fingerprint above. The driver process runs from the checkout
+but starts its evaluating session only in the newly generated external fixture:
+
+```powershell
+$contextDriver = 'C:/dev/cogniva-skills/plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1'
+$contextRoot = 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110'
+$contextAfterSource = 'local marketplace from C:/dev/cogniva-skills @ <actual-current-HEAD>; Gate B after-body; fingerprint 6d1b7abb15223a33acaa1a575c5c4d42f38bbe286a5f96ae1a1fefdafaec9d22'
+& $contextDriver -AgentHost claude-code -Scenario QF-NONE -PluginDir 'C:/dev/cogniva-skills/plugins/cogniva-dev' -ExtraArgs @('--plugin-dir','C:/dev/cogniva-skills/plugins/cogniva-skills') -FixtureRoot "$contextRoot/qf-after-claude" -OutDir "$contextRoot/output/qf-after-claude" -Covers quick-fix -PluginSource $contextAfterSource -TimeoutMinutes 40 -DryRun
+& $contextDriver -AgentHost codex -Scenario QF-NONE -FixtureRoot "$contextRoot/qf-after-codex" -OutDir "$contextRoot/output/qf-after-codex" -Covers quick-fix -PluginSource $contextAfterSource -TimeoutMinutes 40 -DryRun
+```
+
+Gate A's Codex driver used the supported `-CodexApproveForMe` route. The console
+may include that switch again only with the same explicit run/permission
+authorization; record the actual option. It does not waive execution permission
+before Git writes, including snapshots under commits=none; denial remains
+blocked without a Git retry. Do not add `--no-daemon` by changing the harness;
+the fallback above belongs to interactive launches. Retain QF-NONE.final.txt,
+QF-NONE.transcript.jsonl, QF-NONE.assert.txt, stderr, full downstream trace when
+available, and the printed real RECORD path. No custom QF outcomes or expected
+answer substitutions. An unrelated failure may receive a named human waiver,
+but the native row remains fail/not-run.
+
+#### Gate B acceptance worksheet
+
+Human decision: **pending**. Offered source fingerprint:
+`6d1b7abb15223a33acaa1a575c5c4d42f38bbe286a5f96ae1a1fefdafaec9d22`.
+Accepted fingerprint: **not yet evaluated**. Waivers: **none**. Smoke records:
+**none yet**. These pending rows are preparation fields, not fabricated results:
+
+| Acceptance ID | Status | Real smoke record + row/session/build attestation, or named human waiver |
+|---|---|---|
+| GATE-B-CLAUDE-GLOSSARY-FIRST | pending | pending |
+| GATE-B-CODEX-GLOSSARY-FIRST | pending | pending |
+| GATE-B-CLAUDE-GLOSSARY-MISSING | pending | pending |
+| GATE-B-CODEX-GLOSSARY-MISSING | pending | pending |
+| GATE-B-CLAUDE-BACKLOG-DIRECT | pending | pending |
+| GATE-B-CODEX-BACKLOG-DIRECT | pending | pending |
+| GATE-B-CLAUDE-QUICK-FIX-FLAGS | pending | pending |
+| GATE-B-CODEX-QUICK-FIX-FLAGS | pending | pending |
+| GATE-B-CLAUDE-REQUIREMENTS-READ | pending | pending |
+| GATE-B-CODEX-REQUIREMENTS-READ | pending | pending |
+
+After real attempts, use the existing Standard record template and exact
+evidence inventory section and standard smoke README. Keep exact required
+headers and `pass`/`fail`/`not-run` results. As of preparation only `-1` (unsuffixed),
+`-2`, and `-3` exist for each host on 2026-11-10. Proposed **uncreated** next names
+are `docs/host-parity/smoke/2026-11-10-claude-code-cli-4.md` and
+`docs/host-parity/smoke/2026-11-10-codex-cli-4.md` for actual after-body manual
+observations. Use the real date and next unused suffix at run time, never
+overwrite. Let the driver allocate/print its QF record; inventory its actual
+path separately (likely `-5` only if earlier names were actually used). If it
+appends to an existing after-body record, explicitly pass that actual RecordPath
+and preserve its header/build role. No empty smoke file is created now.
+
+Manual records cover `glossary`, `backlog`, `project-records`, plus applicable
+install rows only when supported by actual loading evidence. QF keeps its native
+`QF-NONE` row and `quick-fix` cover; map it to QUICK-FIX-FLAGS through supplemental
+read observations without rewriting assertions. Each aggregate acceptance row
+links all constituent sessions/subruns. Record actual host/version/surface,
+model/effort/settings, source commit and after fingerprint, both loaded paths,
+per-plugin file counts/hash comparisons, session IDs/tool references, all
+failures/prompts/replies and read/attribution limits. Never copy a Gate A header
+or present intended-source hashes as loaded content. Keep old control/before
+records and distinct outputs intact.
+
+A human waiver must name the exact acceptance ID/host/scenario, this fingerprint,
+retained fail/not-run outcome, reason (including unavailable host or unrelated
+QF failure when applicable), and accepted limitation. A general continue request
+does not fill missing checks. Human acceptance records accepted or
+accepted-with-waivers for this fingerprint only after all ten rows are addressed.
+Waivers never establish runtime parity, observed savings, or a pass. Pending,
+rejected, unaddressed checks, or source drift without renewed acceptance block
+Task 6; completing Task 5 boxes does not resolve those conditions.
+
+#### Gate B closing and Task 6 handoff
+
+Before refresh, capture original marketplace presence/source, enabled selections,
+scopes, versions, complete original files/hashes and narrow hook-trust inventories.
+Schedule closing/restoration immediately after runs, including refresh failure,
+timeout, denied permission or abort. Close/wait for **all** branch validation
+processes before restoring, so no live process reads changing caches. For Claude
+local loading, close its processes and record no persistent marketplace/install
+change; retain approved session history. For any persistent route use supported
+manager uninstall/reinstall and the captured exact-byte recovery source, restore
+the original registration (including **absence**) and enabled/scope state, then
+start a fresh probe. Compare all original byte hashes, versions, enabled choices,
+marketplace and hook-trust state to the fresh snapshot and capture the actual
+restored catalog. Gate A's existing exact-original recovery marketplace method
+is reusable only after fresh matching and approved paths; do not blindly restore
+the published fallback. Remove any temporary recovery/local registration when
+originally absent. Never delete cache directories manually, force a version
+bump, change safe.directory or quietly leave the branch marketplace registered.
+
+| Host route | Fresh original-state capture | Gate B load | Closing disposition | Verification artifacts |
+|---|---|---|---|---|
+| Claude CLI (preferred) | pending | fresh two-dir process, pending | pending process closure/no persistent install change | pending |
+| Codex persistent | pending, exact-byte recovery required before refresh | both plugins reinstall, pending | pending restoration | pending |
+| Claude VS Code (only if chosen) | pending scoped snapshot/recovery | both plugins reinstall/reload, pending | pending restoration | pending |
+
+Disposition becomes `restored-and-verified` only with actual matching evidence.
+If restoration fails, preserve errors and stop; record incomplete restoration
+and obtain an explicit recovery decision before resuming. A deliberate choice
+to retain the branch build must be separately explicit, naming retained paths
+and remaining state; never infer retention from acceptance or failed restoration.
+
+Finally populate the top Gate B index and the ten worksheet rows from actual
+records, record explicit human acceptance/waivers and closing disposition, and
+list **each exact real** feature-owned smoke-record path (including retained
+failed/waived attempts or updates) for Task 6. Inventory is **none yet**. The
+audit itself is the only currently named evidence edit. External transcripts,
+snapshots/recovery sources and ignored staging never enter the task commit.
+The human may explicitly authorize resuming with the audit and those exact
+evidence-only paths dirty; no consent follows merely from pass rows. Re-run
+execute-feature after the checkpoint. Task 6 validates these prerequisites and
+performs normal checks/landing; Task 5 stops here and starts no later task.
+
+#### Task 5 preparation verification
+
+Wrote the ignored `verify-gate-b-preparation.ps1` material check first. Its
+pre-implementation run failed (exit 1) on the absent Task 5 packet heading.
+It checks unchanged raw-input hashes, the ten pending IDs, operator packet
+coverage, all PowerShell fence syntax and staging ignore status. This verifies
+materials only, never behavior/build loading/acceptance.
+
+Final Task 5 verification: the material check passed (exit 0), including the
+five frozen raw hashes, ten pending acceptance IDs, all PowerShell fence syntax
+and ignored staging. Read-only boundary checks confirmed every local Markdown
+link resolves, the 51-file after fingerprint above is unchanged, the QF driver
+and all existing smoke records are untouched, and all six proposed after roots
+remain absent. Fixture pair arrays were checked without creating files. Driver
+arguments match its parameter block; standard record instructions preserve the
+required headers/results. `git diff --check` passed. The full green gate remains
+Task 6's obligation after human evidence; no host smoke/DryRun was executed.
+Only this audit and Task 5's three completed checkboxes enter the task commit;
+ignored verifier/runtime scratch is excluded. Gate B acceptance and restoration
+are pending. No standard record, runtime parity or measured saving is claimed.
