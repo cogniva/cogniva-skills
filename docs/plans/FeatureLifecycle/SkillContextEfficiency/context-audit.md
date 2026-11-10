@@ -268,7 +268,7 @@ Preferred release timing is one patch bump at final Task 6 landing. This is a pl
 
 The console honors AGENTS.md before-integrate whenever landing actually runs. If an earlier `tasks=one` slice lands, the console makes the required offer and records the human's timing/answer here once, then follows that explicit decision across the remaining slices. Silence is not approval. Under a full run, the preparation gates stop before landing; after Task 6 the normal landing block handles the offer, accepted three-location edits, and any resulting gate rerun.
 
-Release decision: pending. Proposed target: final Task 6 landing. Proposed level at planning time: cogniva-dev 0.11.1 and cogniva-skills 0.8.2, patch because capabilities remain unchanged.
+Release decision: pending. Proposed target: final Task 6 landing. Proposed level at planning time: cogniva-dev 0.11.1 and cogniva-skills 0.8.2, patch because capabilities remain unchanged. The console offered these patch bumps at Task 1 landing on 2026-11-10 and recommended returning to the offer at Task 6; no human response or bump authorization has been recorded. Versions remain unchanged. This is an unanswered offer, not an approved deferral; record the explicit timing/answer when received.
 
 Task 1 makes no parity-row edits and changes no mechanism/status/evidence claim. Tasks 3–4 update the five rows with actual loading changes. At landing the console must still honor AGENTS.md's explicit parity-update requirement; if description-only changes need additional row notes under that rule, add minimal accurate notes or evidence references without inventing mechanism/status changes. Do not force every row to change inside the description worker.
 
@@ -319,3 +319,7 @@ Required source checks passed: `powershell -NoProfile -ExecutionPolicy Bypass -F
 Implemented on Codex; independent host review and fresh-session activation checks are not yet performed. Source assertions do not prove fresh-host activation or loaded-build identity. Gate A remains pending, with no smoke records or behavioral acceptance claimed. Task 2 prepares that checkpoint separately; console-owned version offers and any before-integrate parity obligations remain as specified above.
 
 Release offers and decisions are console-owned as specified above; the final worker records evidence and mechanical checks, then returns DONE so normal landing can run.
+
+### Task 1 — console landing obligations (2026-11-10)
+
+Task result validated against the shared result contract; all five Task 1 checkboxes are complete and Tasks 2–6 remain unchecked. The console independently compared the 25 entrypoints against the pre-task commit: only descriptions changed, and all six manual-only settings remain intact. Updated all 18 affected skill capability rows in `docs/host-parity.md` with one shared description-only source-evidence note, preserving mechanisms, statuses, and existing evidence claims. Implementer: Codex; independent host review remains pending. No plugin manifests, installed caches, or user configuration were changed. The source-control ADR check and whitespace check passed; the mandatory green gate follows this obligation commit.
