@@ -1701,3 +1701,165 @@ preserved in the evidence files.
 | [plugins/cogniva-skills/skills/project-context/SKILL.md](../../../../plugins/cogniva-skills/skills/project-context/SKILL.md) | Short discovery description; body and invocation metadata retained. |
 | [plugins/cogniva-skills/skills/project-requirement/SKILL.md](../../../../plugins/cogniva-skills/skills/project-requirement/SKILL.md) | Short description; conditional format read. |
 | [plugins/cogniva-skills/skills/reference/SKILL.md](../../../../plugins/cogniva-skills/skills/reference/SKILL.md) | Short discovery description; body and invocation metadata retained. |
+
+
+### Claude review correction — restore glossary search (2026-11-10)
+
+The human supplied an independent Claude Code source review and explicitly
+agreed with its recommendation to restore the middle glossary step. Review
+finding: deduplication removed the old filesystem-search instruction, so Gate B
+asked after the glossary miss without searching code. Earlier GLOSSARY-MISSING
+passes checked clarification/documentation but did not require code search.
+Those original observations/results remain historical; they do not establish
+the restored order. The claim that every original behavior was preserved is
+therefore corrected by this finding. Claude's review also reproduced the green
+gate/counts and approved the remaining scoped implementation.
+
+The source now requires glossary lookup, relevant code/filesystem search on a
+miss, and clarification plus an offer to document if still unresolved. Existing
+glossary-first discovery prohibition and confirmation rules stay intact. The
+unnecessary line break was removed and the no-implementation-details rule moved
+under Guidelines. A new semantics assertion failed on the reviewed source
+(exactly one failed assertion), then the complete suite passed after the fix.
+
+Current source fingerprint: `1c4fff59c47c7438d506410d4f31736df28eb7c297be4dc2588d9b72026fac70` (51 instruction files).
+Glossary body: 5,781 normalized characters, 1,733 fewer than
+the original 7,514. Discovery descriptions remain 3,065 overall / 2,363 for the
+same 19; earlier 1,932-character glossary savings describe the prior body only.
+The earlier Gate B acceptance applies to its recorded fingerprint, not this
+changed source. The human requested this correction; fresh missing-term
+validation with the stronger criteria is pending, not silently inherited.
+
+Parity notes are consolidated into one current-state section, with old fragment
+anchors retained as aliases. Completed context gates are no longer described as
+pending. The supplied Claude source review is credited; it has not independently
+reviewed this follow-up diff. Redundant description-only row suffixes are
+removed. Both -3 scenario tables are contiguous, and Claude -3/-4/-5 source
+headers now accurately say session-local --plugin-dir; historical result rows,
+tested versions, sessions, and actual source revisions are unchanged.
+
+Fresh rerun plan: use the original neutral Neral prompt and identical synthetic
+glossary/code inputs, in two new repositories under
+`C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/review-glossary/{claude-code,codex}`,
+with outputs under matching `output/review-glossary/{claude-code,codex}` paths.
+Keep all earlier fixtures/logs untouched. Pass requires observed glossary
+instruction/data lookup **before** a search for Neral in relevant code/files,
+then clarification and offer to document because the fixture has no business
+definition; no invented meaning or unconfirmed write. Do not disclose this
+criterion or expected answer in the neutral evaluating prompt. Record actual
+tool order, source loading/content, session settings and unchanged fixture
+hashes/Git state. Claude uses both session-local plugin directories. Codex
+needs a fresh original-state snapshot/recovery, supported two-plugin refresh,
+content/catalog verification, then exact restoration and a fresh original-state
+probe after all validation sessions exit. No external write/run/refresh or
+restoration is approved yet for these new paths. No archive/delete decision is
+inferred from the review; earlier external evidence is retained.
+
+Full green-gate rerun and fresh-host results remain pending. Plan task boxes
+stay complete as historical execution; this follow-up is recorded separately.
+No new version bump is approved. The unreleased current versions are 0.11.1 and
+0.8.2; the required cogniva-skills patch offer is separate from host-run approval.
+
+
+#### Review correction — approvals and actual results
+
+The human answered "Approve setup, runs and refresh", separately "Approve
+restoration", and "Keep unreleased 0.8.2" to the three concrete questions. This
+authorizes the exact review-glossary fixture/output paths above, normal host
+runtime state, supported two-plugin Codex refresh and original-state restoration.
+No new version bump, cleanup/archive or unrelated configuration change was
+approved. Earlier preparation labels are historical; actual results follow.
+
+Both fresh **GLOSSARY-MISSING** runs pass the stronger lookup -> code/filesystem
+search -> unresolved clarification/documentation criterion on source fingerprint
+`1c4fff59c47c7438d506410d4f31736df28eb7c297be4dc2588d9b72026fac70`.
+The new actual records are
+[Claude Code -6](../../../host-parity/smoke/2026-11-10-claude-code-cli-6.md) and
+[Codex -6](../../../host-parity/smoke/2026-11-10-codex-cli-6.md).
+Claude session `74f9c84e-bb9c-4724-9b52-91c7f47029ad` invokes glossary, reads its
+data, Greps Neral, reads Window.ps1, then asks/offers. Codex session
+`01a1c795-8b13-7250-81f8-89f8ef24c6dd` reads glossary instructions/data, runs rg,
+reads Window.ps1, then asks/offers. Neither invents a business meaning or writes
+without confirmation. Both clean fixtures retain original HEAD and byte hashes.
+
+Claude debug metadata names both inline roots and 25 skills; source content was
+frozen at 43+8 instruction files. Codex supported refresh installs 0.11.1/0.8.2;
+all 51 installed instruction files match that corrected source and all 19 target
+catalog descriptions match. Behavior sessions receive only the unchanged neutral
+prompt, not the pass criteria or a prior build probe. Runtime settings, exact
+tool IDs/order/results and raw finals are linked in the standard records.
+
+After both test sessions exited, Codex was restored-and-verified: all 179 original
+files, exact version-directory contents, selections, marketplace absence and
+hook-trust hashes match the fresh snapshot. Original plugins are again 0.11.0
+and 0.8.1 as captured. Fresh probe `01a1c797-b6ee-7440-9e75-24df8818f67c` matches
+all 19 original descriptions. Claude used session-local loading and exited;
+no persistent plugin installation changed. Normal approved session history and
+all prior evidence remain; nothing was archived or deleted.
+
+Retained launch/runtime limits: initial sandboxed Codex manager-list could not
+resolve CODEX_HOME; approved original-user execution succeeded. A Claude cmd
+executable-quoting error failed before any session; corrected launch succeeded.
+Claude reports an unrelated missing local install alias, and Codex retains hook
+approval warnings after skipped hook review. No alias repair, hook trust grant,
+sandbox bypass or safe.directory change was performed. The two strong pass rows
+certify the missing-term behavior only, not installation/hook parity.
+
+The original Gate A/B acceptance remains tied to its historical fingerprints;
+this human-requested review correction and its new bounded results are tracked
+separately. No fresh Gate B human acceptance is fabricated. Original record
+result rows are unchanged, including failed/permission-blocked diagnostics.
+Only the explicitly corrected metadata/table formatting changed in old records.
+
+Local validation so far: the new assertion failed before the fix and the full
+semantic suite passed after it. Host parity, neutrality and diff checks passed.
+No version manifest changes are needed after the human's choice. Full canonical
+green-gate results and final commit disposition will be recorded after the run.
+
+
+#### Review correction — final validation and scoped commit
+
+The complete canonical command
+`powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/scripts/run-green-gate.ps1 -Repo .`
+finished with process exit 0, all **28 configured commands exited 0**, and final
+line **GREEN-GATE-RESULT: GREEN** on this corrected source. The new three-step
+semantics assertion passes inside that gate as well as its standalone after
+run; its before run failed exactly that assertion. The expected case-variant
+collision and Linux-only containment fixtures remain skipped on this Windows
+filesystem; the green gate itself is not skipped. Full local output is retained
+in ignored `glossary-review-green-gate.log` beside the other validation helpers.
+
+Standalone host parity (26 rows/33 items), host neutrality (70 references/16
+files), manifest parity (two plugins), ADR checks since `32bbb62`, and
+`git diff --check` passed. The final read-only verifier also checks the corrected
+51-file fingerprint, unchanged discovery frontmatter/manifests, both strong
+runtime outcomes and fixture hashes, exact 179-file restoration/fresh probe,
+unchanged historical results (only the permitted headers/table whitespace),
+unchanged parity status/evidence cells and all local evidence links.
+
+The review correction is included in unreleased cogniva-skills **0.8.2**, as
+explicitly chosen by the human; cogniva-dev stays **0.11.1** with test-only
+changes. No manifests, worker/executor/commit-policy instructions, requirement
+behavior, installed final plugin selections or other feature scope changed.
+The follow-up fixes the review finding; it does not recast the earlier Gate B
+pass criteria or claim new human acceptance of a different Gate B fingerprint.
+There are no remaining implementation or validation steps for this correction.
+
+The authorized local review-correction commit includes exactly these ten paths;
+ignored helpers and external transcripts/recovery files remain excluded:
+
+- `plugins/cogniva-skills/skills/glossary/SKILL.md`
+- `plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`
+- `docs/host-parity.md`
+- `docs/plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md`
+- `docs/host-parity/smoke/2026-11-10-claude-code-cli-3.md`
+- `docs/host-parity/smoke/2026-11-10-claude-code-cli-4.md`
+- `docs/host-parity/smoke/2026-11-10-claude-code-cli-5.md`
+- `docs/host-parity/smoke/2026-11-10-claude-code-cli-6.md`
+- `docs/host-parity/smoke/2026-11-10-codex-cli-3.md`
+- `docs/host-parity/smoke/2026-11-10-codex-cli-6.md`
+
+Final tree and commit identity are checked/reported by the console after this
+scoped commit. No branch switch, integration, remote push or external cleanup
+is performed. Original Codex state remains restored; approved test history and
+all old and new raw evidence are retained in their recorded locations.

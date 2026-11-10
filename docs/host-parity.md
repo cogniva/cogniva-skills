@@ -40,113 +40,66 @@ mechanism. Every `gate:` label and `smoke:` record cited anywhere must exist.
 | install-cogniva-skills | Install and skill discovery: cogniva-skills | packaging | manifest:cogniva-skills | scripts-tested — `.claude-plugin/plugin.json` | scripts-tested — `.codex-plugin/plugin.json` | gate:manifest-checker, gate:manifest-parity | The gate checks both manifests and the marketplace entry. Installing the plugin and listing its skills on each agent host is recorded only by a smoke run. |
 | lean-mode | Lean mode: work on the current branch under `commits=`, `plan=` and `tasks=one` | workflow | mode:lean | untested — Workflow template (same prompt/result contract) | untested — CODEX.md loop on the shared prompt/result contract | gate:parse-plan-tasks, gate:git-commit, gate:green-gate-runner, gate:task-contract | The shared parser, prompt/result contract and Workflow template are gate-covered. The Codex overlay and shared worker prompt require approval before protected Git metadata writes; the smoke driver offers process-local automatic review. Full real-host acceptance remains pending. |
 | worktree-mode | Worktree mode: isolated worktree, fast-forward integration, ledger | workflow | mode:worktree | untested — Workflow template and worktree scripts | unsupported — stops at every entry point | gate:integrate-feature, gate:ledger | Codex: stops at every entry point (ADR 0056); not wanted; what it would need is in CrossHostParity Stage 3. Claude Code: the integration and ledger scripts are gate-covered; the worktree task loop is not. |
-| execute-feature | Execute a feature plan task by task | workflow | skill:cogniva-dev/execute-feature | untested — Workflow template (same prompt/result contract) | untested — CODEX.md loop on the shared prompt/result contract | gate:parse-plan-tasks, gate:git-commit, gate:green-gate-runner, gate:task-contract | Both agent hosts share the worker prompt and result schema (ADR 0054). Parser JSON is capturable both in-process and through an external shell; the prompt builder still requires external stdout capture. Workers request required execution permission before their first Git metadata write. The initial Codex CLI matrix failed; acceptance remains pending. Model-invocable: routed from easy-work-scan (plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md:73). Description-only update: [Task 1](#skillcontextefficiency-task-1). Shared coverage/commit-policy extraction: [Task 3](#skillcontextefficiency-task-3); bounded after-body evidence: [Task 6](#skillcontextefficiency-task-6). |
-| quick-fix | Small planless changes | workflow | skill:cogniva-dev/quick-fix | untested — Workflow template (same prompt/result contract) | untested — CODEX.md loop on the shared prompt/result contract | gate:structural-changes, gate:green-gate-runner, gate:task-contract | The structural snapshot and landing check are gate-covered. Under Codex both need approved execution before protected Git object writes, including commits=none; the overlay makes this a preflight obligation. Initial CLI failures preceded implementation, so acceptance remains pending. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule. Description-only update: [Task 1](#skillcontextefficiency-task-1). Shared coverage/commit-policy extraction: [Task 3](#skillcontextefficiency-task-3); bounded after-body evidence: [Task 6](#skillcontextefficiency-task-6). |
-| plan-feature | Design one feature and emit a task plan | workflow | skill:cogniva-dev/plan-feature | untested — design conversation | untested — design conversation | gate:architecture-profile, gate:instruction-governance | The profile and phase-block resolvers it calls are gate-covered; the design conversation is not. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule. In worktree mode it stops without the Workflow tool, so under Codex it runs in lean mode only (ADR 0056). Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| explore-idea | Brainstorm an idea into disposable notes | workflow | skill:cogniva-dev/explore-idea | untested | untested | — | Explicit-only (metadata, both agent hosts). A conversation only; it may start read-only subagents. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| investigate | Design, record and review continuing technical investigations | workflow | skill:cogniva-dev/investigate | untested — shared conversational skill | untested — shared conversational skill | gate:skill-semantics | Explicit-only metadata on both agent hosts; no passive routing. Experiment execution requires bounded user approval; accepted documentation normally receives a literal file-scoped local commit. Existing data, branch, worktree and Git-permission restrictions apply; primary-checkout persistence in worktree mode requires an existing permitted workspace. Prose checks do not establish conversational behavior; real-host pilot evidence is required. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| backlog | Capture a planned deferral | workflow | skill:cogniva-dev/backlog | untested | untested | gate:git-commit | A direct capture commits through `git-commit.ps1` (gate-covered). Routing and confirmation are instruction-level on both agent hosts. Description-only update: [Task 1](#skillcontextefficiency-task-1). Shared coverage/commit-policy extraction: [Task 3](#skillcontextefficiency-task-3); bounded after-body evidence: [Task 6](#skillcontextefficiency-task-6). |
-| backlog-grooming | Groom the backlog and pick low-involvement work | workflow | skill:cogniva-dev/groom-backlog, skill:cogniva-dev/easy-work-scan | untested | untested | — | Each scan runs one read-only subagent. Approved items dispatch through quick-fix and plan-feature and inherit their status. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| adr | Record a confirmed ADR | workflow | skill:cogniva-dev/adr | untested | untested | gate:adr-checker | The ADR checker is gate-covered. Confirming with the human before writing is instruction-level on both agent hosts. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| applicable-rules | Instruction chain and placement preflight | tooling | skill:cogniva-dev/applicable-rules | scripts-tested — `resolve-applicable-rules.ps1` | scripts-tested — `resolve-applicable-rules.ps1` | gate:applicable-rules | — Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| review-and-gates | Review evidence and mechanical gates | tooling | skill:cogniva-dev/feature-check, skill:cogniva-dev/gate-check | scripts-tested — `run-gate-check.ps1` | scripts-tested — `run-gate-check.ps1` | gate:gate-check, gate:green-gate-runner | Review judgment is instruction-level. This repo's own green gate runs `claude plugin validate .`, so a developer with only Codex installed cannot pass it. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| repo-init | Scaffold a new .NET repo | workflow | skill:cogniva-dev/repo-init | untested | untested | gate:profile-library | Explicit-only (metadata, both agent hosts). The scaffold templates and the shipped profile are gate-covered; running the scaffold is not. Its install guidance covers both plugins on both agent hosts. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| add-module | Scaffold a Module bundle | workflow | skill:cogniva-dev/add-module | untested | untested | gate:architecture-profile | Explicit-only (metadata, both agent hosts). Profile gating is gate-covered; the scaffold itself is not. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| module-deps | Module dependency graph and cycle check | tooling | skill:cogniva-dev/module-deps | scripts-tested — `module-deps.ps1` | scripts-tested — `module-deps.ps1` | gate:module-deps | — Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| worktree-cleanup | Close out worktree-mode runs | workflow | skill:cogniva-dev/cleanup-work, skill:cogniva-dev/cleanup-allwork | scripts-tested — `cleanup-worktrees.ps1` | unsupported — worktree mode only | gate:ledger | Worktree-mode only. Under Codex both skills stop with one line when worktree mode is on (ADR 0056); in lean mode they report nothing to do. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| plan-status | Feature, Module and repo status roll-ups | workflow | skill:cogniva-dev/feature-status, skill:cogniva-dev/module-status, skill:cogniva-dev/repo-status | untested | untested | — | Plain file reads on both agent hosts. Ephemeral plans in `.plans-staging/` are listed and marked as local to the clone. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| workflow-status | Status of background Workflow runs | tooling | skill:cogniva-dev/workflow-status | untested — Workflow journals | unsupported — no Workflow journals | — | Codex runs write no journal; a shared run record is CrossHostParity Stage 3. `workflow-status.ps1` has no gate suite. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| glossary | Project glossary | workflow | skill:cogniva-skills/glossary | untested | untested | — | Consulting the glossary before searching is instruction-level on both agent hosts. Description-only update: [Task 1](#skillcontextefficiency-task-1). Repeated lookup rules consolidated in place: [Task 4](#skillcontextefficiency-task-4); bounded after-body evidence: [Task 6](#skillcontextefficiency-task-6). |
-| project-records | References, requirements and business context | workflow | skill:cogniva-skills/reference, skill:cogniva-skills/project-requirement, skill:cogniva-skills/project-context | untested | untested | — | Plain instructions with no agent-host-specific steps. Description-only update: [Task 1](#skillcontextefficiency-task-1). Requirements format reads now depend on action/grammar need: [Task 4](#skillcontextefficiency-task-4); bounded after-body evidence: [Task 6](#skillcontextefficiency-task-6). |
+| execute-feature | Execute a feature plan task by task | workflow | skill:cogniva-dev/execute-feature | untested — Workflow template (same prompt/result contract) | untested — CODEX.md loop on the shared prompt/result contract | gate:parse-plan-tasks, gate:git-commit, gate:green-gate-runner, gate:task-contract | Both agent hosts share the worker prompt and result schema (ADR 0054). Parser JSON is capturable both in-process and through an external shell; the prompt builder still requires external stdout capture. Workers request required execution permission before their first Git metadata write. The initial Codex CLI matrix failed; acceptance remains pending. Model-invocable: routed from easy-work-scan (plugins/cogniva-dev/skills/easy-work-scan/EASY-WORK-CRITERIA.md:73). Context-loading evidence: [SkillContextEfficiency](#skillcontextefficiency). |
+| quick-fix | Small planless changes | workflow | skill:cogniva-dev/quick-fix | untested — Workflow template (same prompt/result contract) | untested — CODEX.md loop on the shared prompt/result contract | gate:structural-changes, gate:green-gate-runner, gate:task-contract | The structural snapshot and landing check are gate-covered. Under Codex both need approved execution before protected Git object writes, including commits=none; the overlay makes this a preflight obligation. Initial CLI failures preceded implementation, so acceptance remains pending. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule. Context-loading evidence: [SkillContextEfficiency](#skillcontextefficiency). |
+| plan-feature | Design one feature and emit a task plan | workflow | skill:cogniva-dev/plan-feature | untested — design conversation | untested — design conversation | gate:architecture-profile, gate:instruction-governance | The profile and phase-block resolvers it calls are gate-covered; the design conversation is not. Model-invocable by design: easy-work-scan and groom-backlog dispatch it after approval, and its description states the explicit-start rule. In worktree mode it stops without the Workflow tool, so under Codex it runs in lean mode only (ADR 0056). |
+| explore-idea | Brainstorm an idea into disposable notes | workflow | skill:cogniva-dev/explore-idea | untested | untested | — | Explicit-only (metadata, both agent hosts). A conversation only; it may start read-only subagents. |
+| investigate | Design, record and review continuing technical investigations | workflow | skill:cogniva-dev/investigate | untested — shared conversational skill | untested — shared conversational skill | gate:skill-semantics | Explicit-only metadata on both agent hosts; no passive routing. Experiment execution requires bounded user approval; accepted documentation normally receives a literal file-scoped local commit. Existing data, branch, worktree and Git-permission restrictions apply; primary-checkout persistence in worktree mode requires an existing permitted workspace. Prose checks do not establish conversational behavior; real-host pilot evidence is required. |
+| backlog | Capture a planned deferral | workflow | skill:cogniva-dev/backlog | untested | untested | gate:git-commit | A direct capture commits through `git-commit.ps1` (gate-covered). Routing and confirmation are instruction-level on both agent hosts. Context-loading evidence: [SkillContextEfficiency](#skillcontextefficiency). |
+| backlog-grooming | Groom the backlog and pick low-involvement work | workflow | skill:cogniva-dev/groom-backlog, skill:cogniva-dev/easy-work-scan | untested | untested | — | Each scan runs one read-only subagent. Approved items dispatch through quick-fix and plan-feature and inherit their status. |
+| adr | Record a confirmed ADR | workflow | skill:cogniva-dev/adr | untested | untested | gate:adr-checker | The ADR checker is gate-covered. Confirming with the human before writing is instruction-level on both agent hosts. |
+| applicable-rules | Instruction chain and placement preflight | tooling | skill:cogniva-dev/applicable-rules | scripts-tested — `resolve-applicable-rules.ps1` | scripts-tested — `resolve-applicable-rules.ps1` | gate:applicable-rules | — |
+| review-and-gates | Review evidence and mechanical gates | tooling | skill:cogniva-dev/feature-check, skill:cogniva-dev/gate-check | scripts-tested — `run-gate-check.ps1` | scripts-tested — `run-gate-check.ps1` | gate:gate-check, gate:green-gate-runner | Review judgment is instruction-level. This repo's own green gate runs `claude plugin validate .`, so a developer with only Codex installed cannot pass it. |
+| repo-init | Scaffold a new .NET repo | workflow | skill:cogniva-dev/repo-init | untested | untested | gate:profile-library | Explicit-only (metadata, both agent hosts). The scaffold templates and the shipped profile are gate-covered; running the scaffold is not. Its install guidance covers both plugins on both agent hosts. |
+| add-module | Scaffold a Module bundle | workflow | skill:cogniva-dev/add-module | untested | untested | gate:architecture-profile | Explicit-only (metadata, both agent hosts). Profile gating is gate-covered; the scaffold itself is not. |
+| module-deps | Module dependency graph and cycle check | tooling | skill:cogniva-dev/module-deps | scripts-tested — `module-deps.ps1` | scripts-tested — `module-deps.ps1` | gate:module-deps | — |
+| worktree-cleanup | Close out worktree-mode runs | workflow | skill:cogniva-dev/cleanup-work, skill:cogniva-dev/cleanup-allwork | scripts-tested — `cleanup-worktrees.ps1` | unsupported — worktree mode only | gate:ledger | Worktree-mode only. Under Codex both skills stop with one line when worktree mode is on (ADR 0056); in lean mode they report nothing to do. |
+| plan-status | Feature, Module and repo status roll-ups | workflow | skill:cogniva-dev/feature-status, skill:cogniva-dev/module-status, skill:cogniva-dev/repo-status | untested | untested | — | Plain file reads on both agent hosts. Ephemeral plans in `.plans-staging/` are listed and marked as local to the clone. |
+| workflow-status | Status of background Workflow runs | tooling | skill:cogniva-dev/workflow-status | untested — Workflow journals | unsupported — no Workflow journals | — | Codex runs write no journal; a shared run record is CrossHostParity Stage 3. `workflow-status.ps1` has no gate suite. |
+| glossary | Project glossary | workflow | skill:cogniva-skills/glossary | untested | untested | — | Consulting the glossary before searching is instruction-level on both agent hosts. Glossary misses require code/filesystem search before unresolved clarification; [current evidence](#skillcontextefficiency). |
+| project-records | References, requirements and business context | workflow | skill:cogniva-skills/reference, skill:cogniva-skills/project-requirement, skill:cogniva-skills/project-context | untested | untested | — | Plain instructions with no agent-host-specific steps. Requirements format reads depend on action/grammar need; [current evidence](#skillcontextefficiency). |
 | primary-edit-guard | Deny edits to the primary checkout in worktree mode | enforcement | hook:guard-primary-edit.js | scripts-tested — PreToolUse on Write, Edit, NotebookEdit | scripts-tested — hook-input adapter | gate:primary-hooks, gate:hook-input, smoke:2026-11-05-codex-cli-4 | Reads Claude Code file_path/notebook_path and every path of a Codex apply_patch through hook-input.js, and denies if any path is guarded (ADR 0055). Codex CLI denial passed on 0.10.2 (smoke:2026-11-05-codex-cli-4) after the user reviewed the updated plugin hooks; installation required fresh review even though hooks.json was unchanged. Held at scripts-tested until a VS Code record shows the hook firing there (an earlier observation in another repo saw Codex hooks never fire in VS Code). Both agent hosts: writes made through a shell command are not seen; the guarantees live in the landing checks. |
 | branch-switch-guard | Block branch switching in the primary checkout in worktree mode | enforcement | hook:guard-primary-git.js | scripts-tested — PreToolUse on Bash | scripts-tested — hook-input adapter | gate:primary-hooks, gate:hook-input | Reads the Bash command through hook-input.js on both agent hosts, never apply_patch text (ADR 0055). Codex runs it only after the user trusts it in /hooks, again after any change to hooks.json. Both agent hosts: a command the guard does not recognise passes. |
 | backlog-commit-nudge | Nudge to commit a backlog capture | enforcement | hook:nudge-backlog-commit.js | scripts-tested — PostToolUse on Write, Edit | scripts-tested — hook-input adapter | gate:primary-hooks, gate:hook-input | Reads Claude Code file_path and every path of a Codex apply_patch through hook-input.js (ADR 0055). Codex runs it only after the user trusts it in /hooks, again after any change to hooks.json. Both agent hosts: writes made through a shell command are not seen. |
 | module-cycle-hook | Module cycle feedback after a `.csproj` edit (opt-in) | enforcement | hook:guard-module-cycles.js | scripts-tested — PostToolUse on Write, Edit | scripts-tested — hook-input adapter | gate:module-deps-hook, gate:hook-input | Reads every .csproj path of a Claude Code edit or a Codex apply_patch through hook-input.js (ADR 0055). Codex runs it only after the user trusts it in /hooks, again after any change to hooks.json. Both agent hosts: writes made through a shell command are not seen; module-deps -Check in a completion gate is the guarantee. |
 
-## SkillContextEfficiency Task 1
+## SkillContextEfficiency
 
-On 2026-11-10, all 25 skill discovery descriptions were shortened on both
-agent hosts; the same 19 remain model-discoverable and the same six retain
-paired explicit-only metadata. Bodies, invocation metadata, host mechanisms,
-capability statuses, and existing evidence claims are unchanged. The glossary
-search prohibition and broad trigger, and quick-fix/plan-feature approved
-routing triggers, remain explicit in discovery descriptions.
+<a id="skillcontextefficiency-task-1"></a>
+<a id="skillcontextefficiency-task-3"></a>
+<a id="skillcontextefficiency-task-4"></a>
+<a id="skillcontextefficiency-task-6"></a>
 
-[Task 1 source evidence](plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md#task-1--description-only-source-results-2026-11-10)
-records counts and passing source checks. Implemented by Codex; independent
-host review and fresh-session discovery/activation checks on Claude Code and
-Codex remain pending at Gate A. No new intentional asymmetry or smoke claim
-is introduced by this description-only slice.
+All 25 descriptions were shortened; the same 19 remain discoverable and the
+same six retain explicit-only metadata. Direct backlog coverage and shared
+commit definitions have separate companions; requirements format reads depend
+on action/grammar need. No intentional host asymmetry was added.
 
-## SkillContextEfficiency Task 3
+Gate A's six and Gate B's ten bounded checks completed and were human-accepted.
+[Claude manual](host-parity/smoke/2026-11-10-claude-code-cli-4.md) and
+[Codex manual](host-parity/smoke/2026-11-10-codex-cli-4.md) records attest the
+after-body build. [Claude QF-NONE](host-parity/smoke/2026-11-10-claude-code-cli-5.md)
+and [Codex QF-NONE](host-parity/smoke/2026-11-10-codex-cli-5.md) preserve native
+assertions and read limits. These checks do not certify whole capabilities,
+mutation persistence, every commit mode or fail-stop behavior; statuses stay
+unchanged. No net quick-fix runtime saving is demonstrated.
 
-Backlog direct capture now reads `COVERAGE.md`; the route-first caller keeps
-Test 1 and owns continuing to Test 2. Execute-feature and quick-fix require
-`execute-feature/COMMIT-POLICY.md` before writes. Commit authority/defaults,
-planless quick-fix, structural checks, host dispatch and landing stay in place.
-Both agent hosts share these contracts; no intentional asymmetry was added.
+Codex implemented the source; Claude Code and Codex performed behavioral smoke
+validation. The independent Claude Code source review supplied by the human
+found that glossary deduplication had removed the search step after a glossary
+miss. The human explicitly chose to restore it. The corrected shared rule is
+glossary lookup -> relevant code/filesystem search -> clarification and offer
+to document if still unresolved. A new semantic assertion pins that order;
+fresh GLOSSARY-MISSING checks with search in the pass criteria passed on
+[Claude Code](host-parity/smoke/2026-11-10-claude-code-cli-6.md) and
+[Codex](host-parity/smoke/2026-11-10-codex-cli-6.md) for the corrected source.
+Earlier pass rows retain their original weaker criteria and do not prove this
+order. These two reruns establish the observed order, not universal routing.
 
-Implemented and source-reviewed on Codex; independent Claude Code review of
-this body change and fresh after-body checks on both hosts remain pending.
-Semantic and task-contract assertions check the source contracts, not host
-behavior. [Task 3 evidence](plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md#task-3--coverage-and-shared-commit-definitions-2026-11-10)
-records comparisons and Gate A validation. The accepted description-only
-Gate A records establish the six named observations on that earlier build;
-its failed/non-blocking before reads remain limited, and capability statuses
-are unchanged. No after-body runtime verification is claimed.
-
-## SkillContextEfficiency Task 4
-
-Requirements reads its format guide before add/refine, creation, writes and
-interpretation needing entry/lifecycle grammar. Ordinary view/status use the
-entrypoint and existing records without loading the full guide unless grammar
-interpretation is needed; gap/summary retain their specific report references.
-Glossary consolidates repeated lookup admonitions in the same entrypoint,
-preserving broad term scope, glossary-first lookup, clarification, confirmed
-writes and its other distinct obligations. No companion or format changed.
-Both agent hosts share these instructions; no intentional asymmetry was added.
-
-Implemented and source-reviewed on Codex; independent Claude Code review and
-fresh after-body checks on both hosts remain pending at Gate B. Source checks
-do not establish runtime behavior or change capability statuses.
-[Task 4 evidence](plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md#task-4--conditional-requirements-format-and-glossary-deduplication-2026-11-10)
-records normalized read-set comparisons and mechanical results; no fresh-host
-verification is claimed.
-
-## SkillContextEfficiency Task 6
-
-Gate B supplies fresh after-body evidence for the pending runtime checks in
-the Task 3/4 notes above. Codex implemented and reviewed the source; Claude
-Code and Codex CLI performed behavioral smoke validation. An independent
-Claude Code source review is not claimed. Capability statuses stay unchanged:
-the narrow scenarios do not certify every lifecycle or mutation path.
-
-- [Claude manual checks](host-parity/smoke/2026-11-10-claude-code-cli-4.md)
-  and [Codex manual checks](host-parity/smoke/2026-11-10-codex-cli-4.md)
-  attest both plugin builds and cover glossary-first/missing-term behavior,
-  direct backlog coverage/repeat/dirty handling, and requirements read gating.
-  Requirements add/refine stop at proposals; persistence is untested.
-- [Claude QF-NONE](host-parity/smoke/2026-11-10-claude-code-cli-5.md)
-  and [Codex QF-NONE](host-parity/smoke/2026-11-10-codex-cli-5.md) retain native
-  passing assertions for commits=none and actual parent/worker read limits.
-  Other commit modes, fail-stop behavior and full executor coverage are not
-  certified. Codex additionally read execute-feature sections; no net QF
-  runtime saving is claimed.
-
-All ten Gate B checks passed on the accepted 51-file source fingerprint;
-there were no waivers. Human acceptance is separate from runtime evidence.
-The [final audit](plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md#task-6--final-evidence-and-mechanical-validation-2026-11-10)
-separates discovery/source reductions from observed reads and retains old/new
-controls, denied reads, Git retry/not-found attempts, hook warnings and
-unobservable before-worker reads. Codex's original two-plugin state was
-restored and freshly verified; Claude used session-local loading. No new
-intentional host asymmetry or capability-wide no-regression claim is added.
-
-The human approved final patch bookkeeping: cogniva-dev 0.11.1 and
-cogniva-skills 0.8.2, matching both host manifests and marketplace entries.
-Only version metadata changes after the accepted Gate B instruction fingerprint;
-the actual smoke records retain their tested 0.11.0/0.8.1 labels. No new runtime
-verification claim or installed-plugin refresh follows from these version edits.
+The [audit](plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md)
+records metrics, actual read extents, retained errors and this review follow-up.
+Original Codex state was restored and verified after Gate B and this rerun; Claude used
+session-local loading. Historical smoke version labels remain unchanged.
 
 ## Intentional asymmetries
 

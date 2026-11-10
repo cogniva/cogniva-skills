@@ -10,8 +10,7 @@ When active, you MUST use this skill for new, unfamiliar, ambiguous, conflicting
 or confusing terms and requests to clarify their meaning. Scope includes
 technical and domain terms, feature names, proper nouns, unfamiliar classes or
 libraries, and any noun absent from the current context (files read or memory);
-do not narrow it to domain
-language or assume an unfamiliar term is merely a typo.
+do not narrow it to domain language or assume an unfamiliar term is merely a typo.
 
 </when-to-use>
 
@@ -23,9 +22,11 @@ such terminology appears, before searching the codebase, file system (including
 grep, glob, file search or file reads), or web for that term. This glossary-first
 prerequisite overrides the normal search loop; knowing that a label might name
 implementation does not bypass it.
-If no definition resolves the meaning, ask the human partner for clarification
-and offer to document it rather than guessing. For ambiguous or conflicting
-terminology, automatically prompt for clarification using the workflow below.
+If the term is missing from the glossary, search the relevant code and filesystem
+for its definition or usage before asking the human partner. If that search still
+does not resolve the meaning, ask for clarification and offer to document the
+confirmed meaning rather than guessing. For ambiguous or conflicting terminology,
+automatically prompt for clarification using the workflow below.
 
 ## Workflows
 
@@ -61,6 +62,7 @@ When a potential issue is detected:
 - **Conciseness is good**: Definitions should be as concise as possible while still retaining clarity. Longer definitions will waste context and cause your human partner to start ignoring the glossary.
 - **Confirmation is acceptable**: If you are unsure whether to record a new term, and there's more than a 5% chance the user will want to add it, you MUST ask the user whether to store it.
 - **Link terms in communication**: When you use a defined term in a response, link it to its entry, e.g. `[Module](docs/glossary/README.md#module)`. Every entry is an `## Heading`, so every term has a stable anchor.
+- **Keep glossary entries about meaning**: The glossary should be totally devoid of implementation details. Do not treat it as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
 </what-to-do>
 
@@ -113,7 +115,5 @@ When the user uses a term that conflicts with the existing language in the gloss
 ### Sharpen fuzzy language
 
 When the user uses vague or overloaded terms, propose a precise canonical term. "You're saying 'account' — do you mean the Customer or the User? Those are different things."
-
-The glossary should be totally devoid of implementation details. Do not treat it as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
 </supporting-info>

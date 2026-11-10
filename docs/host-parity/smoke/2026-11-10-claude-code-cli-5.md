@@ -4,7 +4,7 @@ Agent host version: 2.1.187 (Claude Code)
 Surface: CLI
 OS: Windows 11 26200
 Plugin versions: cogniva-dev 0.11.0, cogniva-skills 0.8.1
-Plugin source: local marketplace from C:/dev/cogniva-skills @ 37f8957; Gate B after-body
+Plugin source: session-local --plugin-dir C:/dev/cogniva-skills/plugins/{cogniva-dev,cogniva-skills} @ 37f8957; Gate B after-body
 Date: 2026-11-10
 Covers: quick-fix
 

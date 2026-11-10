@@ -4,7 +4,7 @@ Agent host version: 2.1.187 (Claude Code)
 Surface: CLI
 OS: Windows 11 26200
 Plugin versions: cogniva-dev 0.11.0, cogniva-skills 0.8.1
-Plugin source: local marketplace from C:/dev/cogniva-skills @ 9ebf453; description-only
+Plugin source: session-local --plugin-dir C:/dev/cogniva-skills/plugins/{cogniva-dev,cogniva-skills} @ 9ebf453; description-only
 Date: 2026-11-10
 Covers: quick-fix
 
@@ -13,7 +13,6 @@ Covers: quick-fix
 | Scenario | Result | Assertion output | Notes |
 |---|---|---|---|
 | QF-NONE | pass | SMOKE QF-NONE: PASS | exit 0; 117s; final: QF-NONE.final.txt; Workflow tool called |
-
 | BACKLOG-DIRECT | not-run | Both capture attempts stopped at host permission denials; existing dirty note preserved; no ledger write or commit | Diagnostic before observation; duplicate not attempted because capture was incomplete |
 | REQUIREMENTS-READ | fail | View/status output correct, mutation proposals ask confirmation; all attempted format reads were denied | Read failure retained; no measured full-file baseline; no requirements writes |
 

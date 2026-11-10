@@ -275,6 +275,12 @@ Check 'glossary description names no Claude Code tools' `
 $glDescription = ReadDescription $glText
 Check 'glossary discovery covers unfamiliar and ambiguous terms, jargon, and nouns absent from context' `
     ($glDescription -match 'unfamiliar|unrecognized' -and $glDescription -match 'ambiguous' -and $glDescription -match 'project-specific jargon' -and $glDescription -match 'nouns?.*(absent|does not appear).*current context')
+$glLookupWorkflow = (($glText -split '<what-to-do>', 2)[1] -split '## Workflows', 2)[0] -replace '\s+', ' '
+$glLookup = [regex]::Match($glLookupWorkflow, 'You MUST search the glossary')
+$glSearch = [regex]::Match($glLookupWorkflow, 'If the term is missing from the glossary, search the relevant code and filesystem.*?before asking the human partner')
+$glAsk = [regex]::Match($glLookupWorkflow, 'If that search still does not resolve the meaning, ask for clarification and offer to document')
+Check 'glossary missing-term order is glossary lookup, code/filesystem search, then unresolved clarification and documentation offer' `
+    ($glLookup.Success -and $glSearch.Success -and $glAsk.Success -and $glLookup.Index -lt $glSearch.Index -and $glSearch.Index -lt $glAsk.Index)
 # --- requirements format loading follows the selected action / grammar need ---
 $requirements = [System.IO.File]::ReadAllText((Join-Path $plugin '..\cogniva-skills\skills\project-requirement\SKILL.md'))
 $requirementsIntro = ($requirements -split 'Invoke:', 2)[0] -replace '\s+', ' '
