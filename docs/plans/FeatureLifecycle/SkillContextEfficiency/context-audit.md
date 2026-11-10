@@ -90,7 +90,7 @@ Standard smoke records are the results source; this audit holds their index, hum
 
 ### Gate A acceptance and evidence index
 
-No validation has run; Task 2 will prepare exact prompts, inputs, commands, and in-audit record templates.
+No validation has run. Task 2's [prepared Gate A operator packet](#task-2--prepared-gate-a-operator-packet) supplies exact prompts, inputs, commands, and in-audit record templates. Preparation is not human acceptance.
 
 Human decision: pending.
 
@@ -323,3 +323,286 @@ Release offers and decisions are console-owned as specified above; the final wor
 ### Task 1 — console landing obligations (2026-11-10)
 
 Task result validated against the shared result contract; all five Task 1 checkboxes are complete and Tasks 2–6 remain unchecked. The console independently compared the 25 entrypoints against the pre-task commit: only descriptions changed, and all six manual-only settings remain intact. Updated all 18 affected skill capability rows in `docs/host-parity.md` with one shared description-only source-evidence note, preserving mechanisms, statuses, and existing evidence claims. Implementer: Codex; independent host review remains pending. No plugin manifests, installed caches, or user configuration were changed. The source-control ADR check and whitespace check passed; the mandatory green gate follows this obligation commit.
+
+### Task 2 — prepared Gate A operator packet
+
+Prepared on Codex, 2026-11-10, from source HEAD `e419b27`. No evaluating session, smoke run, export, installation, or external fixture creation was performed. The owning unit is FeatureLifecycle's SkillContextEfficiency documentation; no runtime dependency direction changes. Applicable-rules reported SAFE_TO_PROCEED, architecture profile undeclared, with root AGENTS.md and its CLAUDE.md import. Only this audit, task checkboxes, and ignored raw staging inputs are changed.
+
+#### Approval paths and raw inputs
+
+These paths are proposals for the console to present, **not approvals**. Read-only preparation confirmed the external root does not exist. If any path becomes occupied, select a new unused absolute path and obtain approval for that replacement; never overwrite evidence. All external writes, installation, restoration, and real runs remain human/console actions after exact-path approval.
+
+| Purpose | Exact absolute path |
+|---|---|
+| Source checkout (read only to evaluating sessions) | `C:/dev/cogniva-skills` |
+| Ignored raw inputs (never an evaluating cwd) | `C:/dev/cogniva-skills/.plans-staging/SkillContextEfficiency/validation` |
+| Proposed external root | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110` |
+| Immutable pinned export | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/control-5b9b653` |
+| Archive to create | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/control-5b9b653/plugins-5b9b653.zip` |
+| Control fixture root | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/control` |
+| Description-only fixture root | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/gate-a` |
+| Body-refactored fixture root (reserved for Task 5) | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/gate-b` |
+| Non-QF output root | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output` |
+
+The finite fixture paths are `<root>/<phase>/<host>/<scenario>`: phase `gate-a` or `gate-b`, host `claude-code` or `codex`, scenario `discovery`, `glossary-first`, `glossary-missing`, `backlog-direct`, `backlog-dirty`, `requirements-view`, `requirements-status`, `requirements-add`, or `requirements-refine`. The control has only `<root>/control/<host>/glossary-first`. Expand this finite list in the approval request; it authorizes neither other folders nor later cleanup. Each non-QF output path is `<root>/output/<phase>/<host>/<scenario>` (including `control`). Keep session captures and attestation there. No runtime output belongs in source control.
+
+Staged assets: `glossary/docs/glossary/README.md` defines **Quorin Window** as 90 minutes; `glossary/src/Window.ps1` contains a matching implementation and an intentionally undefined **Neral** label. `requirements/docs/REQUIREMENTS.md` has two synthetic entries and independent open-question bullets. `backlog/ledger-input.md` is an empty synthetic ledger, deliberately not named BACKLOG.md in this checkout. `prompts.md` holds identical neutral requests. There are no fixture AGENTS.md/CLAUDE.md files and no copied QF unattended policy. These ignored files are available locally but are not committed; the deterministic recipe below also makes the tracked audit sufficient to reconstruct them if necessary.
+
+Raw content for reconstruction: glossary README has `# Glossary`, `## Quorin Window`, and `A Quorin Window is a 90-minute period reserved for a scheduled handoff.` plus `Used in: scheduling and handoff discussions.`; Window.ps1 has `function Get-QuorinWindowMinutes { return 90 }` and `function Get-NeralState { return 'pending' }`, with comments naming the two labels and no business definition of Neral. Requirements contains Functional Requirements 1.1 Handoff summary (MUST, agreed, display a handoff summary, notes scheduled time) and 1.2 Export summary (SHOULD, draft, export summary, output format undecided); both cite `Synthetic fixture brief, 2026-11-10`, and 1.2 asks `Which output format is needed?` and `Who approves the format?` on separate bullets. The ledger is `# Backlog` followed by `Deferred work for this synthetic fixture.` Reconstruct using the same Markdown field grammar as the staged copy, then hash and use identical bytes for every comparison.
+
+Human-only fixture copying (PowerShell 7, after approval; no sessions below this checkout):
+
+```powershell
+$contextCheckout = 'C:/dev/cogniva-skills'
+$contextStage = 'C:/dev/cogniva-skills/.plans-staging/SkillContextEfficiency/validation'
+$contextRoot = 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110'
+$contextPhase = 'gate-a' # Task 5 uses gate-b, never reuses gate-a.
+$contextScenarios = @('discovery','glossary-first','glossary-missing','backlog-direct','backlog-dirty','requirements-view','requirements-status','requirements-add','requirements-refine')
+foreach ($contextHost in @('claude-code','codex')) {
+  foreach ($contextScenario in $contextScenarios) {
+    $contextFixture = "$contextRoot/$contextPhase/$contextHost/$contextScenario"
+    $contextOutput = "$contextRoot/output/$contextPhase/$contextHost/$contextScenario"
+    if ((Test-Path -LiteralPath $contextFixture) -or (Test-Path -LiteralPath $contextOutput)) { throw "Occupied path: $contextFixture or $contextOutput" }
+    New-Item -ItemType Directory -Path $contextFixture,$contextOutput -ErrorAction Stop | Out-Null
+    if ($contextScenario -like 'glossary-*') {
+      Copy-Item -LiteralPath "$contextStage/glossary/docs","$contextStage/glossary/src" -Destination $contextFixture -Recurse -ErrorAction Stop
+    } elseif ($contextScenario -like 'requirements-*') {
+      Copy-Item -LiteralPath "$contextStage/requirements/docs" -Destination $contextFixture -Recurse -ErrorAction Stop
+    } elseif ($contextScenario -like 'backlog-*') {
+      Copy-Item -LiteralPath "$contextStage/backlog/ledger-input.md" -Destination "$contextFixture/BACKLOG.md" -ErrorAction Stop
+    }
+    & git -C $contextFixture init -b feature/context-smoke
+    if ($LASTEXITCODE -ne 0) { throw 'Fixture git init failed.' }
+    & git -C $contextFixture -c user.name=Cogniva -c user.email=cogniva@example.invalid commit --allow-empty -m 'test: initialize context fixture'
+    & git -C $contextFixture add --all
+    & git -C $contextFixture -c user.name=Cogniva -c user.email=cogniva@example.invalid commit --allow-empty -m 'test: seed neutral context inputs'
+    if ($contextScenario -eq 'backlog-dirty') {
+      Add-Content -LiteralPath "$contextFixture/BACKLOG.md" -Value "`nPre-existing operator note; preserve this uncommitted line."
+    }
+    # Record git status, input SHA256s and ancestor/global instruction inspection in contextOutput.
+    # No remote is added. No repository policy/instruction files are copied.
+  }
+}
+# Separate pristine control copies; only loaded plugins differ from the Gate A pair.
+foreach ($contextHost in @('claude-code','codex')) {
+  $contextFixture = "$contextRoot/control/$contextHost/glossary-first"
+  $contextOutput = "$contextRoot/output/control/$contextHost/glossary-first"
+  if ((Test-Path -LiteralPath $contextFixture) -or (Test-Path -LiteralPath $contextOutput)) { throw 'Occupied control path; obtain a new approval.' }
+  New-Item -ItemType Directory -Path $contextFixture,$contextOutput -ErrorAction Stop | Out-Null
+  Copy-Item -LiteralPath "$contextStage/glossary/docs","$contextStage/glossary/src" -Destination $contextFixture -Recurse -ErrorAction Stop
+  & git -C $contextFixture init -b feature/context-smoke
+  & git -C $contextFixture -c user.name=Cogniva -c user.email=cogniva@example.invalid commit --allow-empty -m 'test: initialize context fixture'
+  & git -C $contextFixture add --all
+  & git -C $contextFixture -c user.name=Cogniva -c user.email=cogniva@example.invalid commit -m 'test: seed neutral context inputs'
+  if ($LASTEXITCODE -ne 0) { throw 'Control fixture preparation failed.' }
+}
+```
+
+Use the same raw hashes, fresh repo state, model/version/effort, host surface, permission configuration, and inherited instruction environment for each old/new pair. Different absolute fixture paths prevent state carryover; record that unavoidable cwd difference. Do not seed an expected-answer prompt or a glossary protocol. Capture all human answers for the missing-term session and stop at the proposal unless the human explicitly confirms the synthetic write.
+
+#### Pinned control export and two-plugin launches
+
+Read-only verification succeeded: `git cat-file -t 5b9b65393b588997e502e11d540ad21b768e12fa` returned `commit`; `git ls-tree <ref> plugins` returned tree `f468c5cc26ce5ec88dfa6da264fb0259caebf5e2`. This available control does not depend on a missing Claude cache. The earlier generic export recipe is instantiated as follows; only the human runs it after the export-path approval:
+
+```powershell
+$contextCheckout = 'C:/dev/cogniva-skills'
+$contextControlRef = '5b9b65393b588997e502e11d540ad21b768e12fa'
+$contextControlRoot = 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/control-5b9b653'
+$contextControlArchive = "$contextControlRoot/plugins-5b9b653.zip"
+& git -C $contextCheckout cat-file -e ($contextControlRef + ':plugins')
+if ($LASTEXITCODE -ne 0) { throw 'Pinned plugins tree unavailable; do not substitute HEAD.' }
+if (Test-Path -LiteralPath $contextControlRoot) { throw 'Obtain approval for a fresh export path.' }
+New-Item -ItemType Directory -Path $contextControlRoot -ErrorAction Stop | Out-Null
+& git -C $contextCheckout archive --format=zip "--output=$contextControlArchive" $contextControlRef plugins
+if ($LASTEXITCODE -ne 0) { throw 'Pinned export failed.' }
+Expand-Archive -LiteralPath $contextControlArchive -DestinationPath $contextControlRoot -ErrorAction Stop
+```
+
+Preferred interactive Claude CLI, as the README's session-local loading extension to both plugins. After changing cwd to the appropriate approved fixture, start a fresh process (never resume a prior behavioral session):
+
+```powershell
+# Old control: cwd .../control/claude-code/glossary-first
+claude --plugin-dir 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/control-5b9b653/plugins/cogniva-dev' --plugin-dir 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/control-5b9b653/plugins/cogniva-skills' --setting-sources project,local
+# Gate A/B: cwd .../<gate-a|gate-b>/claude-code/<scenario>
+claude --plugin-dir 'C:/dev/cogniva-skills/plugins/cogniva-dev' --plugin-dir 'C:/dev/cogniva-skills/plugins/cogniva-skills' --setting-sources project,local
+```
+
+These use the same flags/settings; the old control differs only in source directories. Record the actual model and effort selected, keep them fixed, and capture the launch command/startup catalog. No need to change the live Claude marketplace. Task 1 already changed bytes exposed through its current directory source; closing a local test does not restore old bytes in that live source.
+
+Codex control shortcut: before replacing any installed copy, compare the actual loaded `C:/Users/canuc/.codex/plugins/cache/cogniva/cogniva-dev/0.11.0` and `C:/Users/canuc/.codex/plugins/cache/cogniva/cogniva-skills/0.8.1` instruction trees to the pinned fingerprint and per-plugin file sets. Record differences, paths, manifests and original enabled selection. A numeric version alone is insufficient. If they match, run the control from its pristine external fixture first. If they do not match, record an unavailable/unattested non-blocking Codex control or obtain a separately approved supported pinned installation route; never substitute the live branch and call it old. The prepared Claude archive control remains available.
+
+#### Loaded-build attestation worksheet
+
+Fill this in Observations in each actual standard record, using startup metadata, a separate equivalent-configuration probe, or a post-behavior query. Never ask a neutral glossary session about skill availability, descriptions, or invocation before its test.
+
+| Field | Required evidence (currently pending) |
+|---|---|
+| Intended build | Full source commit, role control/description-only/after-body, source instruction fingerprint |
+| Host launch | Exact command, cwd, host version/surface, model/effort, settings sources, timestamp/session ID; no credential dumps |
+| Both plugins loaded | Launch/install transcript plus actual loaded cogniva-dev and cogniva-skills roots and enabled versions |
+| Content match | File lists and normalized hashes for **each** plugin's skill Markdown and agents/openai.yaml, compared with intended source; missing/extra files listed |
+| Discovery metadata | Actual catalog source and descriptions/paths (especially glossary and representative entries from both plugins), restrictions/manual-only pairs; distinguish available user menu from model-discoverable list |
+| Configuration equivalence | Probe and behavior session used identical plugin files/settings/model; time between them and any changes; no glossary priming |
+| Trace | Raw transcript/tool calls, read extent and ordering, final answer, host prompts, human replies, errors and exit state |
+| Closing state | Local session closed/no persistent change, restored-and-verified, retained by explicit human decision, or pending/failed restoration |
+
+Fingerprint recipe above, executed read-only on 49 instruction files in preparation: description-only source `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`; pinned baseline `62d3cb5ead5ded74464ade31c57eeb74b0e1974a7248a5bd4857ac382046111d`. These are intended-source identities, **not session attestations**. The pinned recipe iterated `git ls-tree -r --name-only <ref> plugins`, selected the same skill Markdown and agents/openai.yaml patterns, decoded `git show <ref>:<path>` as UTF-8-sig with universal newline normalization, and fed relative paths/text plus NUL delimiters to SHA256. For loaded caches or exports, put each plugin beneath the corresponding `plugins/<name>` relative prefix before applying the same recipe; also compare per-plugin lists/hashes so one correct plugin cannot mask the other. Capture manifests separately for real version metadata. Recompute immediately before acceptance; documentation-only changes do not affect this fingerprint.
+
+Read-only contamination inspection: `C:/Users/canuc/.codex/AGENTS.md` and `C:/Users/canuc/.claude/CLAUDE.md` contain external-write and execute-feature default rules, no glossary-first rule. No `C:/AGENTS.md`, `C:/CLAUDE.md`, `C:/Users/AGENTS.md`, `C:/Users/CLAUDE.md`, `C:/Users/canuc/AGENTS.md`, or `C:/Users/canuc/CLAUDE.md` was found. The current checkout's Claude memory text had no glossary/unfamiliar-term match; that project memory must not be carried into the external fixture. `C:/Users/canuc/.codex/memories` is absent; a read-only URI connection to `memories_1.sqlite` failed with `sqlite3.OperationalError: unable to open database file`, so stored/retrieved memory is unobservable in preparation. This worker's session already received glossary-related discovery instructions and is **not an evaluation session**. The external AppData/Local/Temp ancestor files, managed settings, new project-memory mapping and Codex retrieved memories still require inspection/capture at actual startup. Record any glossary-first instruction as contamination and any unavailable memory evidence as an attribution limitation; neither establishes successful description-only activation. Do not edit global memory to improve the result.
+
+#### Neutral prompts and outcome criteria
+
+Use the staged `prompts.md` verbatim on both hosts; only explicit skill command syntax differs: Claude `/cogniva-dev:backlog` or `/cogniva-skills:project-requirement`; Codex `$backlog` or `$project-requirement`. Run each named scenario in its own fresh session/copy except the deliberate repeated backlog request. The following are evaluator criteria, not text to prepend to behavioral prompts.
+
+| Scenario | Exact neutral request / procedure | Evidence and check |
+|---|---|---|
+| DISCOVERY | `List the Cogniva skills available in this session, their actual source paths and discovery descriptions, and any invocation restrictions exposed by startup/catalog metadata. Without executing them, identify which skill fits each request: report feature progress; capture work for later; maintain requirements; explain an unfamiliar project term. State whether a small-fix request or a design request permits automatic invocation, and which explicit commands remain user-invoked only. Do not perform any actions.` | Separate probe only. Compare catalog to the 25/19 inventory and six paired manual-only entries; both plugin roots and actual descriptors. Expect feature-status, backlog, project-requirement, glossary matching; quick-fix/plan-feature still require explicit user request or approved dispatch. Unavailable catalog evidence is not proof of a pass. |
+| GLOSSARY-FIRST | `How many minutes does a Quorin Window cover in this project?` | Observe glossary activation and definition lookup before implementation/file search for the term. Correct answer alone is insufficient. Same request/input/environment for the pinned control and Gate A. |
+| GLOSSARY-MISSING | `What does the Neral state mean for this project's handoff process?` | Observe missing lookup, clarification and offer to document, with no invented definition or unconfirmed write. Interactive questions must remain possible. The operator may answer `I have not defined it yet.`; retain that answer and all proposals. |
+| BACKLOG-DIRECT | Explicit backlog command plus `Add exporting the handoff summary as CSV to the backlog for later.` Repeat the same request after completion. In the independent dirty copy request `Add a printable handoff summary to the backlog for later.` | Observe loose capture, `because:human later`, coverage/dedup stop, preservation of dirty note and dirty-target commit behavior, exact file-scoped commit policy. Record the full CAPTURE-BAR.md read or actual Test 1 extent, not an assumption. Before observations are diagnostic. |
+| REQUIREMENTS-READ | Explicit project-requirement command with `view`, then `status` in its separate copy; independent `add "The system MUST print the handoff summary. Source: synthetic stakeholder request on 2026-11-10."`; independent `refine "The handoff summary should export as CSV. Source: synthetic stakeholder decision on 2026-11-10."` | View/status correctly report existing records. Add/refine preserve grammar, source, severity, independent questions and confirmation before writes. Operator records all clarification/confirmation replies. Observe REQUIREMENTS-FORMAT.md read extent separately for read-only and mutation paths. |
+| QUICK-FIX-FLAGS | Existing QF-NONE driver only, below. | Native assertions and full headless transcript; no custom fixture, prompt or outcome implementation. |
+
+#### QUICK-FIX-FLAGS before observations
+
+Source inspected: existing `scenarios/QF-NONE/scenario.json` requests `"Make Add-Numbers accept an optional third number $c (default 0) and add a test for it" commits=none`. Driver prefixes `/cogniva-dev:quick-fix` or `$quick-fix`. Assertions remain 0 new commits, branch `feature/smoke`, changes to `src/Calc/Calc.ps1` and `tests/Calc.tests.ps1`, unrelated work preserved, complete handoff including `READY FOR REVIEW` and `Integration: not performed`. Do not copy this fixture's AGENTS.md to glossary fixtures.
+
+Exact distinct driver roots (the driver creates `<FixtureRoot>/QF-NONE`; OutDir is independent):
+
+| Phase/host | FixtureRoot | OutDir |
+|---|---|---|
+| Before Claude | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/qf-before-claude` | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output/qf-before-claude` |
+| Before Codex | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/qf-before-codex` | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output/qf-before-codex` |
+| After Claude | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/qf-after-claude` | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output/qf-after-claude` |
+| After Codex | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/qf-after-codex` | `C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110/output/qf-after-codex` |
+
+Human-only PowerShell 7 commands, after approval/loading; run from the checkout only as a driver process, which starts the **evaluating agent** inside its newly built external fixture:
+
+```powershell
+$contextDriver = 'C:/dev/cogniva-skills/plugins/cogniva-dev/tests/host-smoke/invoke-host-smoke.ps1'
+$contextRoot = 'C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110'
+$contextDev = 'C:/dev/cogniva-skills/plugins/cogniva-dev'
+$contextSkills = 'C:/dev/cogniva-skills/plugins/cogniva-skills'
+# Review this no-write preview first; then repeat exactly without -DryRun for the actual bounded run.
+& $contextDriver -AgentHost claude-code -Scenario QF-NONE -PluginDir $contextDev -ExtraArgs @('--plugin-dir',$contextSkills) -FixtureRoot "$contextRoot/qf-before-claude" -OutDir "$contextRoot/output/qf-before-claude" -Covers quick-fix -PluginSource 'local marketplace from C:/dev/cogniva-skills @ e419b27; description-only' -DryRun
+& $contextDriver -AgentHost codex -Scenario QF-NONE -FixtureRoot "$contextRoot/qf-before-codex" -OutDir "$contextRoot/output/qf-before-codex" -Covers quick-fix -PluginSource 'local marketplace from C:/dev/cogniva-skills @ e419b27; description-only' -DryRun
+```
+
+Before actual execution update PluginSource to the true current commit and record the instruction fingerprint. For Task 5 use the same arguments with `qf-after-claude`/`qf-after-codex` and the after build identity; never reuse a before root. Use the README's `-CodexApproveForMe` only if the operator chooses that supported permission route and it is authorized; record it, with permission required before the first Git write. A denied approval remains blocked without retry. Keep QF-NONE.final.txt, QF-NONE.transcript.jsonl, QF-NONE.assert.txt, any stderr and the driver's real RECORD path. Inspect the transcript for execute-feature/SKILL.md/Flags (and later COMMIT-POLICY.md), including subagent calls, before classifying a read as unobservable. Unavailable/read-failed before observations do not block either gate or later work and cannot establish measured savings. Do not turn native QF failures into passes when annotating the read observation.
+
+#### Installation, refresh and Restoration worksheet
+
+These are the README's persistent alternatives, not the preferred Claude CLI route. CLI help was inspected read-only on 2026-11-10: Codex supports `plugin add`, `plugin remove` (which uninstalls and removes that plugin's local cache), and marketplace add/list/remove; Claude supports scoped install/uninstall with `--keep-data`, marketplace add/remove, and list. No manual cache deletion, version edits, or worker installation is authorized. The actual host binary is `C:/Users/canuc/.vscode/extensions/openai.chatgpt-26.1021.22027-win32-x64/bin/windows-x86_64/codex.exe`; re-resolve the newest extension if it changes. Help emitted a home/PATH-alias warning in this sandbox; help is not an install test.
+
+Before any persistent change, the human records commands/output for `claude plugin marketplace list`, `claude plugin list --json`, Codex `plugin marketplace list` and `plugin list`, actual enabled state, scopes, versions and content hashes. Inspect only Cogniva keys in config; omit credentials/unrelated settings. Read-only planning/preparation found Claude's cogniva directory source at `C:/dev/cogniva-skills`, install records 0.2.1/0.7.2 under its cache but those recorded directories absent, and Codex's candidate cache versions 0.11.0/0.8.1. These are not substitutes for a fresh pre-test snapshot.
+
+Exact persistent paths to present for installation **and separately for restoration**: `C:/Users/canuc/.codex/config.toml`, `C:/Users/canuc/.codex/plugins` (two Cogniva plugin caches, marketplace metadata and supported installer state), `C:/Users/canuc/.codex/.hook-trust` if trust is changed; for Claude VS Code user-scope route `C:/Users/canuc/.claude/settings.json`, `C:/Users/canuc/.claude/plugins/known_marketplaces.json`, `C:/Users/canuc/.claude/plugins/installed_plugins.json`, and `C:/Users/canuc/.claude/plugins/cache/cogniva`. If the host reports another write target, enumerate it and obtain exact-path approval before continuing. Fixture session state under each host's project/session storage also needs to be included in the concrete run approval. No blanket approval is implied by this list.
+
+Codex branch installation or same-version refresh before **each** persistent checkpoint, including Gate B:
+
+```powershell
+$contextCodex = 'C:/Users/canuc/.vscode/extensions/openai.chatgpt-26.1021.22027-win32-x64/bin/windows-x86_64/codex.exe'
+# After old-copy control, state capture and exact-path approval:
+& $contextCodex plugin remove cogniva-dev@cogniva
+& $contextCodex plugin remove cogniva-skills@cogniva
+& $contextCodex plugin marketplace remove cogniva
+& $contextCodex plugin marketplace add 'C:/dev/cogniva-skills'
+& $contextCodex plugin add cogniva-dev@cogniva
+& $contextCodex plugin add cogniva-skills@cogniva
+# NEW session from the external fixture; /hooks if changed hashes require trust.
+```
+
+Removing/re-adding via the supported plugin manager is the deliberate reinstall, not an instruction to delete cache directories. Stop and preserve errors if a command fails. Recheck actual loaded content from **both** plugins; an unchanged version label or marketplace pointer cannot attest refreshed bytes.
+
+Claude VS Code branch route (only if deliberately chosen and approved; original scope must be recorded): panel `/plugin marketplace remove cogniva`, `/plugin marketplace add C:/dev/cogniva-skills`, `/plugin install cogniva-dev@cogniva`, `/plugin install cogniva-skills@cogniva`, reload window. For a same-version refresh, use supported CLI from the matching installation scope before reloading:
+
+```powershell
+claude plugin uninstall cogniva-dev@cogniva --scope user --keep-data
+claude plugin uninstall cogniva-skills@cogniva --scope user --keep-data
+claude plugin install cogniva-dev@cogniva --scope user
+claude plugin install cogniva-skills@cogniva --scope user
+```
+
+For the captured current Claude directory pointer, no marketplace swap is needed; reinstall only if the persistent route is chosen. Do not remove declarations from every scope inadvertently. If the pre-test source differs, scoped `claude plugin marketplace remove cogniva --scope user` and `claude plugin marketplace add '<captured-original-source>' --scope user` restore it. The README's published return source is `cogniva/cogniva-skills`; the actual recorded original source takes precedence.
+
+Restoration is scheduled immediately after Gate A and after Gate B, including failure, timeout or early stop, with separate exact-path approval. Codex: remove both tested plugins, `plugin marketplace remove cogniva`, `plugin marketplace add '<captured-original-source>'` (README published fallback `https://github.com/cogniva/cogniva-skills.git`), then `plugin add cogniva-dev@cogniva` and `plugin add cogniva-skills@cogniva`; start a new session and verify original marketplace, scope/enabled selection, versions and content identities. Claude persistent route: uninstall both with captured scope/keep-data, restore the captured marketplace as above, reinstall both, restore captured enabled selection using the host UI, reload and verify. If a plugin was originally absent, leave it absent. Neither supported CLI exposes a version pin in the inspected add/install help; if the original version/content cannot be reproduced by reinstalling that source, record restoration incomplete and obtain an explicit human decision or a supported recovery plan—do not claim success or hand-edit caches. Captured original Claude pointer already targets edited live bytes; restoring that pointer is a configuration no-op, not an old-build byte restoration.
+
+| Host/checkpoint | Pre-test source, scope, enabled plugins, versions/hashes | Approved install paths/commands | Approved restore paths/commands | Actual ending state and verification / explicit retention decision |
+|---|---|---|---|---|
+| Claude Gate A | pending | Prefer local flags; persistent route not selected | pending or no persistent change | not started |
+| Codex Gate A | pending | pending | pending | not started |
+| Claude Gate B | pending | Fresh two-dir local process, or explicit two-plugin reinstall | pending or no persistent change | not started |
+| Codex Gate B | pending | Explicit two-plugin reinstall even if versions match | pending | not started |
+
+#### Standard record template and exact evidence inventory
+
+Only after an actual attempted run, create a file using the [standard README](../../../host-parity/smoke/README.md). At preparation no date-matching records existed. Proposed reservations, **not created files or claims of runs**: `docs/host-parity/smoke/2026-11-10-claude-code-cli.md` (control), `2026-11-10-claude-code-cli-2.md` (description-only), `2026-11-10-claude-code-cli-3.md` (before observations); corresponding `2026-11-10-codex-cli.md`, `-2.md`, `-3.md`. Use the real run date and next unused suffix; the driver chooses/prints the QF record separately, which must be added by exact path. Never collide with or overwrite an existing record. Different build roles need separate headers. Actual records may aggregate fresh sessions from the same build/host/surface with individual session references; a failing observation may limit the whole record's parity eligibility.
+
+Copy this template **inside a real record only after a run**; replace every placeholder from actual metadata, include the checkpoint role and fingerprint in Observations, and include only scenarios attempted or explicitly noted not-run:
+
+```markdown
+# Smoke record <actual-date-host-surface-suffix>
+Agent host: <Claude Code or Codex>
+Agent host version: <actual version>
+Surface: <CLI or VS Code or Desktop>
+OS: Windows 11 <actual build>
+Plugin versions: cogniva-dev <actual loaded version>, cogniva-skills <actual loaded version>
+Plugin source: <actual source path and commit; pinned export or installed marketplace>
+Date: <actual YYYY-MM-DD>
+Covers: <eligible IDs: install-cogniva-dev, install-cogniva-skills, glossary, backlog, quick-fix, project-records>
+
+## Scenarios
+
+| Scenario | Result | Assertion output | Notes |
+|---|---|---|---|
+| <DISCOVERY / GLOSSARY-FIRST / GLOSSARY-MISSING / GLOSSARY-FIRST-PUBLISHED / BACKLOG-DIRECT / REQUIREMENTS-READ / native QF-NONE> | <pass / fail / not-run> | <real observed assertion, failure or unavailability> | <session/transcript reference; build attestation; read extent; scope limits> |
+
+## Observations
+
+- Build role/checkpoint and intended source fingerprint: <actual>.
+- Two-plugin loading/content evidence: <worksheet and capture references>.
+- Model/settings/inherited memory, priming and contamination: <actual>.
+- Read evidence: <whole-file / section with observed extent / none / unobservable, tool-call references>.
+- Approval/trust prompts, operator answers, errors and surprises: <actual>.
+- Host closing/restoration/retention disposition: <actual>.
+```
+
+For controls, `Plugin source` names pinned `5b9b653` and row GLOSSARY-FIRST-PUBLISHED; never put them under a new-build header. For QF use the driver's native header/row/output and supplement missing second-plugin/build/read evidence in Observations. Keep failures even when waived. No actual smoke-record links exist yet; Task 3's exact evidence inventory remains **none** until the console records real paths, row IDs and output references here. The tracked audit is the only prepared template/index; no unrun smoke files are created.
+
+#### Gate A pending acceptance and waivers
+
+Source offered for human evaluation: `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`. Human decision: **pending**. Accepted fingerprint: **none**. Actual smoke records: **none**. All result cells below are not-run; a future waiver preserves that raw status or the actual fail. Fill an explicit named waiver with reason and accepted limitation, or a build-attested pass, for each acceptance row; a general continue request is insufficient.
+
+| Check ID | Host/scenario | Raw result | Real standard record/row + loaded-build evidence | Human waiver reason and accepted limitation (if any) |
+|---|---|---|---|---|
+| GATE-A-CLAUDE-DISCOVERY | Claude Code / DISCOVERY | not-run | none | none; pending |
+| GATE-A-CLAUDE-GLOSSARY-FIRST | Claude Code / GLOSSARY-FIRST | not-run | none | none; pending |
+| GATE-A-CLAUDE-GLOSSARY-MISSING | Claude Code / GLOSSARY-MISSING | not-run | none | none; pending |
+| GATE-A-CODEX-DISCOVERY | Codex / DISCOVERY | not-run | none | none; pending |
+| GATE-A-CODEX-GLOSSARY-FIRST | Codex / GLOSSARY-FIRST | not-run | none | none; pending |
+| GATE-A-CODEX-GLOSSARY-MISSING | Codex / GLOSSARY-MISSING | not-run | none | none; pending |
+
+| Non-blocking observation | Claude Code result/record/read extent | Codex result/record/read extent | Interpretation |
+|---|---|---|---|
+| BACKLOG-DIRECT before | not-run / none / unobservable | not-run / none / unobservable | No measured saving |
+| QUICK-FIX-FLAGS before (native QF-NONE) | not-run / none / unobservable | not-run / none / unobservable | No measured saving |
+| REQUIREMENTS-READ before (view/status + add/refine) | not-run / none / unobservable | not-run / none / unobservable | No measured saving |
+| GLOSSARY-FIRST pinned control | not-run / none | not-run / none | No matched baseline comparison |
+
+The first three observation rows represent six per-host before observations, with subruns retained; controls add two. They require no waiver to progress. Old pass/new fail signals a possible regression; old fail/new fail is a baseline unaided-routing limitation, never automatic acceptance. Gate A still requires the six new-build checks to be addressed by real attested passes or explicit per-row waivers and an explicit human decision for this fingerprint. Waivers do not prove preserved behavior, measured savings or verified parity. Console must record host closing disposition, the exact Task 3 evidence-file inventory, and any authorization to resume with those named evidence-only edits dirty. Task 2 completion means preparation only and the executor stops at this gate.
+
+#### Verification of preparation
+
+The ignored `verify-preparation.ps1` check was written first and run before inputs existed; it failed on missing `glossary/docs/glossary/README.md` (exit 1). It checks the finite raw asset list, operator-packet sections and Gate A identifiers, and ignore status; it is a local material check, not host-smoke evidence. Re-run it after preparation together with `git diff --check`, local pinned-tree readability, raw-file inventory, command syntax/driver argument review and standard-record contract review. No host run, DryRun driver run, external export or installation is performed by the worker. Final mechanical results are recorded below before the task commit.
+
+Final preparation verification: `verify-preparation.ps1` passed (exit 0), including all PowerShell fence syntax and the six acceptance IDs; `git check-ignore -- .plans-staging/SkillContextEfficiency/validation/` returned that ignored directory (exit 0); `git diff --check` passed. Every local Markdown link resolved. Read-only checks reconfirmed the pinned commit/tree, unchanged 49-file source fingerprint, absent proposed external root, and no newly created dated smoke records. Driver arguments were checked against its current parameter block, QF-NONE prompt/assertions against scenario.json, and record headers/table/results against both READMEs. No host-smoke tests were run by the worker. Gate A remains pending and no runtime savings are claimed.
+
+Raw staging SHA256s (copy identical bytes into each applicable fixture, then verify again externally):
+
+| Relative raw input | SHA256 |
+|---|---|
+| `backlog/ledger-input.md` | `015f3ce1629f6d7eec3456d303404f78cc69e6e267b91ba041744e22bf05529f` |
+| `glossary/docs/glossary/README.md` | `488c5ec0776521d3d145c7e574cfee5061f97999fe3eb870d2b1d43859d8411c` |
+| `glossary/src/Window.ps1` | `d71eb8dc16d4380da154104d0116627248e244362600325c3c2dfcf710b4c90b` |
+| `requirements/docs/REQUIREMENTS.md` | `1c4ea10f2b36480f7ffe7f9cdce78ddc3f8d033d34b16eee1d90af0f278416a7` |
+| `prompts.md` | `91c88f53c239726feb8f4943675d84bab1609ba0375a89a6d075cc6c098a9c41` |
