@@ -1115,24 +1115,37 @@ extension changes; inspect current help before using a changed command):
 
 ```powershell
 $contextCodex = 'C:/Users/canuc/.vscode/extensions/openai.chatgpt-26.1021.22027-win32-x64/bin/windows-x86_64/codex.exe'
+$contextMarketplaceListing = @(& $contextCodex plugin marketplace list)
+if ($LASTEXITCODE -ne 0) { throw 'Stop; original marketplace state could not be queried.' }
+$contextOriginalMarketplacePresent = [bool]($contextMarketplaceListing | Select-String '^cogniva\s+')
+if (-not $contextOriginalMarketplacePresent) {
+    # Tested Gate A order: register the checkout before removing orphaned caches.
+    & $contextCodex plugin marketplace add 'C:/dev/cogniva-skills'
+    if ($LASTEXITCODE -ne 0) { throw 'Stop; preserve registration error.' }
+}
 & $contextCodex plugin remove cogniva-dev@cogniva
 if ($LASTEXITCODE -ne 0) { throw 'Stop; preserve refresh error and restore original state.' }
 & $contextCodex plugin remove cogniva-skills@cogniva
 if ($LASTEXITCODE -ne 0) { throw 'Stop; preserve refresh error and restore original state.' }
-& $contextCodex plugin marketplace remove cogniva
-if ($LASTEXITCODE -ne 0) { throw 'Stop; inspect recorded original marketplace absence before continuing.' }
-& $contextCodex plugin marketplace add 'C:/dev/cogniva-skills'
-if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
+if ($contextOriginalMarketplacePresent) {
+    & $contextCodex plugin marketplace remove cogniva
+    if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
+    & $contextCodex plugin marketplace add 'C:/dev/cogniva-skills'
+    if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
+}
 & $contextCodex plugin add cogniva-dev@cogniva
 if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
 & $contextCodex plugin add cogniva-skills@cogniva
 if ($LASTEXITCODE -ne 0) { throw 'Stop; restore original state.' }
 ```
 
-Gate A restored the marketplace to absence. The console must query manager
-state before the sequence: when `cogniva` is absent, **omit only its remove
-command**, explicitly recording that absence. All other errors stop the
-sequence. This is a supported reinstall, never manual cache deletion or a forced
+Gate A restored the marketplace to absence. The console queries manager state
+before the sequence: when `cogniva` is absent, it uses Gate A's tested order,
+registering the checkout first, then removing/reinstalling both cached plugins.
+When originally present, it removes both plugins before replacing that source.
+Both branches explicitly record original presence/source for restoration; no
+nonexistent-registration removal or command retry is attempted. All errors
+stop the sequence. This is a supported reinstall, never manual cache deletion or a forced
 version bump. Start new evaluation sessions only after comparing actual loaded
 cache instruction lists/hashes for both plugins against all 43+8 source files
 (report missing/extra/differing files), and recording manifests and enabled
