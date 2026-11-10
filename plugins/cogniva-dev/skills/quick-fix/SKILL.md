@@ -30,9 +30,9 @@ is absent, STOP and say so.
 `<plugin>` = this plugin's root (parent of `skills/`) — tooling, not the
 target; the repo being fixed is the one you were invoked from.
 
-**Flags:** quick-fix honours `commits=` exactly as the `## Flags` section of
-`../execute-feature/SKILL.md` defines it — the same `none|task|final`
-semantics and the same defaults (lean mode → `none`, worktree mode →
+**Flags:** Read `../execute-feature/COMMIT-POLICY.md` before any write,
+staging, or commit; resolve `commits=` using its definitions — the same
+`none|task|final` semantics and the same defaults (lean mode → `none`, worktree mode →
 `task`), and `none|final` are just as INVALID in worktree mode, where
 integration is a fast-forward of commits: reject the combination with one
 clear line and stop, never silently ignore it. quick-fix is planless, so

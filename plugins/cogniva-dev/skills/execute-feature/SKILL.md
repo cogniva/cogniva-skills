@@ -41,18 +41,11 @@ flag, ride-along, ADR correction, or repo obligation may create a commit the
 policy forbids. `plan=` decides only where plan state lives and whether it
 is durable — it never authorizes a commit on its own.
 
-- `commits=none|task|final` — `none`: never stage or commit ANYTHING —
-  implementation, plans (even persisted ones), ride-alongs, ADR and
-  whitespace fixes, repo-obligation output all stay uncommitted in the tree;
-  the final handoff reports the uncommitted diff. `task`: one checkpoint
-  commit per task; **tick the task's plan checkboxes BEFORE the task commit
-  so the commit SHA represents the completed task state**; checkpoint
-  commits never imply approval. `final`: leave ALL run-produced changes
-  uncommitted until every task and every landing gate has passed, then
-  exactly ONE implementation commit (Step 4.7) — never an earlier or
-  intermediate one. Any git failure under `task`/`final`
-  → the task stops `BLOCKED` with the git error as the note; no retry loops,
-  no special-casing of specific git errors.
+Read `COMMIT-POLICY.md` ([shared policy](COMMIT-POLICY.md)) beside this file
+before any write, staging, or commit; resolve `commits=` and reject invalid
+combinations using that shared policy.
+It defines `none|task|final`, precedence, defaults, and Git-failure handling.
+
 - `tasks=one` — execute only the FIRST not-yet-done task, then land (Step 4)
   and hand off. The handoff names the slice that ran and the tasks remaining
   — never present the feature as complete while tasks remain. Re-run the
@@ -70,9 +63,8 @@ is durable — it never authorizes a commit on its own.
   survives sessions on the same clone but is not tracked — say so in the
   run's first status line.
 - **Defaults:** lean mode → `commits=none`, `plan=ephemeral`. Worktree mode →
-  `commits=task`, `plan=persisted`, and `commits=none|final` are INVALID
-  there — integration is a fast-forward of commits; reject the combination
-  with one clear line and stop, never silently ignore it.
+  `commits=task`, `plan=persisted`; only task commits are valid there (see
+  `COMMIT-POLICY.md`).
 
 ## Step 0 — branch policy (before anything else)
 

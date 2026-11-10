@@ -27,8 +27,9 @@ Invoke: `/cogniva-dev:backlog [<item description>]` (omit to be asked).
 ## Two modes — who decided to capture this?
 
 **Direct** — a human invoked `/cogniva-dev:backlog`. They have already consented.
-Run the coverage check (Test 1 in `CAPTURE-BAR.md`), then write, commit, and report. No
-gate, no interrogation, no request to refine the wording. The invocation itself
+Read `COVERAGE.md` beside this file and run its coverage check, then write,
+commit, and report if not covered. No gate, no interrogation, no request to
+refine the wording. The invocation itself
 is the deferral decision, so an item with no stated reason is written with
 `because:human later` — then offer ONCE, in the report line, to replace that
 with a specific reason. Never block a human capture on a reason. The one
@@ -36,7 +37,7 @@ exception is a tier-2 stub: confirm the tier before creating a folder.
 
 **Skill-initiated** — you surfaced the work yourself while doing something else.
 **Propose; do not write.** Read `CAPTURE-BAR.md` (lazy-loaded — do not read it
-for a direct invocation of an already-covered item), route each candidate
+for a direct invocation), route each candidate
 through the tests (0–3), hold them as candidate records, and present them in the
 route-first gate. Only what the user confirms is written or done.
 
@@ -56,7 +57,7 @@ route-first gate. Only what the user confirms is written or done.
 
 ## Steps
 
-1. **Coverage check (always, both modes).** Apply Test 1 in `CAPTURE-BAR.md`: is
+1. **Coverage check (always, both modes).** Read `COVERAGE.md` and apply it: is
    this already handled by the plan being written, an open plan folder, the change
    in flight, an active exploration, or an existing open item? If yes, do NOT
    capture — say so in one line, naming what covers it, and stop.

@@ -1,6 +1,6 @@
 # SkillContextEfficiency — audit and acceptance
 
-Executor input for the [feature plan](SkillContextEfficiency-plan.md), not a shipped skill reference. Baseline captured on 2026-11-10 at revision `5b9b65393b588997e502e11d540ad21b768e12fa`; the working tree was clean before these planning documents. This covers the repository's 25 shipped skills, excluding its template and externally maintained plugins. Task 1's description-only implementation is complete; real-host validation has not started.
+Executor input for the [feature plan](SkillContextEfficiency-plan.md), not a shipped skill reference. Baseline captured on 2026-11-10 at revision `5b9b65393b588997e502e11d540ad21b768e12fa`; the working tree was clean before these planning documents. This covers the repository's 25 shipped skills, excluding its template and externally maintained plugins. Task 1's description-only implementation and Task 2 preparation are complete; Gate A real-host validation is recorded, with explicit human acceptance recorded for Gate A.
 
 ## Loading model and measurements
 
@@ -90,23 +90,41 @@ Standard smoke records are the results source; this audit holds their index, hum
 
 ### Gate A acceptance and evidence index
 
-No validation has run. Task 2's [prepared Gate A operator packet](#task-2--prepared-gate-a-operator-packet) supplies exact prompts, inputs, commands, and in-audit record templates. Preparation is not human acceptance.
+Gate A ran on 2026-11-10 after explicit setup, host-run/refresh, and restoration
+approvals. All six acceptance checks passed with build evidence. **Human
+decision: accepted. Accepted source fingerprint: `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`.** Evaluated/offered
+fingerprint: `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`. Permission to run tests is not acceptance.
 
-Human decision: pending.
+Smoke-record references: each host's base record is its pinned control, `-2`
+contains the three acceptance checks, and `-3` contains native QF-NONE plus
+non-blocking before observations. Exact paths are inventoried below.
 
-Accepted source fingerprint: not yet evaluated.
+Waivers: none. Claude before-read failures need no waiver because those
+observations are explicitly non-blocking. Their raw limits remain recorded.
 
-Smoke-record references: none.
+Before-read observations: Codex backlog visibly loaded all 13,276 CAPTURE-BAR
+characters; all four requirements runs loaded all 9,951 format characters.
+Codex QF flags read was a 33-line/1,988-character section, not the full
+entrypoint. Claude backlog capture and format reads were permission-blocked.
+Native QF-NONE passed on both hosts. Worker tool reads are unobservable in
+the saved QF parent streams; no after-build read saving is claimed.
 
-Waivers: none. Any future entry must name host/scenario, retained result, reason, and accepted limitation for the stated fingerprint.
+Published GLOSSARY-FIRST controls: pass on both hosts using pinned
+`5b9b65393b588997e502e11d540ad21b768e12fa` content. Both same-host changed-build
+comparisons also pass: no observed regression in these cases, not universal
+unaided-routing proof.
 
-Before-read observations: not-run; non-blocking. Record backlog, QF-NONE, and requirements reads separately for each host, including unavailable/incomplete traces.
+Host closing disposition: all validation processes exited. Claude used
+session-local plugin directories; no marketplace/plugin install changed.
+Codex restored-and-verified: 179 original cache files byte-identical, both
+enabled selections restored, original absent marketplace registration
+reproduced, persisted hook-trust hashes unchanged. A fresh session loads all
+19 pinned original descriptions. Normal approved session/trust history remains.
 
-Published GLOSSARY-FIRST controls: not-run; non-blocking. Authoritative source: 5b9b65393b588997e502e11d540ad21b768e12fa (5b9b653). The human exports that commit's plugins tree for Claude Code; an installed Codex copy may be a shortcut only when matched to that revision. Record separate old-build smoke records and compare with the same-host description-only result.
-
-Host setup/closing disposition: not started. Capture original install state and record no persistent changes, restored-and-verified, or an explicit human decision to retain the branch build. Pending/failed restoration is never silently reported as complete.
-
-Feature-owned evidence paths for Task 3: none yet; populate exact audit/control/description-only/before-observation smoke-record paths after real runs.
+Feature-owned evidence paths for Task 3: this audit plus the six exact smoke
+records in the completed-results inventory below. They remain uncommitted
+evidence-only changes explicitly authorized for Task 3 resume and validation/commit;
+no directory sweep is authorized.
 
 ### Gate B acceptance and evidence index
 
@@ -567,27 +585,27 @@ Covers: <eligible IDs: install-cogniva-dev, install-cogniva-skills, glossary, ba
 - Host closing/restoration/retention disposition: <actual>.
 ```
 
-For controls, `Plugin source` names pinned `5b9b653` and row GLOSSARY-FIRST-PUBLISHED; never put them under a new-build header. For QF use the driver's native header/row/output and supplement missing second-plugin/build/read evidence in Observations. Keep failures even when waived. No actual smoke-record links exist yet; Task 3's exact evidence inventory remains **none** until the console records real paths, row IDs and output references here. The tracked audit is the only prepared template/index; no unrun smoke files are created.
+For controls, `Plugin source` names pinned `5b9b653` and row GLOSSARY-FIRST-PUBLISHED; never put them under a new-build header. For QF use the driver's native header/row/output and supplement missing second-plugin/build/read evidence in Observations. Keep failures even when waived. At preparation there were no real records. The completed-results inventory below now names the six actual records and their row/output evidence; Task 3 must validate exactly that inventory. The tracked audit is the only prepared template/index; no unrun smoke files are created.
 
 #### Gate A pending acceptance and waivers
 
-Source offered for human evaluation: `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`. Human decision: **pending**. Accepted fingerprint: **none**. Actual smoke records: **none**. All result cells below are not-run; a future waiver preserves that raw status or the actual fail. Fill an explicit named waiver with reason and accepted limitation, or a build-attested pass, for each acceptance row; a general continue request is insufficient.
+Source offered for human evaluation: `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`. Human decision: **accepted**. Accepted fingerprint: `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`. Actual smoke records: six, inventoried below. Acceptance cells now contain real build-attested passes. Before-read failures and runtime limits remain unchanged; no human acceptance is inferred from permission to run tests.
 
 | Check ID | Host/scenario | Raw result | Real standard record/row + loaded-build evidence | Human waiver reason and accepted limitation (if any) |
 |---|---|---|---|---|
-| GATE-A-CLAUDE-DISCOVERY | Claude Code / DISCOVERY | not-run | none | none; pending |
-| GATE-A-CLAUDE-GLOSSARY-FIRST | Claude Code / GLOSSARY-FIRST | not-run | none | none; pending |
-| GATE-A-CLAUDE-GLOSSARY-MISSING | Claude Code / GLOSSARY-MISSING | not-run | none | none; pending |
-| GATE-A-CODEX-DISCOVERY | Codex / DISCOVERY | not-run | none | none; pending |
-| GATE-A-CODEX-GLOSSARY-FIRST | Codex / GLOSSARY-FIRST | not-run | none | none; pending |
-| GATE-A-CODEX-GLOSSARY-MISSING | Codex / GLOSSARY-MISSING | not-run | none | none; pending |
+| GATE-A-CLAUDE-DISCOVERY | Claude Code / DISCOVERY | pass | `2026-11-10-claude-code-cli-2` / DISCOVERY; actual loading evidence in Observations | none; accepted by human |
+| GATE-A-CLAUDE-GLOSSARY-FIRST | Claude Code / GLOSSARY-FIRST | pass | `2026-11-10-claude-code-cli-2` / GLOSSARY-FIRST; actual loading evidence in Observations | none; accepted by human |
+| GATE-A-CLAUDE-GLOSSARY-MISSING | Claude Code / GLOSSARY-MISSING | pass | `2026-11-10-claude-code-cli-2` / GLOSSARY-MISSING; actual loading evidence in Observations | none; accepted by human |
+| GATE-A-CODEX-DISCOVERY | Codex / DISCOVERY | pass | `2026-11-10-codex-cli-2` / DISCOVERY; actual loading evidence in Observations | none; accepted by human |
+| GATE-A-CODEX-GLOSSARY-FIRST | Codex / GLOSSARY-FIRST | pass | `2026-11-10-codex-cli-2` / GLOSSARY-FIRST; actual loading evidence in Observations | none; accepted by human |
+| GATE-A-CODEX-GLOSSARY-MISSING | Codex / GLOSSARY-MISSING | pass | `2026-11-10-codex-cli-2` / GLOSSARY-MISSING; actual loading evidence in Observations | none; accepted by human |
 
 | Non-blocking observation | Claude Code result/record/read extent | Codex result/record/read extent | Interpretation |
 |---|---|---|---|
-| BACKLOG-DIRECT before | not-run / none / unobservable | not-run / none / unobservable | No measured saving |
-| QUICK-FIX-FLAGS before (native QF-NONE) | not-run / none / unobservable | not-run / none / unobservable | No measured saving |
-| REQUIREMENTS-READ before (view/status + add/refine) | not-run / none / unobservable | not-run / none / unobservable | No measured saving |
-| GLOSSARY-FIRST pinned control | not-run / none | not-run / none | No matched baseline comparison |
+| BACKLOG-DIRECT before | not-run / Claude -3 / no CAPTURE-BAR read observed; writes blocked | pass / Codex -3 / whole CAPTURE-BAR visible | No after-build saving yet; Claude capture incomplete |
+| QUICK-FIX-FLAGS before (native QF-NONE) | pass / Claude -3 / no parent Flags read; worker reads unobservable | pass / Codex -3 / 33-line section, 1,988 chars; worker reads unobservable | Preserve native passes; full-file case is only a separate assumption |
+| REQUIREMENTS-READ before (view/status + add/refine) | fail / Claude -3 / format reads attempted but denied | pass / Codex -3 / full format visible in all four | Claude outputs/proposals retained; no loaded-format baseline there; persistence not exercised |
+| GLOSSARY-FIRST pinned control | pass / Claude control record | pass / Codex control record | Old pass/new pass per host; bounded matched observation |
 
 The first three observation rows represent six per-host before observations, with subruns retained; controls add two. They require no waiver to progress. Old pass/new fail signals a possible regression; old fail/new fail is a baseline unaided-routing limitation, never automatic acceptance. Gate A still requires the six new-build checks to be addressed by real attested passes or explicit per-row waivers and an explicit human decision for this fingerprint. Waivers do not prove preserved behavior, measured savings or verified parity. Console must record host closing disposition, the exact Task 3 evidence-file inventory, and any authorization to resume with those named evidence-only edits dirty. Task 2 completion means preparation only and the executor stops at this gate.
 
@@ -645,3 +663,201 @@ has no explicit `marketplaces.cogniva` entry, so actual registered source and
 restoration feasibility still need capture through the supported manager before
 any install. No host was launched, no plugin was installed/refreshed, and no
 standard smoke record or acceptance/waiver was created. Gate A remains pending.
+
+### Gate A — completed runs, restoration, and pending acceptance (2026-11-10)
+
+The human separately answered **Approve Gate A runs and Codex refresh** and
+**Approve restoring the captured original state**. Approved paths included
+normal host state under `C:/Users/canuc/.claude`, `C:/Users/canuc/.claude.json`,
+and `C:/Users/canuc/.codex`, the two Codex Cogniva installs/configuration/trust,
+and the existing approved fixture/output tree. These authorize runs and
+restoration, **not build acceptance**, Gate B setup/install, or cleanup.
+The release-offer deferral to Task 6 remains in force.
+
+All six Gate A acceptance scenarios have real passes in the two -2 records.
+On both hosts, old and new glossary-first sessions used glossary instructions
+then glossary data before implementation search, answering 90 minutes. Both
+interactive missing-term sessions looked up the missing term, then searched
+implementation, asked its intended meaning, and offered a glossary entry or
+definition after clarification. No definition/write confirmation was supplied.
+All discovery/glossary and requirements fixtures remain clean. Models and
+settings are recorded from runtime: Claude Code 2.1.187,
+claude-opus-4-8[1m], high effort; Codex 0.164.0-alpha.11.1, gpt-6.1-sol,
+high effort. Exact session IDs, launches, source paths and artifacts are in
+the standard records, not inferred from version labels.
+
+Codex actual startup catalogs match all 19 target descriptions exactly and
+omit the same six manual-only skills; both refreshed source trees match the
+intended 41+8 instruction files. Its discovery reply's 38 Cogniva entries
+include 19 unrelated analysis-plugin entries, excluded from target counts.
+Claude startup identifies both inline roots and all 25 target user commands;
+the separate probe exposes 19 discoverable entries and expected matching.
+The probe's external-path guesses were denied, and its path/restriction prose
+is not ground truth: actual startup paths and paired source metadata are used.
+Its abbreviated glossary quotation does not replace the two-sentence source.
+
+Fresh Claude auto-memory directories were empty/absent. Inspected global and
+ancestor files contain no extra glossary-first rule. Codex startup-message
+inspection found only scenario cwd names outside skill discovery, not an
+additional glossary protocol. Visible paths include glossary-first/missing,
+a shared contextual cue in old/new runs. These small matched cases do not
+establish universal unaided routing or a causal improvement from shortening.
+
+Launcher failures are retained separately: PowerShell PTY exited before a
+Claude session was created; a cmd positional prompt was truncated and that
+session was closed. A fresh interactive session then received the intact
+neutral question via terminal input. Codex interactive launch reported an
+incomplete local daemon package and succeeded with its prescribed
+`--no-daemon` fallback. Synthetic fixture trust prompts were accepted. Codex
+continued without changing persisted hook trust and emitted plugin-content
+hook-approval failures; these records do not claim hooks passed.
+
+Before observations remain non-blocking. Codex captured one CSV item with
+`because:human later` in canonical `docs/plans/BACKLOG.md`; the same-session
+repeat added no item or commit. Its dirty-ledger run preserved the operator
+note and made no commit. Complete CAPTURE-BAR text, 13,276 normalized
+characters, is visible in both traces. The scratch repeat launcher initially
+checked only root BACKLOG.md; the console found the canonical capture and
+ran the real duplicate observation once. Claude capture was host-permission
+blocked; its proposals/dirty-target rule remain visible but capture/dedup
+are not certified. No CAPTURE-BAR read was observed there.
+
+Requirements view/status outputs are correct on both hosts. Add/refine stop
+at proposals/confirmation and all four fixtures per host remain clean;
+mutation persistence/complete grammar is not certified. Codex visibly received
+all 9,951 format characters on each path. Claude attempted those reads but
+was denied; its failed before-read observation cannot establish loaded-text
+savings. No waiver is required for this non-blocking observation.
+
+Native QF-NONE passes on both hosts with the unchanged driver, prompt and
+assertions. Codex parent received Flags lines 34–66: 33 source lines, 1,988
+normalized characters without rg wrappers. This is a section observation,
+not the entire 16,342-character current entrypoint. Full Flags is separately
+2,605 characters as the section-only source assumption. Claude parent shows
+no entrypoint/Flags read. Saved parent streams contain no worker tool calls;
+downstream read extents remain unobservable. Mandatory companions/overlays
+still count in later whole-invocation comparisons; no after-build read saving,
+billing or frequency measurement is claimed.
+
+All validation processes exited before restoration. Original Codex state had
+two enabled caches and no registered cogniva marketplace. The console captured
+all 165+14 original files plus narrow settings/trust inventories, prepared a
+recovery marketplace from exact original bytes and the pinned marketplace
+manifest, and refreshed through the supported manager. Restoration used that
+manager and removed the temporary registration to reproduce original absence.
+All 179 original SHA256s, versions, enabled selections and hook-trust file
+hashes match. Fresh session `01a1c6e7-7a5e-7513-a285-610d11fe4f5c` loads all
+19 original descriptions. Proof is in approved
+`output/gate-a/codex/discovery/restore-verification.json`, restore-log.txt,
+and restoration-probe.session-rollout.jsonl. Claude marketplace/plugin
+selections were not changed. Approved session/trust history remains; no
+outside-root cleanup was performed or authorized.
+
+**Exact Task 3 evidence-only inventory (uncommitted, accepted for task-scoped validation/commit):**
+
+- `docs/plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md`
+- [Claude pinned control](../../../host-parity/smoke/2026-11-10-claude-code-cli.md)
+- [Claude Gate A acceptance](../../../host-parity/smoke/2026-11-10-claude-code-cli-2.md)
+- [Claude before observations and QF-NONE](../../../host-parity/smoke/2026-11-10-claude-code-cli-3.md)
+- [Codex pinned control](../../../host-parity/smoke/2026-11-10-codex-cli.md)
+- [Codex Gate A acceptance](../../../host-parity/smoke/2026-11-10-codex-cli-2.md)
+- [Codex before observations and QF-NONE](../../../host-parity/smoke/2026-11-10-codex-cli-3.md)
+
+No other evidence path or runtime scratch may be swept into that commit.
+Human decision: **accepted**, fingerprint `172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`, with **no waivers**.
+On 2026-11-10 the human answered **Accept Gate A and continue** to the question
+that explicitly named this fingerprint, all six acceptance passes, retained
+before-read failures/measurement limits, verified Codex restoration, and all
+seven evidence-only paths above. This explicitly authorizes resuming Task 3
+with exactly those paths dirty and validating/committing them with the task.
+Task 3 must validate this decision and exact inventory before body edits;
+permission to continue does not promote limited observations into broader
+runtime or parity claims.
+
+### Task 3 — coverage and shared commit definitions (2026-11-10)
+
+Before body edits, recomputed the 49-file source instruction fingerprint as
+`172afc6c4b4e458f12be65a0d988205704ac7a50f26d9eead555edd234792ff2`, exactly
+the human-accepted description-only build. Validated all six acceptance checks
+as build-attested passes in the two -2 records, with no waivers, and checked
+all six exact smoke paths inventoried above against the standard record
+headers, scenario rows, build roles, loaded-source evidence and limitations.
+The two pinned controls remain non-blocking pass/pass comparisons; the before
+observations preserve Claude's not-run backlog/failed format reads, both
+native QF-NONE passes, and unobservable downstream reads. The recorded Codex
+restoration is restored-and-verified; Claude made no persistent install change.
+No new host session, restoration, external write or cleanup was performed by
+this worker. Earlier pending statements in preparation/run records describe
+those earlier times; the later explicit human acceptance governs Task 3.
+
+Only Test 1 coverage moved to `backlog/COVERAGE.md`. Every coverage surface,
+the ground-not-wording duplicate rule and covered/no-capture outcome remain.
+The helper returns an outcome; CAPTURE-BAR retains its Test 1 heading/link and
+owns proceeding to Test 2. Direct capture reads the helper without routing
+through intent tests. Tests 0/2/3 and all capture/confirmation/placement/commit
+conditions remain. Shared commit definitions moved from execute-feature Flags
+to `COMMIT-POLICY.md`, required before affected writes by both entrypoints.
+Authority/default summaries, tasks/plan flags, overlays, execution steps,
+landing, structural checks, scripts, Workflow and worker contracts stay in place.
+
+Normalized source comparisons count each prescribed instruction file once:
+
+| Scenario/source-read assumption | Before characters | After characters | Reduction |
+|---|---:|---:|---:|
+| BACKLOG-DIRECT: entrypoint + only old Test 1 / new COVERAGE + BACKLOG-FORMAT | 17,923 | 17,935 | -12 (small increase) |
+| BACKLOG-DIRECT: entrypoint + whole old CAPTURE-BAR / new COVERAGE + BACKLOG-FORMAT | 29,743 | 17,935 | 11,808 |
+| QUICK-FIX-FLAGS: quick-fix + old Flags / new COMMIT-POLICY + HANDOFF | 18,249 | 17,209 | 1,040 |
+| QUICK-FIX-FLAGS: quick-fix + whole old execute-feature / new COMMIT-POLICY + HANDOFF | 31,986 | 17,209 | 14,777 |
+
+Underlying whole files: backlog entrypoint 11,518 → 11,516; CAPTURE-BAR
+13,276 → 12,138; old Test 1 section 1,456 → COVERAGE 1,470; execute-feature
+entrypoint 16,342 → 15,680; Flags 2,605 → 1,943; COMMIT-POLICY 1,550;
+quick-fix entrypoint 12,694 → 12,709. BACKLOG-FORMAT remains 4,949 and HANDOFF
+2,950, already included above. The direct path still invokes git-commit.ps1
+when its existing conditions allow; its 2,076-character source is unchanged
+and not a mandated instruction read. If inspected, add it once to both sides.
+For Codex quick-fix add the unchanged mandatory 8,285-character CODEX overlay
+to each side (26,534 → 25,494 section-only; 40,271 → 25,494 whole-entrypoint).
+Claude lean mode does not require that overlay. Worktree scenarios additionally
+retain their conditional overlays; no savings from those files is claimed.
+Execute-feature itself grows from 16,342 to 17,230 when counting its required
+policy companion, so relocation is not presented as its own invocation saving.
+Target-repo instructions, plans, ledgers, phase obligations and evidence reads
+are separate from these skill-instruction comparisons; conditional architecture
+reads depend on the actual change. No unrelated companion was silently removed.
+
+The Codex before trace visibly delivered whole CAPTURE-BAR (13,276) and only
+1,988 characters/33 lines of Flags, not the whole entrypoint or even all Flags.
+Claude backlog/format attempts failed and its QF parent had no Flags read;
+worker reads remain unobservable on both hosts. Those actual observations take
+precedence over source assumptions above. No after-body run, measured saving,
+billing saving, frequency measurement or capability-wide parity is claimed.
+
+TDD evidence: added focused helper/reachability/policy assertions first;
+skill-semantics exited 1 on missing COVERAGE.md before implementation, then
+passed after extraction with all existing sequencing, early-stop, permission,
+gate and commit assertions retained. Assertions inspect the selected shared
+contract and the caller's required link, never concatenate companion bodies.
+Host-neutrality remained 70 references across 16 files with no relocation or
+reduction, so the baseline was reviewed and left unchanged. Implemented and
+source-reviewed on Codex; independent Claude Code review and after-body fresh
+sessions are pending. Final task verification results are recorded below.
+
+Final Task 3 verification: skill-semantics passed under Windows PowerShell;
+task-contract, host-parity (26 rows/33 covered items), and host-neutrality
+(70 references/16 files, unchanged baseline) passed under PowerShell 7.
+`git diff --check` passed. The canonical full green gate completed all 28
+commands with exit 0 and `GREEN-GATE-RESULT: GREEN`; its platform-specific
+fixture skips do not represent fresh-host runtime evidence. A separate
+read-only boundary check confirmed unchanged Test 0, Tests 2/3, backlog Step 2
+onward, execute-feature Step 0 onward, and quick-fix Step 0 onward. The six
+actual smoke records' standard headers, rows and build roles validated; their
+raw results and contents remain untouched. Only Task 3's seven checkboxes
+were completed before its task-scoped commit. No version/manifests were
+changed; the human's recorded release-offer deferral to Task 6 still applies.
+
+The staged whitespace check additionally exposed trailing blank lines at EOF
+in the two new companions (untracked files were absent from the earlier plain
+diff check). Removed those blank lines, updated the source counts above by
+one character per companion, and reran semantic and staged-whitespace checks
+before committing. This whitespace correction changes no rule or read path.

@@ -31,6 +31,8 @@ $pf      = ReadDoc 'skills\plan-feature\SKILL.md'
 $docs    = ReadDoc 'docs\codex.md'
 $bk      = ReadDoc 'skills\backlog\SKILL.md'
 $cb      = ReadDoc 'skills\backlog\CAPTURE-BAR.md'
+$coverage = ReadDoc 'skills\backlog\COVERAGE.md'
+$commitPolicy = ReadDoc 'skills\execute-feature\COMMIT-POLICY.md'
 $ar      = ReadDoc 'skills\applicable-rules\SKILL.md'
 $fc      = ReadDoc 'skills\feature-check\SKILL.md'
 $gc      = ReadDoc 'skills\gate-check\SKILL.md'
@@ -44,6 +46,15 @@ function Check($label, $cond) {
 }
 
 # --- commits= is the sole commit authority (execute-feature) ---------------
+$policyFlat = $commitPolicy -replace '\s+', ' '
+Check 'execute-feature Flags requires shared commit policy before writes' `
+    ($ef -match '## Flags[\s\S]*Read `COMMIT-POLICY\.md`[^#]*before any write' -and $ef.IndexOf('Read `COMMIT-POLICY.md`') -lt $ef.IndexOf('## Step 0'))
+Check 'shared commit policy preserves none, task checkbox ordering, final gates, and Git failure stop' `
+    ($policyFlat -match '`none`: never stage or commit ANYTHING' -and $policyFlat -match 'checkboxes BEFORE the task commit' -and $policyFlat -match 'until every task and every landing gate has passed' -and $policyFlat -match 'git failure under `task`/`final`.*BLOCKED.*no retry loops.*no special-casing')
+Check 'shared commit policy preserves authority, precedence, defaults and invalid worktree combinations' `
+    ($policyFlat -match 'SOLE authority over committing' -and $policyFlat -match 'explicit `commits=`.*defaults' -and $policyFlat -match 'lean mode.*`commits=none`' -and $policyFlat -match 'Worktree mode.*`commits=task`' -and $policyFlat -match '`commits=none\|final` are INVALID.*reject.*stop')
+Check 'quick-fix reads shared policy directly before workspace actions' `
+    ($qf -match 'Read `\.\./execute-feature/COMMIT-POLICY\.md`[^#]*before any write' -and $qf.IndexOf('COMMIT-POLICY.md') -lt $qf.IndexOf('## Step 0') -and $qf -notmatch '`\.\./execute-feature/SKILL\.md`')
 Check 'execute-feature declares commits= the sole commit authority' `
     ($ef -match 'SOLE authority over committing')
 Check 'Step 0a pasted-plan commit is gated on commits=task' `
@@ -111,6 +122,15 @@ Check 'docs/codex.md: Codex hooks need trust again after every update' `
 Check 'docs/codex.md: shell writes are unseen; guarantees live in the landing checks' `
     ($docsFlat -match 'not seen by the edit guard' -and $docsFlat -match 'guarantees live in the landing checks')
 # --- route-first capture invariants ------------------------------------------
+Check 'direct backlog coverage requires only COVERAGE before writing' `
+    ($bk -match '\*\*Direct\*\*[^#]*Read `COVERAGE\.md`[^#]*then write' -and $bk -match '1\. \*\*Coverage check[^\r\n]*Read `COVERAGE\.md`')
+Check 'capture bar Test 1 delegates coverage then owns proceeding to Test 2' `
+    ($cb -match '## Test 1[^#]*Read `COVERAGE\.md`[^#]*Not covered[^#]*Test 2' -and $cb -notmatch 'An item is \*\*covered\*\*')
+$coverageFlat = $coverage -replace '\s+', ' '
+Check 'coverage preserves all surfaces and duplicate-ground rule' `
+    ($coverageFlat -match 'The plan being written this session' -and $coverageFlat -match 'An open plan folder' -and $coverageFlat -match '`planned`, `in-progress`, or `blocked`' -and $coverageFlat -match 'The change currently in flight' -and $coverageFlat -match 'An active exploration' -and $coverageFlat -match 'An existing open item' -and $coverageFlat -match 'Judge ground, not wording')
+Check 'coverage returns covered/no-capture or not-covered without routing the caller' `
+    ($coverageFlat -match 'Covered.*do not capture.*Say so in one line' -and $coverageFlat -match 'Not covered.*return.*caller' -and $coverage -notmatch 'go\s+to Test 2|because:|## Test [023]')
 Check 'introduced defects are unfinished work, not followups' `
     ($ef -match 'A defect a task introduced is not a\s+followup')
 Check 'skill-initiated deferrals always carry because:' `
