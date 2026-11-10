@@ -9,8 +9,13 @@ Manage project requirements stored at `docs/REQUIREMENTS.md`. Requirements are
 grouped by section with per-section numbering, RFC 2119 severity levels, and a
 lifecycle from draft through verified.
 
-Read `REQUIREMENTS-FORMAT.md` in this skill's directory for the entry format,
-status transitions, and rules.
+Read `REQUIREMENTS-FORMAT.md` in this skill's directory before `add` or `refine`,
+creating the requirements file or a section, any write (including lifecycle
+updates), or interpretation that needs entry/lifecycle grammar. For ordinary
+`view`/`status`, use the entrypoint instructions and existing records without
+loading the full guide; consult it only if those records need grammar
+interpretation. The `gap` and `summary` actions consult their specific report
+sections referenced below.
 
 Invoke: `/cogniva-skills:project-requirement [<action>] [<args>]`
 

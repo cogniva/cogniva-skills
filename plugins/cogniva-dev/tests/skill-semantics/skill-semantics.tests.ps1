@@ -275,6 +275,15 @@ Check 'glossary description names no Claude Code tools' `
 $glDescription = ReadDescription $glText
 Check 'glossary discovery covers unfamiliar and ambiguous terms, jargon, and nouns absent from context' `
     ($glDescription -match 'unfamiliar|unrecognized' -and $glDescription -match 'ambiguous' -and $glDescription -match 'project-specific jargon' -and $glDescription -match 'nouns?.*(absent|does not appear).*current context')
+# --- requirements format loading follows the selected action / grammar need ---
+$requirements = [System.IO.File]::ReadAllText((Join-Path $plugin '..\cogniva-skills\skills\project-requirement\SKILL.md'))
+$requirementsIntro = ($requirements -split 'Invoke:', 2)[0] -replace '\s+', ' '
+Check 'requirements mutations and grammar-dependent interpretation read the format before acting' `
+    ($requirementsIntro -match 'Read `REQUIREMENTS-FORMAT\.md`.*before `add` or `refine`' -and $requirementsIntro -match 'creating.*any write.*lifecycle' -and $requirementsIntro -match 'interpretation that needs entry/lifecycle grammar')
+Check 'requirements ordinary view/status use existing instructions and records without loading the full guide' `
+    ($requirementsIntro -match 'ordinary `view`/`status`.*entrypoint instructions and existing records without loading the full guide' -and $requirementsIntro -match 'only if.*grammar' -and $requirementsIntro -notmatch 'Read `REQUIREMENTS-FORMAT\.md` in this skill''s directory for the entry format, status transitions, and rules')
+Check 'requirements gap and summary retain their specific report references' `
+    ($requirements -match '### `gap`[\s\S]*REQUIREMENTS-FORMAT\.md#gap-analysis' -and $requirements -match '### `summary`[\s\S]*REQUIREMENTS-FORMAT\.md#executive-summary')
 Check 'scan subagents are described for both agent hosts' `
     ([regex]::Matches($scanFlat, 'Spawn ONE read-only subagent \(Claude Code: `general-purpose`; Codex: the default agent\)').Count -eq 2)
 

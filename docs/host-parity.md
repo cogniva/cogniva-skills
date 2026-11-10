@@ -56,8 +56,8 @@ mechanism. Every `gate:` label and `smoke:` record cited anywhere must exist.
 | worktree-cleanup | Close out worktree-mode runs | workflow | skill:cogniva-dev/cleanup-work, skill:cogniva-dev/cleanup-allwork | scripts-tested — `cleanup-worktrees.ps1` | unsupported — worktree mode only | gate:ledger | Worktree-mode only. Under Codex both skills stop with one line when worktree mode is on (ADR 0056); in lean mode they report nothing to do. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
 | plan-status | Feature, Module and repo status roll-ups | workflow | skill:cogniva-dev/feature-status, skill:cogniva-dev/module-status, skill:cogniva-dev/repo-status | untested | untested | — | Plain file reads on both agent hosts. Ephemeral plans in `.plans-staging/` are listed and marked as local to the clone. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
 | workflow-status | Status of background Workflow runs | tooling | skill:cogniva-dev/workflow-status | untested — Workflow journals | unsupported — no Workflow journals | — | Codex runs write no journal; a shared run record is CrossHostParity Stage 3. `workflow-status.ps1` has no gate suite. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| glossary | Project glossary | workflow | skill:cogniva-skills/glossary | untested | untested | — | Consulting the glossary before searching is instruction-level on both agent hosts. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
-| project-records | References, requirements and business context | workflow | skill:cogniva-skills/reference, skill:cogniva-skills/project-requirement, skill:cogniva-skills/project-context | untested | untested | — | Plain instructions with no agent-host-specific steps. Description-only update: [Task 1](#skillcontextefficiency-task-1). |
+| glossary | Project glossary | workflow | skill:cogniva-skills/glossary | untested | untested | — | Consulting the glossary before searching is instruction-level on both agent hosts. Description-only update: [Task 1](#skillcontextefficiency-task-1). Repeated lookup rules consolidated in place: [Task 4](#skillcontextefficiency-task-4); after-body runtime checks pending. |
+| project-records | References, requirements and business context | workflow | skill:cogniva-skills/reference, skill:cogniva-skills/project-requirement, skill:cogniva-skills/project-context | untested | untested | — | Plain instructions with no agent-host-specific steps. Description-only update: [Task 1](#skillcontextefficiency-task-1). Requirements format reads now depend on action/grammar need: [Task 4](#skillcontextefficiency-task-4); after-body runtime checks pending. |
 | primary-edit-guard | Deny edits to the primary checkout in worktree mode | enforcement | hook:guard-primary-edit.js | scripts-tested — PreToolUse on Write, Edit, NotebookEdit | scripts-tested — hook-input adapter | gate:primary-hooks, gate:hook-input, smoke:2026-11-05-codex-cli-4 | Reads Claude Code file_path/notebook_path and every path of a Codex apply_patch through hook-input.js, and denies if any path is guarded (ADR 0055). Codex CLI denial passed on 0.10.2 (smoke:2026-11-05-codex-cli-4) after the user reviewed the updated plugin hooks; installation required fresh review even though hooks.json was unchanged. Held at scripts-tested until a VS Code record shows the hook firing there (an earlier observation in another repo saw Codex hooks never fire in VS Code). Both agent hosts: writes made through a shell command are not seen; the guarantees live in the landing checks. |
 | branch-switch-guard | Block branch switching in the primary checkout in worktree mode | enforcement | hook:guard-primary-git.js | scripts-tested — PreToolUse on Bash | scripts-tested — hook-input adapter | gate:primary-hooks, gate:hook-input | Reads the Bash command through hook-input.js on both agent hosts, never apply_patch text (ADR 0055). Codex runs it only after the user trusts it in /hooks, again after any change to hooks.json. Both agent hosts: a command the guard does not recognise passes. |
 | backlog-commit-nudge | Nudge to commit a backlog capture | enforcement | hook:nudge-backlog-commit.js | scripts-tested — PostToolUse on Write, Edit | scripts-tested — hook-input adapter | gate:primary-hooks, gate:hook-input | Reads Claude Code file_path and every path of a Codex apply_patch through hook-input.js (ADR 0055). Codex runs it only after the user trusts it in /hooks, again after any change to hooks.json. Both agent hosts: writes made through a shell command are not seen. |
@@ -94,6 +94,24 @@ records comparisons and Gate A validation. The accepted description-only
 Gate A records establish the six named observations on that earlier build;
 its failed/non-blocking before reads remain limited, and capability statuses
 are unchanged. No after-body runtime verification is claimed.
+
+## SkillContextEfficiency Task 4
+
+Requirements reads its format guide before add/refine, creation, writes and
+interpretation needing entry/lifecycle grammar. Ordinary view/status use the
+entrypoint and existing records without loading the full guide unless grammar
+interpretation is needed; gap/summary retain their specific report references.
+Glossary consolidates repeated lookup admonitions in the same entrypoint,
+preserving broad term scope, glossary-first lookup, clarification, confirmed
+writes and its other distinct obligations. No companion or format changed.
+Both agent hosts share these instructions; no intentional asymmetry was added.
+
+Implemented and source-reviewed on Codex; independent Claude Code review and
+fresh after-body checks on both hosts remain pending at Gate B. Source checks
+do not establish runtime behavior or change capability statuses.
+[Task 4 evidence](plans/FeatureLifecycle/SkillContextEfficiency/context-audit.md#task-4--conditional-requirements-format-and-glossary-deduplication-2026-11-10)
+records normalized read-set comparisons and mechanical results; no fresh-host
+verification is claimed.
 
 ## Intentional asymmetries
 

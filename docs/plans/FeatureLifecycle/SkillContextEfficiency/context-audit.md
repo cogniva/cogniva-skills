@@ -861,3 +861,75 @@ in the two new companions (untracked files were absent from the earlier plain
 diff check). Removed those blank lines, updated the source counts above by
 one character per companion, and reran semantic and staged-whitespace checks
 before committing. This whitespace correction changes no rule or read path.
+
+### Task 4 — conditional requirements format and glossary deduplication (2026-11-10)
+
+Replaced only project-requirement's unconditional format-loading preamble.
+Before add/refine, file/section creation, any write (including lifecycle updates),
+or interpretation needing entry/lifecycle grammar, read REQUIREMENTS-FORMAT.md.
+Ordinary view/status use the existing entrypoint instructions and records;
+records needing grammar interpretation still trigger the guide. Gap/summary
+retain their specific report-section references. A boundary comparison against
+the pre-task source confirms everything from `Invoke:` onward is unchanged:
+all seven actions, flags/examples, numbering, source/severity/lifecycle rules,
+separate open-question bullets, passive monitoring and confirmation remain.
+Neither format guide was edited and no companion was added.
+
+Glossary consolidates activation and glossary-first rules, replacing repeated
+admonitions and the red-flag table with one prerequisite. It retains canonical
+and legacy existence checks and explicit glossary activation, broad term scope
+(including technical terms and nouns absent from context), lookup before
+codebase/filesystem/web searches, clarification and the offer to document a
+missing term, confirmed immediate writes, unobtrusive monitoring, stable links,
+lazy files, migration offers and definitions without implementation details.
+Both skills' discovery descriptions are unchanged, including glossary's search
+prohibition. Existing semantic-suite glossary protections are unchanged.
+
+Normalized instruction read sets use the same body-count convention as the
+frozen 7,355/7,514 baselines; project records and glossary data are separate:
+
+| Scenario/source-read assumption | Before characters | After characters | Reduction |
+|---|---:|---:|---:|
+| REQUIREMENTS-READ ordinary view/status: body + formerly unconditional format / body only | 17,306 | 7,734 | 9,572 |
+| REQUIREMENTS-READ add/refine, creation, writes or grammar-dependent interpretation: body + format | 17,306 | 17,685 | -379 (explicit condition adds text) |
+| GLOSSARY-FIRST lookup: body only | 7,514 | 5,582 | 1,932 (25.71%) |
+| Glossary confirmed write/migration: body + unchanged GLOSSARY-FORMAT | 10,955 | 9,023 | 1,932 |
+
+REQUIREMENTS-FORMAT remains 9,951 characters; the new loading condition adds
+379 body characters, adjusting the avoided full-guide read to 9,572 net.
+GLOSSARY-FORMAT remains 3,441 and is counted when the selected operation needs
+it. Counting the complete selected SKILL.md instead of its body adds unchanged
+frontmatter once per side: requirements view/status 17,472 → 7,900 and glossary
+lookup 7,766 → 5,834, with identical net reductions. Gap/summary continue to
+consult their referenced report sections; no saving is claimed for those paths
+or grammar-dependent view/status. No glossary body quota was imposed.
+
+These are source-prescribed read-set comparisons, not after-body measurements.
+The Gate A Codex before traces showed the complete requirements format on all
+four paths; Claude's format-read attempts were denied, so that host has no
+loaded-format before measurement. Target-project requirements/glossary data,
+repo instructions, unrelated plugins and wrappers are outside these counts.
+No billing/frequency saving or fresh-host behavior is inferred.
+
+TDD evidence: added only selected-action/grammar-condition assertions and a
+report-reference safeguard. Before implementation, Windows PowerShell
+skill-semantics exited 1 on the two new loading-condition assertions; the
+report-reference assertion and existing safeguards passed. After implementation,
+all assertions passed. Glossary/source/confirmation obligations were not
+weakened to meet a size target. Source review checked every distinct glossary
+obligation against the pre-task file.
+
+Host-neutrality baseline reviewed: unchanged at 70 references across 16 files;
+neither skill changes a counted host token, so the baseline stays untouched.
+Updated glossary/project-records parity notes without changing statuses or
+claiming runtime verification. Implemented and source-reviewed on Codex;
+independent Claude Code review and fresh after-body checks on both hosts remain
+pending at Gate B. No external write, version change or host session was made;
+the recorded release-offer deferral to Task 6 still applies.
+
+Final Task 4 verification: Windows PowerShell skill-semantics passed, PowerShell 7
+host-parity passed (26 rows/33 covered items), and host-neutrality passed
+(70 references/16 files, unchanged baseline). `git diff --check` passed.
+The full green gate remains scheduled for Task 6; Task 3's existing full-gate
+result is not presented as verification of these later edits. Only Task 4's
+six checkboxes were completed before its task-scoped commit.

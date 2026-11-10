@@ -5,48 +5,38 @@ description: Use for unfamiliar or ambiguous terms, project-specific jargon, or 
 
 <when-to-use>
 
-The skill only activates if `docs/glossary/README.md` is found in the repository (or a legacy `CONTEXT.md` / `CONTEXT-MAP.md` — see Legacy repos below), or if the user explicitly mentions using a glossary. If any of those are true, you MUST use this skill to watch for relevant information. Otherwise, you should not use this skill and you can ignore the rest of these instructions.
-
-When unfamiliar terminology is used, you MUST use this skill to look for an existing definition before moving to searching the file system. The cognitive loop MUST be `Unrecognised Term -> 'glossary' skill -> Search Filesystem -> Ask User'`. This overrides any standard cognitive loop you might otherwise use in that situation.
-
-You MUST check whether this skill applies before moving to either Plan mode or Execution mode. If there have been any requests to clarify terminology, you MUST use this skill.
-
-Any time your human partner uses an unfamiliar term, whether it appears to be a technical term, a domain term, a feature name, or any sort of proper noun, you MUST first check the glossary to see if that term is defined. DO NOT scan the code or the file system until you've searched the glossary.
-
-Any time you have searched for an unfamiliar term and asked your human partner for clarification (regardless of what type of term you think it is), you MUST consider adding it to the glossary.
-
-Any time there is any question about the meaning of a particular term, or any ambiguity or confusion that is not already addressed in the glossary, you MUST invoke this skill. If you have asked the user for clarification of a term or phrase, you MUST use this skill. If you believe a term is some technical concept you don't recognise (an unfamiliar class, library, etc) you MUST invoke this skill.
+Check activation as described below before moving to Plan or Execution mode.
+When active, you MUST use this skill for new, unfamiliar, ambiguous, conflicting,
+or confusing terms and requests to clarify their meaning. Scope includes
+technical and domain terms, feature names, proper nouns, unfamiliar classes or
+libraries, and any noun absent from the current context (files read or memory);
+do not narrow it to domain
+language or assume an unfamiliar term is merely a typo.
 
 </when-to-use>
 
 <what-to-do>
 
-You MUST search the glossary (`docs/glossary/README.md` and any topic files it links) for definitions or descriptions when new, conflicting, confusing, or ambiguous terminology is used during a session. This MUST be done before searching the file system. This MUST be done before doing a WebSearch.
-
-You must automatically prompt your human partner for clarification when you detect ambiguous or conflicting terminology during a session.
-
-## Prerequisite
-
-Before using Grep or Glob on any noun not found in your current context (files read/memory), you must verify its definition via this tool.
-
-## Red Flags
-| Thought | Reality |
-|---------|---------|
-| "I can find this term with Grep/Glob" | This is a violation. Check the glossary first. |
-| "Let me search the codebase for implementation" | You don't know if it's terminology or code yet. Use the glossary. |
-| "It's probably just a typo in the docs" | Verify with the glossary before assuming. |
-| "Let's start by searching" | This is a violation. Check the glossary first. |
-| "First I need to understand what [some term] means" | The glossary is the most efficient way to find the answer. |
-| "Maybe I should search for" | The glossary is the most efficient way to find the answer. DO NOT invoke a search before checking the glossary. |
+You MUST search the glossary (`docs/glossary/README.md` and its linked topic
+files, or the legacy glossary below) for definitions or descriptions whenever
+such terminology appears, before searching the codebase, file system (including
+grep, glob, file search or file reads), or web for that term. This glossary-first
+prerequisite overrides the normal search loop; knowing that a label might name
+implementation does not bypass it.
+If no definition resolves the meaning, ask the human partner for clarification
+and offer to document it rather than guessing. For ambiguous or conflicting
+terminology, automatically prompt for clarification using the workflow below.
 
 ## Workflows
 
 ### 1. Activation Check
-At the start of any design, brainstorming, or planning session, check for the existence of:
+At the start of any design, brainstorming, or planning session, check for:
 - `docs/glossary/README.md` (the canonical index)
 - OR a legacy `CONTEXT.md` / `CONTEXT-MAP.md` (older repos — see Legacy repos)
 
-If none is found, this skill provides no guidance and should remain inactive for the current task.
+The skill activates when either exists or the user explicitly mentions using a
+glossary. When active, you MUST monitor for relevant information. Otherwise it
+provides no guidance and remains inactive for the current task.
 
 ### 2. Terminology Monitoring
 During any active session, monitor the dialogue and proposed changes for:
@@ -58,7 +48,11 @@ During any active session, monitor the dialogue and proposed changes for:
 When a potential issue is detected:
 1. **Interrupt unobtrusively**: Briefly pause the flow to ask for clarification.
 2. **Seek feedback from your human partner**: Use the agent host's structured question tool, or a plain question, to confirm: *"You mentioned 'X' — does this refer to [Definition A] or [Definition B]? Or should we define it as something new?"*
-3. **Update the glossary (propose-then-confirm)**: Draft the entry, get explicit agreement, then immediately update the relevant glossary file using `Edit` or `Write`. Don't batch updates — capture each term as soon as it is confirmed.
+3. **Update the glossary (propose-then-confirm)**: Consider documenting every
+   clarified term, regardless of its type. Draft the entry using
+   [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md), get explicit agreement before
+   writing, then immediately update the relevant glossary file. Don't batch
+   updates — capture each term as soon as it is confirmed.
 
 ## Guidelines
 
@@ -119,10 +113,6 @@ When the user uses a term that conflicts with the existing language in the gloss
 ### Sharpen fuzzy language
 
 When the user uses vague or overloaded terms, propose a precise canonical term. "You're saying 'account' — do you mean the Customer or the User? Those are different things."
-
-### Update the glossary inline
-
-When a term is resolved and confirmed, update the glossary right there. Don't batch these up — capture them as they happen. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).
 
 The glossary should be totally devoid of implementation details. Do not treat it as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
