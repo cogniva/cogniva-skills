@@ -1,6 +1,6 @@
 ---
 name: groom-backlog
-description: Use to groom the backlog - an evidence-gathering scan proposes closures (already-done, obsolete, superseded, duplicate) for loose BACKLOG.md items and deferred stubs, and the user confirms everything once before any edit happens. Deep pass (still-wanted?, merge/split, tier/size review) is opt-in; other skills OFFER a groom before backlog-driven work, never run it silently.
+description: Review stale backlog items and deferred stubs; propose evidence-backed edits for confirmation. Deep restructuring is opt-in.
 ---
 
 # Groom Backlog

@@ -1,6 +1,6 @@
 ---
 name: project-context
-description: Provide a high-signal, persistent source of truth for non-technical business context that prevents "context drift" across long sessions and multi-step tasks.
+description: Create or update business context; flag conflicts, missing rationale, or scope drift during design and planning.
 ---
 
 # Project Context

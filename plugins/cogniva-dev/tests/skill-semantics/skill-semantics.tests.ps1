@@ -15,6 +15,14 @@ function ReadDoc($rel) {
     return [System.IO.File]::ReadAllText($p, [System.Text.UTF8Encoding]::new($false))
 }
 
+function ReadDescription([string]$text) {
+    $front = [regex]::Match($text, '\A(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)')
+    if (-not $front.Success) { throw 'missing skill frontmatter' }
+    $description = [regex]::Match($front.Groups[1].Value, '(?m)^description:[ \t]*(.+)')
+    if (-not $description.Success) { throw 'missing discovery description' }
+    return $description.Groups[1].Value.Trim().Trim('"')
+}
+
 $ef      = ReadDoc 'skills\execute-feature\SKILL.md'
 $codex   = ReadDoc 'skills\execute-feature\CODEX.md'
 $handoff = ReadDoc 'skills\execute-feature\HANDOFF.md'
@@ -86,9 +94,9 @@ Check 'inheritance rule: CLAUDE.md never overrides commits=' `
 Check 'docs/codex.md: explicit-only lifecycle skills carry metadata on both agent hosts' `
     ($docs -match '## Explicit-only lifecycle skills' -and $docs -match 'disable-model-invocation: true' -and $docs -match 'allow_implicit_invocation: false' -and $docs -notmatch 'explicit-invocation-only under Codex')
 Check 'quick-fix description states its explicit-start rule' `
-    ($qf -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
+    ((ReadDescription $qf) -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
 Check 'plan-feature description states its explicit-start rule' `
-    ($pf -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
+    ((ReadDescription $pf) -match 'Starts only on an explicit user request or an approved dispatch from easy-work-scan/groom-backlog')
 Check 'plan-feature lean default leaves the plan uncommitted' `
     ($pf -match 'Lean mode default: `commits=none`')
 
@@ -243,7 +251,10 @@ Check 'backlog header names skills, not one agent host''s commands' `
 Check 'shared skills name no Claude Code question tool' `
     ($pf -notmatch 'AskUserQuestion' -and $eiText -notmatch 'AskUserQuestion' -and $glText -notmatch 'AskUserQuestion')
 Check 'glossary description names no Claude Code tools' `
-    ($glText -notmatch 'DO NOT use Grep, Glob, Read' -and $glText -match 'DO NOT search the codebase \(grep, file search or file reads\)')
+    ((ReadDescription $glText) -notmatch 'DO NOT use Grep, Glob, Read' -and (ReadDescription $glText) -match 'DO NOT search the codebase \(grep, file search or file reads\)')
+$glDescription = ReadDescription $glText
+Check 'glossary discovery covers unfamiliar and ambiguous terms, jargon, and nouns absent from context' `
+    ($glDescription -match 'unfamiliar|unrecognized' -and $glDescription -match 'ambiguous' -and $glDescription -match 'project-specific jargon' -and $glDescription -match 'nouns?.*(absent|does not appear).*current context')
 Check 'scan subagents are described for both agent hosts' `
     ([regex]::Matches($scanFlat, 'Spawn ONE read-only subagent \(Claude Code: `general-purpose`; Codex: the default agent\)').Count -eq 2)
 

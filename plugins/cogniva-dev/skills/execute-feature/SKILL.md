@@ -1,6 +1,6 @@
 ---
 name: execute-feature
-description: Use to execute a feature plan from a single prompt — given EITHER a plan name/path OR the full text of a plan pasted straight into the prompt (e.g. copied from another agent). Accepts any plan format — freeform plans are converted to the task format first, so checkbox tracking and resume work for every run. Runs each task in a fresh subagent via a background Workflow; stops at manual-validation (⛔) gates. In worktree mode the run is isolated in a git worktree and auto-integrates into your branch.
+description: Execute or resume a feature plan supplied as a path, name, or pasted text, with task tracking and manual-validation gates.
 ---
 
 # Execute Feature

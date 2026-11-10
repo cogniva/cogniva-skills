@@ -1,6 +1,6 @@
 ---
 name: add-module
-description: Use when adding a new Module to a repo on the Module bundle layout (src/Modules/<Name>/ with Contracts/Domain/Application/Infrastructure/UI projects, optional Client) - scaffolds the projects, wires references and tests, updates the glossary. Not for repos that follow the dotnet profile's default kind-first layout.
+description: Scaffold a Module in a .NET repo using the src/Modules bundle layout; explicit invocation only.
 disable-model-invocation: true
 ---
 

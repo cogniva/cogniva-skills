@@ -1,6 +1,6 @@
 ---
 name: module-deps
-description: Module bundle layout tool - regenerate the Module dependency graph (docs/architecture/module-dependencies.html + .md) from the .csproj ProjectReference graph of a repo laid out as src/Modules/<Name>/, or check it for cross-Module cycles with -Check. Use when the user asks for the module dependency graph/map, deployment closure, "what modules does X need", a Module cycle check, or after adding/removing/re-referencing a Module project in such a repo. Pure script run - no build, no analysis required.
+description: Generate Module dependency graphs and deployment closure, or check cycles, in .NET repos using the src/Modules bundle layout.
 ---
 
 # module-deps

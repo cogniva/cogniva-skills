@@ -1,6 +1,6 @@
 ---
 name: workflow-status
-description: Read-only status of background Workflow runs (execute-feature, code-review ultra, custom workflows) for this repo - including ones started in OTHER sessions. Scans the on-disk workflow journals so it works from the IDE/chat with no terminal `/workflows` UI. Reports each run's name, originating session, per-task DONE/BLOCKED counts, and whether an agent is RUNNING (open 'started' + fresh write) or STALLED (open 'started' + stale write). Use when the user asks "check workflows / is my workflow still running / what's running / did the execute-feature finish". No subagents, no edits.
+description: Report Claude Workflow journal status, task progress, and stalled runs across sessions; read-only. Does not track Codex runs.
 ---
 
 # workflow-status

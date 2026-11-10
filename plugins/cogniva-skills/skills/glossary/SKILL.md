@@ -1,6 +1,6 @@
 ---
 name: glossary
-description: Use this tool whenever you encounter an unrecognized term, project-specific jargon, or any noun that does not appear in your current context (files read, memory, or system prompt). DO NOT search the codebase (grep, file search or file reads) for an unrecognized term before invoking this tool. The glossary is the authoritative source of truth and must be consulted before any codebase exploration. If the term is not found in the glossary, you must ask your human partner for its definition and explicitly offer to document it in the glossary. This skill is the authoritative source of truth for any terminology used in this project.
+description: Use for unfamiliar or ambiguous terms, project-specific jargon, or nouns absent from current context. DO NOT search the codebase (grep, file search or file reads) for an unrecognized term before invoking this skill.
 ---
 
 <when-to-use>

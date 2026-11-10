@@ -1,6 +1,6 @@
 ---
 name: repo-init
-description: Use when starting a brand-new .NET repo - scaffolds git, the solution, Directory.Build.props, the chosen hosts, AGENTS.md and a seed glossary, and adopts and declares the dotnet architecture profile
+description: Scaffold a new .NET repo with chosen application hosts and the dotnet architecture profile; explicit invocation only.
 disable-model-invocation: true
 ---
 

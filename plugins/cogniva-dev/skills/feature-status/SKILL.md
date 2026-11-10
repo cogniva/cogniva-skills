@@ -1,6 +1,6 @@
 ---
 name: feature-status
-description: Use to see what feature work is remaining and in-flight. Read-only scan of docs/plans/<Module>/*/ plan checkboxes and state.md files plus git worktrees - reports per-feature task progress, the next actionable task, pending manual-validation (⛔) gates, active worktrees, and any integrations queued waiting for a clean tree. No subagents.
+description: Report feature task progress, next tasks, validation gates, and worktree or integration status; read-only.
 ---
 
 # Feature Status

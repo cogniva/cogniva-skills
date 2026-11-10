@@ -1,6 +1,6 @@
 ---
 name: gate-check
-description: Run the repository's canonical mechanical completion gates without taking lifecycle ownership. Read-only except for commands explicitly configured by the target repository's green gate.
+description: Run repository-configured completion checks and report passing, failing, or skipped validation without lifecycle actions.
 ---
 
 # Gate Check

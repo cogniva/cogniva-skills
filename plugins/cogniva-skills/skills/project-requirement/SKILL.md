@@ -1,6 +1,6 @@
 ---
 name: project-requirement
-description: Capture, track, and analyze project requirements stored in docs/REQUIREMENTS.md. Supports adding structured requirements, viewing by severity or status, refining loose requirements, gap analysis, open-questions review, and executive summaries.
+description: Capture, refine, view, or analyze project requirements; flag uncaptured requirements and status drift during planning.
 ---
 
 # Project Requirement

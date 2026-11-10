@@ -1,6 +1,6 @@
 ---
 name: investigate
-description: Design, record, or review technical experiments within a continuing investigation, with proportionate rigor and evidence-based challenge. Invoke manually only; experiment execution needs user approval, and accepted documentation normally receives a scoped local commit.
+description: Design, record, or review technical experiments within a continuing investigation; explicit invocation only.
 disable-model-invocation: true
 ---
 

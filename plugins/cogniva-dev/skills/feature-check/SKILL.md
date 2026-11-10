@@ -1,6 +1,6 @@
 ---
 name: feature-check
-description: Provide workflow-neutral preflight, review, and commit-readiness evidence for a bounded implementation. Delegates authority discovery and mechanical gates; it never owns lifecycle mutations.
+description: Check preflight, review, or commit readiness for bounded implementation without owning its lifecycle.
 ---
 
 # Feature Check

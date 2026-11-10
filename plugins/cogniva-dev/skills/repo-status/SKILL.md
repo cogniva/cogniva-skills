@@ -1,6 +1,6 @@
 ---
 name: repo-status
-description: Use to see the whole repo at a glance - the live roadmap. Read-only cross-Module roll-up of docs/plans/ - one row per Module (features done/total, in-flight, deferred stubs, loose-backlog count), plus repo-level BACKLOG.md items and global action items (queued integrations, pending ⛔ gates, active worktrees). This is the single skill to answer "what's the overall state / what's left". No subagents, no edits.
+description: Report repository-wide feature progress, deferred work, backlog, and blockers; read-only.
 ---
 
 # Repo Status

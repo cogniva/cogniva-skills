@@ -1,6 +1,6 @@
 ---
 name: applicable-rules
-description: Discover the repository instruction chain, placement constraints, and relevant obligations for intended target paths before implementation. Read-only; never changes repository or lifecycle state.
+description: Discover repository instructions, architecture constraints, and validation obligations for intended target paths before implementation; read-only.
 ---
 
 # Applicable Rules

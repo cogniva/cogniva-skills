@@ -1,6 +1,6 @@
 # SkillContextEfficiency — audit and acceptance
 
-Executor input for the [feature plan](SkillContextEfficiency-plan.md), not a shipped skill reference. Baseline captured on 2026-11-10 at revision `5b9b65393b588997e502e11d540ad21b768e12fa`; the working tree was clean before these planning documents. This covers the repository's 25 shipped skills, excluding its template and externally maintained plugins. Implementation and real-host validation have not started.
+Executor input for the [feature plan](SkillContextEfficiency-plan.md), not a shipped skill reference. Baseline captured on 2026-11-10 at revision `5b9b65393b588997e502e11d540ad21b768e12fa`; the working tree was clean before these planning documents. This covers the repository's 25 shipped skills, excluding its template and externally maintained plugins. Task 1's description-only implementation is complete; real-host validation has not started.
 
 ## Loading model and measurements
 
@@ -296,6 +296,26 @@ The parser fits current single-line descriptions. Keep valid YAML; if representa
 
 ## Execution evidence
 
-Implementation has not started. During execution link real standard smoke records, published-control/new-build comparisons, actual description counts, targeted read sets/assumptions, regression outcomes, two-plugin build attestation, host restoration/retention disposition, exact Task 3/6 evidence inventories, and real implementer/reviewer hosts. Preserve fail/not-run and named waivers. Acceptance with waivers permits progress while leaving the corresponding behavioral and parity claims limited.
+During execution link real standard smoke records, published-control/new-build comparisons, actual description counts, targeted read sets/assumptions, regression outcomes, two-plugin build attestation, host restoration/retention disposition, exact Task 3/6 evidence inventories, and real implementer/reviewer hosts. Preserve fail/not-run and named waivers. Acceptance with waivers permits progress while leaving the corresponding behavioral and parity claims limited.
+
+### Task 1 — description-only source results (2026-11-10)
+
+Applied all 25 description drafts above verbatim, each at most two sentences. The inventory remains 21 cogniva-dev skills and four cogniva-skills skills. The six paired explicit-only settings remain on add-module, cleanup-allwork, cleanup-work, explore-idea, investigate, and repo-init; the same other 19 remain model-discoverable. Quick-fix and plan-feature retain their explicit-start/approved-dispatch description rules. Glossary retains the broad unfamiliar/ambiguous-term, project-jargon, and absent-noun trigger and its explicit codebase-search prohibition.
+
+Counts use the normalization and quote-exclusion convention above:
+
+| Measured source | Frozen baseline characters | Task 1 characters | Reduction |
+|---|---:|---:|---:|
+| All 25 descriptions | 9,404 | 3,065 | 6,339 (67.41%) |
+| Same 19 model-discoverable descriptions | 7,265 | 2,363 | 4,902 (67.47%) |
+| All 25 bodies | 140,149 | 140,149 | 0 |
+
+A read-only comparison against the pre-task HEAD confirmed every body and every non-description frontmatter field unchanged. No invocation metadata, parity rows, versions, overlays, or execution procedures changed. The reduction across the six explicit-only descriptions is not claimed as recurring model-discovery savings. These source sizes are not runtime token, billing, or frequency measurements.
+
+TDD evidence: scoped the existing quick-fix, plan-feature, and glossary description assertions to frontmatter and added protection for glossary's broad trigger. The semantic suite first failed exactly that new trigger assertion on the old description (exit 1); after applying the drafts it passed (exit 0). All original workflow obligations remain checked.
+
+Required source checks passed: `powershell -NoProfile -ExecutionPolicy Bypass -File plugins/cogniva-dev/tests/skill-semantics/skill-semantics.tests.ps1`; `pwsh -NoProfile -File scripts/check-host-parity.ps1` (26 rows, 33 items covered); and `git diff --check`. Reviewed `scripts/check-host-neutrality.ps1` and ran it with PowerShell 7: OK, 70 references in 16 files, with no reductions or increases; no baseline refresh was needed.
+
+Implemented on Codex; independent host review and fresh-session activation checks are not yet performed. Source assertions do not prove fresh-host activation or loaded-build identity. Gate A remains pending, with no smoke records or behavioral acceptance claimed. Task 2 prepares that checkpoint separately; console-owned version offers and any before-integrate parity obligations remain as specified above.
 
 Release offers and decisions are console-owned as specified above; the final worker records evidence and mechanical checks, then returns DONE so normal landing can run.

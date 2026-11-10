@@ -1,6 +1,6 @@
 ---
 name: reference
-description: Use when adding, viewing, or managing external references (standards, specifications, publications, articles, URLs) that inform or justify project decisions. Also activates when the user mentions a citation, bibliography, or external source that should be tracked.
+description: Maintain the project bibliography and propose capturing unrecorded sources cited in design or planning.
 ---
 
 # Reference

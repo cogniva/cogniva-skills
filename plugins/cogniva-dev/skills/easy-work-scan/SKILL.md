@@ -1,6 +1,6 @@
 ---
 name: easy-work-scan
-description: Use when the user wants a shortlist of backlog work that can be tackled with little to no involvement from them ("scan the backlog for easy stuff", "what can you just get on with?") - a read-only scan qualifies every open item against a five-part low-involvement test and presents the shortlist, plus every disqualified item and its reason, behind one approval gate. Approved items are dispatched one at a time through quick-fix / plan-feature; the scan itself never implements anything and never grooms silently.
+description: Find backlog work suitable for low-involvement execution and dispatch the user-approved shortlist.
 ---
 
 # Easy Work Scan
