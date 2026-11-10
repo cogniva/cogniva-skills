@@ -606,3 +606,42 @@ Raw staging SHA256s (copy identical bytes into each applicable fixture, then ver
 | `glossary/src/Window.ps1` | `d71eb8dc16d4380da154104d0116627248e244362600325c3c2dfcf710b4c90b` |
 | `requirements/docs/REQUIREMENTS.md` | `1c4ea10f2b36480f7ffe7f9cdce78ddc3f8d033d34b16eee1d90af0f278416a7` |
 | `prompts.md` | `91c88f53c239726feb8f4943675d84bab1609ba0375a89a6d075cc6c098a9c41` |
+
+### Gate A — approved setup completed (2026-11-10)
+
+The human explicitly answered **Approve Gate A setup** for the concrete root
+`C:/Users/canuc/AppData/Local/Temp/cogniva-skill-context-efficiency-20261110`
+and the enumerated control export, Gate A fixtures, before-QF roots, and
+matching outputs. This approves setup only: plugin configuration changes,
+behavioral runs, and acceptance remain separate. It does not approve Gate B
+creation, cleanup, or changes to other external paths.
+
+The console exported the pinned plugins tree and created 20 separate neutral
+repositories: nine Gate A scenarios per host and one glossary control per host.
+Input copies matched their raw SHA256s before intentionally dirtying the two
+backlog-dirty copies. Each repository is on `feature/context-smoke`, has no
+remote, and is clean except those two designated dirty ledgers. No fixture
+contains AGENTS.md/CLAUDE.md; no such instruction file was found along its
+ancestor chain. Per-fixture starting metadata is in the matching approved
+`output/<phase>/<host>/<scenario>/setup-manifest.json` directories. QF-before
+roots and outputs are empty reservations for the unchanged driver; no QF
+scenario was generated or run. Gate B was not created.
+
+All 179 exported files match the pinned Git contents after CRLF normalization;
+178 files received Git archive's checkout line-ending conversion. An initial
+byte-identical assertion exposed that conversion, then the normalized comparison
+passed. The 49-file pinned instruction fingerprint matches
+`62d3cb5ead5ded74464ade31c57eeb74b0e1974a7248a5bd4857ac382046111d`.
+Read-only fixture Git checks from the sandbox account encountered ownership
+protection; running those checks under the creating user context passed. No
+safe.directory or user configuration change was made.
+
+Read-only cache comparison also matched all 41 cogniva-dev and eight
+cogniva-skills instruction files in the candidate Codex caches to the pinned
+baseline, with no missing, extra, or differing instruction files. This qualifies
+their source content for the optional control shortcut, not a session loading
+attestation. Both plugin selections are enabled. The current Codex configuration
+has no explicit `marketplaces.cogniva` entry, so actual registered source and
+restoration feasibility still need capture through the supported manager before
+any install. No host was launched, no plugin was installed/refreshed, and no
+standard smoke record or acceptance/waiver was created. Gate A remains pending.
